@@ -10,6 +10,7 @@ from __future__ import annotations
 import hashlib
 import hmac
 import json
+import os
 import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -110,12 +111,33 @@ class GraphClient:
         return first["hash"]
 
     def upload_video(self, account_path: str, file_path: str, name: str,
-                     *, poll_seconds: int = 5, poll_timeout: int = 600) -> str:
-        """Upload a video, wait until processing finishes, return the video id."""
+                     *, poll_seconds: int = 5, poll_timeout: int = 900) -> str:
+        """Upload a video via Meta's resumable chunked protocol; return the id once ready.
+
+        The one-shot ``source`` upload fails for large files, so we always use the
+        start -> transfer(chunks) -> finish phases, which Meta sizes via the offsets.
+        """
+        file_size = os.path.getsize(file_path)
+        start = self._request("POST", f"{account_path}/advideos",
+                              data={"upload_phase": "start", "file_size": file_size})
+        session_id = start["upload_session_id"]
+        video_id = start["video_id"]
+        start_offset, end_offset = int(start["start_offset"]), int(start["end_offset"])
+
         with open(file_path, "rb") as fh:
-            payload = self._request("POST", f"{account_path}/advideos",
-                                    data={"name": name}, files={"source": fh})
-        video_id = payload["id"]
+            while start_offset < end_offset:
+                fh.seek(start_offset)
+                chunk = fh.read(end_offset - start_offset)
+                resp = self._request(
+                    "POST", f"{account_path}/advideos",
+                    data={"upload_phase": "transfer", "upload_session_id": session_id,
+                          "start_offset": start_offset},
+                    files={"video_file_chunk": ("chunk", chunk, "application/octet-stream")},
+                )
+                start_offset, end_offset = int(resp["start_offset"]), int(resp["end_offset"])
+
+        self._request("POST", f"{account_path}/advideos",
+                      data={"upload_phase": "finish", "upload_session_id": session_id, "name": name})
         self._wait_video_ready(video_id, poll_seconds, poll_timeout)
         return video_id
 

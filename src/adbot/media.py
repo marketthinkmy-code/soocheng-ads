@@ -38,6 +38,7 @@ def sync_media(graph, settings, units: List[Unit], *, dry_run: bool = False) -> 
             cache[asset.file_id] = {"meta_id": asset.meta_id, "kind": kind,
                                     "name": asset.name, "uploaded_at": state.now_iso()}
             uploaded += 1
+            state.save("media_cache", cache)  # persist incrementally so a mid-run failure is resumable
             log.info("  [UPLOADED %s] %s -> %s", kind, asset.name, asset.meta_id)
 
     if not dry_run:
