@@ -1,0 +1,64 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# adbot — non-secret operator config for STOCK BLOOM《1 分钟短线交易盈利营》(Soo Cheng / MY)
+# Secrets live in .env (see .env.example).  Edit the XXXXXXXX placeholders before
+# the first live run.  `python -m adbot doctor` validates everything here.
+# ─────────────────────────────────────────────────────────────────────────────
+
+meta:
+  ad_account_id: "act_XXXXXXXX"          # numeric; from ads_get_ad_accounts (keep the act_ prefix)
+  page_id: "XXXXXXXX"                     # FB Page the ads run under (ads_get_ad_account_pages)
+  instagram_actor_id: null                # optional IG identity for IG placements; null to omit
+  pixel_id: "XXXXXXXX"                    # pixel / dataset id for lead tracking (ads_get_datasets)
+
+  objective: "OUTCOME_LEADS"              # campaign objective (lead / CPL goal)
+  optimization_goal: "OFFSITE_CONVERSIONS"
+  conversion_event: "LEAD"               # pixel event optimized for (custom_event_type)
+  special_ad_categories: []              # CONFIRM region rules: some require ["FINANCIAL_PRODUCTS_SERVICES"]
+                                         #   for trading/investment ads, which forces broad targeting
+
+  lead_destination:
+    type: "WEBSITE"                      # WEBSITE (chosen) | INSTANT_FORM | MESSENGER | WHATSAPP
+    link_url: "https://your-landing-page.example/stockbloom"
+  conversion_domain: "your-landing-page.example"   # required by Meta for website-conversion ads
+  call_to_action: "SIGN_UP"             # e.g. SIGN_UP / LEARN_MORE / GET_OFFER / SUBSCRIBE
+
+  budget:
+    level: "CAMPAIGN"                    # CBO — campaign-level budget (all ads use CBO)
+    daily_amount_myr: 250                # campaign daily budget (MYR); MUST be >= sum of ad-set minimums
+    currency: "MYR"
+    adset_min_spend_myr: 50              # per-ad-set minimum daily spend (>=50) -> daily_min_spend_target
+
+  targeting:
+    countries: ["MY"]
+    age_min: 25
+    age_max: 65
+    advantage_audience: 1                # 1 = Broad / Advantage+ ON (age 25 = floor). 0 = hard 25+ cap.
+
+  build:
+    creatives_per_adset: 10              # the "10" in 1-1-10
+    activate_after_build: true           # auto-activate at daily_amount_myr after a verified build
+
+naming:
+  prefix: "STOCKBLOOM"                   # name prefix for every entity this bot manages (scoping)
+  weekly_off_label: "ADBOT_WEEKLY_OFF"   # label marking ads paused by the Wed OFF job (resumed Thu)
+
+drive:
+  creatives_folder_id: "GDRIVE_FOLDER_ID"   # root folder with videos / images / carousel subfolders
+  carousel_subfolder_marker: "carousel"     # a subfolder whose name contains this = one carousel set
+  script_sidecar_ext: ".txt"                # per-asset script/brief: same basename, this extension
+
+google_docs:
+  caption_log_doc_id: ""                 # existing Doc id for caption+headline log (empty -> create)
+  idea_backlog_doc_id: ""                # existing Doc id for content-idea backlog (empty -> create)
+
+kpi:
+  cpl_threshold_myr: 40.00               # pause ads above this CPL (project target RM35-40; ceiling 40)
+  cpl_min_spend_myr: 80.00               # don't judge CPL until ~2x target CPL spent (fair chance first)
+  cpl_lookback: "last_3d"                # insights window for the CPL read (smooths daily noise)
+  pause_zero_lead_after_spend: true      # spend >= min_spend & 0 leads -> infinite CPL -> pause
+
+schedule:                                # informational; the real schedule lives in the Routine triggers
+  timezone: "Asia/Kuala_Lumpur"          # GMT+8 (no DST)
+  weekly_off: { day: "WED", time: "15:00" }   # pause ALL            -> UTC cron 0 7 * * 3
+  weekly_on:  { day: "THU", time: "00:00" }   # resume what Wed paused -> UTC cron 0 16 * * 3
+  monitor_interval_hours: 1

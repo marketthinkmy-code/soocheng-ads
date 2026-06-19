@@ -1,0 +1,187 @@
+"""Load + validate config.yaml and .env into a single typed Settings object.
+
+Loading is lenient (placeholders are allowed) so dry-runs and unit tests work without
+real credentials. The ``doctor`` command is what enforces that every value is real
+before a live run.
+"""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from typing import List, Optional
+
+import yaml
+from pydantic import BaseModel, Field
+
+from .logging import register_secret
+
+# repo-root/src/adbot/settings.py -> parents[2] == repo root
+REPO_ROOT = Path(os.environ.get("ADBOT_ROOT", Path(__file__).resolve().parents[2]))
+DEFAULT_CONFIG = Path(os.environ.get("ADBOT_CONFIG", REPO_ROOT / "config" / "config.yaml"))
+PLACEHOLDER_TOKENS = ("XXXXXXXX", "GDRIVE_FOLDER_ID", "your-landing-page.example")
+
+
+# ── config.yaml models ───────────────────────────────────────────────────────
+class LeadDestination(BaseModel):
+    type: str = "WEBSITE"
+    link_url: str = ""
+    lead_form_id: Optional[str] = None
+
+
+class Budget(BaseModel):
+    level: str = "CAMPAIGN"
+    daily_amount_myr: float = 250
+    currency: str = "MYR"
+    adset_min_spend_myr: float = 50
+
+    @property
+    def daily_amount_cents(self) -> int:
+        return int(round(self.daily_amount_myr * 100))
+
+    @property
+    def adset_min_spend_cents(self) -> int:
+        return int(round(self.adset_min_spend_myr * 100))
+
+
+class Targeting(BaseModel):
+    countries: List[str] = Field(default_factory=lambda: ["MY"])
+    age_min: int = 25
+    age_max: int = 65
+    advantage_audience: int = 1
+
+    def to_spec(self) -> dict:
+        return {
+            "geo_locations": {"countries": self.countries},
+            "age_min": self.age_min,
+            "age_max": self.age_max,
+            "targeting_automation": {"advantage_audience": self.advantage_audience},
+        }
+
+
+class BuildCfg(BaseModel):
+    creatives_per_adset: int = 10
+    activate_after_build: bool = True
+
+
+class MetaCfg(BaseModel):
+    ad_account_id: str = "act_XXXXXXXX"
+    page_id: str = "XXXXXXXX"
+    instagram_actor_id: Optional[str] = None
+    pixel_id: str = "XXXXXXXX"
+    objective: str = "OUTCOME_LEADS"
+    optimization_goal: str = "OFFSITE_CONVERSIONS"
+    conversion_event: str = "LEAD"
+    special_ad_categories: List[str] = Field(default_factory=list)
+    lead_destination: LeadDestination = Field(default_factory=LeadDestination)
+    conversion_domain: str = ""
+    call_to_action: str = "SIGN_UP"
+    budget: Budget = Field(default_factory=Budget)
+    targeting: Targeting = Field(default_factory=Targeting)
+    build: BuildCfg = Field(default_factory=BuildCfg)
+
+    @property
+    def account_path(self) -> str:
+        """Graph API path segment, always 'act_<digits>'."""
+        bare = self.ad_account_id.replace("act_", "")
+        return f"act_{bare}"
+
+    @property
+    def promoted_object(self) -> dict:
+        return {"pixel_id": self.pixel_id, "custom_event_type": self.conversion_event}
+
+
+class Naming(BaseModel):
+    prefix: str = "STOCKBLOOM"
+    weekly_off_label: str = "ADBOT_WEEKLY_OFF"
+
+    def campaign_name(self, suffix: str) -> str:
+        return f"{self.prefix} | {suffix}"
+
+
+class DriveCfg(BaseModel):
+    creatives_folder_id: str = "GDRIVE_FOLDER_ID"
+    carousel_subfolder_marker: str = "carousel"
+    script_sidecar_ext: str = ".txt"
+
+
+class GoogleDocsCfg(BaseModel):
+    caption_log_doc_id: str = ""
+    idea_backlog_doc_id: str = ""
+
+
+class KpiCfg(BaseModel):
+    cpl_threshold_myr: float = 40.0
+    cpl_min_spend_myr: float = 80.0
+    cpl_lookback: str = "last_3d"
+    pause_zero_lead_after_spend: bool = True
+
+
+# ── secrets (.env / environment) ─────────────────────────────────────────────
+class Secrets(BaseModel):
+    meta_token: str = ""
+    meta_app_secret: str = ""
+    google_sa_json: str = ""
+    anthropic_api_key: str = ""
+
+
+# ── top-level ────────────────────────────────────────────────────────────────
+class Settings(BaseModel):
+    meta: MetaCfg = Field(default_factory=MetaCfg)
+    naming: Naming = Field(default_factory=Naming)
+    drive: DriveCfg = Field(default_factory=DriveCfg)
+    google_docs: GoogleDocsCfg = Field(default_factory=GoogleDocsCfg)
+    kpi: KpiCfg = Field(default_factory=KpiCfg)
+    schedule: dict = Field(default_factory=dict)
+    secrets: Secrets = Field(default_factory=Secrets)
+    config_path: str = str(DEFAULT_CONFIG)
+
+
+def load_dotenv(path: Path) -> None:
+    """Minimal .env loader: KEY=VALUE lines, '#' comments. Does not overwrite existing env."""
+    if not path.exists():
+        return
+    for raw in path.read_text(encoding="utf-8").splitlines():
+        line = raw.strip()
+        if not line or line.startswith("#") or "=" not in line:
+            continue
+        key, _, value = line.partition("=")
+        key, value = key.strip(), value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+def _load_secrets() -> Secrets:
+    secrets = Secrets(
+        meta_token=os.environ.get("META_SYSTEM_USER_TOKEN", ""),
+        meta_app_secret=os.environ.get("META_APP_SECRET", ""),
+        google_sa_json=os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", ""),
+        anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
+    )
+    register_secret(secrets.meta_token)
+    register_secret(secrets.meta_app_secret)
+    register_secret(secrets.anthropic_api_key)
+    return secrets
+
+
+def load_settings(config_path: Optional[Path] = None) -> Settings:
+    """Read config.yaml + .env into a validated Settings object."""
+    load_dotenv(REPO_ROOT / ".env")
+    path = Path(config_path or DEFAULT_CONFIG)
+    data = yaml.safe_load(path.read_text(encoding="utf-8")) if path.exists() else {}
+    data = data or {}
+    settings = Settings(
+        meta=MetaCfg(**(data.get("meta") or {})),
+        naming=Naming(**(data.get("naming") or {})),
+        drive=DriveCfg(**(data.get("drive") or {})),
+        google_docs=GoogleDocsCfg(**(data.get("google_docs") or {})),
+        kpi=KpiCfg(**(data.get("kpi") or {})),
+        schedule=data.get("schedule") or {},
+        secrets=_load_secrets(),
+        config_path=str(path),
+    )
+    return settings
+
+
+def has_placeholder(value: str) -> bool:
+    """True if a config string still holds a template placeholder."""
+    return any(tok in (value or "") for tok in PLACEHOLDER_TOKENS)
