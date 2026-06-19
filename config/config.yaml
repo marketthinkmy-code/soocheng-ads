@@ -5,22 +5,22 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 meta:
-  ad_account_id: "act_XXXXXXXX"          # numeric; from ads_get_ad_accounts (keep the act_ prefix)
-  page_id: "XXXXXXXX"                     # FB Page the ads run under (ads_get_ad_account_pages)
-  instagram_actor_id: null                # optional IG identity for IG placements; null to omit
-  pixel_id: "XXXXXXXX"                    # pixel / dataset id for lead tracking (ads_get_datasets)
+  ad_account_id: "act_2262468824239770"          # numeric; from ads_get_ad_accounts (keep the act_ prefix)
+  page_id: "1001334883061622"                     # FB Page the ads run under (ads_get_ad_account_pages)
+  instagram_actor_id: "25732101186427571"                # optional IG identity for IG placements; null to omit
+  pixel_id: "2602956993413536"                    # pixel / dataset id for lead tracking (ads_get_datasets)
 
   objective: "OUTCOME_LEADS"              # campaign objective (lead / CPL goal)
   optimization_goal: "OFFSITE_CONVERSIONS"
-  conversion_event: "LEAD"               # pixel event optimized for (custom_event_type)
+  conversion_event: "SALES"               # pixel event optimized for (custom_event_type)
   special_ad_categories: []              # CONFIRM region rules: some require ["FINANCIAL_PRODUCTS_SERVICES"]
                                          #   for trading/investment ads, which forces broad targeting
 
   lead_destination:
     type: "WEBSITE"                      # WEBSITE (chosen) | INSTANT_FORM | MESSENGER | WHATSAPP
-    link_url: "https://your-landing-page.example/stockbloom"
-  conversion_domain: "your-landing-page.example"   # required by Meta for website-conversion ads
-  call_to_action: "SIGN_UP"             # e.g. SIGN_UP / LEARN_MORE / GET_OFFER / SUBSCRIBE
+    link_url: "https://soochenginvesting.com/"
+  conversion_domain: "https://soochenginvesting.com/"   # required by Meta for website-conversion ads
+  call_to_action: "LEARN_MORE"             # e.g. SIGN_UP / LEARN_MORE / GET_OFFER / SUBSCRIBE
 
   budget:
     level: "CAMPAIGN"                    # CBO — campaign-level budget (all ads use CBO)
