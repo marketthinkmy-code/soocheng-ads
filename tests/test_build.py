@@ -114,7 +114,7 @@ def test_build_creates_and_activates(tmp_path, monkeypatch):
     assert campaign["bid_strategy"] == "LOWEST_COST_WITHOUT_CAP"
 
     adset = next(c[1] for c in g.calls if c[0] == "adset")
-    assert adset["daily_min_spend_target"] == 5000
+    assert "daily_min_spend_target" not in adset  # single-ad-set CBO uses the full campaign budget
     assert adset["optimization_goal"] == "OFFSITE_CONVERSIONS"
     assert adset["promoted_object"] == {"pixel_id": "PIX9", "custom_event_type": "LEAD"}
     assert adset["targeting"]["targeting_automation"]["advantage_audience"] == 1
