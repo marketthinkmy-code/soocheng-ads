@@ -50,8 +50,9 @@ Then provide your inputs:
 3. **.env** — copy from `.env.example` and set the three secrets:
    - `META_SYSTEM_USER_TOKEN` (scopes: `ads_management, ads_read, business_management,
      pages_read_engagement`)
-   - `GOOGLE_SERVICE_ACCOUNT_JSON` (a service account with Drive + Docs APIs enabled — **share
-     the Drive folder + both Google Docs with its email**)
+   - `GOOGLE_SERVICE_ACCOUNT_JSON_B64` (base64 of the service-account key: `base64 -w0 key.json`;
+     enable Drive + Docs APIs and **share the Drive folder + both Google Docs with its email**).
+     Locally you may instead set `GOOGLE_SERVICE_ACCOUNT_JSON` to a file path or inline JSON.
    - `ANTHROPIC_API_KEY`
 4. Confirm whether your region requires the `FINANCIAL_PRODUCTS_SERVICES` special ad category
    for trading ads (set it in `config.yaml`; note it can force targeting broad and override 25+).

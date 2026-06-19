@@ -7,6 +7,7 @@ before a live run.
 
 from __future__ import annotations
 
+import base64
 import os
 from pathlib import Path
 from typing import List, Optional
@@ -150,11 +151,22 @@ def load_dotenv(path: Path) -> None:
         os.environ.setdefault(key, value)
 
 
+def _resolve_sa_json() -> str:
+    """Service-account key: prefer base64 (one-line, env-var friendly), else path/inline JSON."""
+    b64 = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON_B64", "").strip()
+    if b64:
+        try:
+            return base64.b64decode(b64).decode("utf-8")
+        except (ValueError, UnicodeDecodeError):
+            return ""  # doctor reports the SA key as unreadable instead of crashing
+    return os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
+
+
 def _load_secrets() -> Secrets:
     secrets = Secrets(
         meta_token=os.environ.get("META_SYSTEM_USER_TOKEN", ""),
         meta_app_secret=os.environ.get("META_APP_SECRET", ""),
-        google_sa_json=os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", ""),
+        google_sa_json=_resolve_sa_json(),
         anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
     )
     register_secret(secrets.meta_token)

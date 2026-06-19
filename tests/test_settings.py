@@ -53,3 +53,11 @@ def test_has_placeholder():
     assert has_placeholder("act_XXXXXXXX")
     assert has_placeholder("https://your-landing-page.example/x")
     assert not has_placeholder("act_123")
+
+
+def test_base64_service_account_takes_precedence(tmp_path, monkeypatch):
+    import base64 as _b64
+    raw = '{"type":"service_account","project_id":"p"}'
+    monkeypatch.setenv("GOOGLE_SERVICE_ACCOUNT_JSON_B64", _b64.b64encode(raw.encode()).decode())
+    s = load_settings(_write(tmp_path))
+    assert s.secrets.google_sa_json == raw
