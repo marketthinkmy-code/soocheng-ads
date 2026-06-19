@@ -117,7 +117,7 @@ def build(graph, settings: Settings, units: List[Unit],
         log.info("Reusing ad set %s", adset_id)
     else:
         adset_id = graph.create_adset(account, campaign_id=campaign_id, **adset_fields)["id"]
-        log.info("Created ad set %s (min daily spend %d MYR)", adset_id, m.budget.adset_min_spend_myr)
+        log.info("Created ad set %s", adset_id)
         _persist()
 
     for unit in units:
