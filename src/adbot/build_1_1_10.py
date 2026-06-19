@@ -75,7 +75,7 @@ def build(graph, settings: Settings, units: List[Unit],
         "name": settings.naming.campaign_name("AdSet | Broad MY 25+"),
         "optimization_goal": m.optimization_goal, "billing_event": "IMPRESSIONS",
         "promoted_object": m.promoted_object, "targeting": m.targeting.to_spec(),
-        "daily_min_spend_target": m.budget.adset_min_spend_cents, "status": "PAUSED",
+        "status": "PAUSED",
     }
 
     if dry_run:
