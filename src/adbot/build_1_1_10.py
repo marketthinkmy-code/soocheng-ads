@@ -59,24 +59,28 @@ def creative_spec(settings: Settings, unit: Unit, caption: Dict[str, Any],
 
 
 def build(graph, settings: Settings, units: List[Unit],
-          captions: Dict[str, Dict[str, Any]], *, dry_run: bool = False) -> Dict[str, Any]:
+          captions: Dict[str, Dict[str, Any]], *, dry_run: bool = False,
+          label: str = "1-1-10", state_key: str = "entities",
+          start_time: Optional[str] = None) -> Dict[str, Any]:
     log = get_logger()
     account = settings.meta.account_path
     m = settings.meta
 
     campaign_fields = {
-        "name": settings.naming.campaign_name("1-1-10"),
+        "name": settings.naming.campaign_name(label),
         "objective": m.objective, "buying_type": "AUCTION", "status": "PAUSED",
         "special_ad_categories": m.special_ad_categories,
         "daily_budget": m.budget.daily_amount_cents,
         "bid_strategy": "LOWEST_COST_WITHOUT_CAP",
     }
     adset_fields = {
-        "name": settings.naming.campaign_name("AdSet | Broad MY 25+"),
+        "name": settings.naming.campaign_name(f"{label} | AdSet (Broad MY 25+)"),
         "optimization_goal": m.optimization_goal, "billing_event": "IMPRESSIONS",
         "promoted_object": m.promoted_object, "targeting": m.targeting.to_spec(),
         "status": "PAUSED",
     }
+    if start_time:  # schedule delivery to begin at this ISO8601 time (with tz offset)
+        adset_fields["start_time"] = start_time
 
     if dry_run:
         log.info("[dry-run] CAMPAIGN: %s", campaign_fields)
@@ -90,7 +94,7 @@ def build(graph, settings: Settings, units: List[Unit],
 
     # Resumable: reuse any campaign / ad set / ads already recorded in state, and persist
     # after every entity so a mid-build failure never strands work or duplicates a campaign.
-    existing = state.load("entities")
+    existing = state.load(state_key)
     campaign_id = existing.get("campaign_id")
     adset_id = existing.get("adset_id")
     ad_ids: List[str] = list(existing.get("ad_ids", []))
@@ -98,7 +102,7 @@ def build(graph, settings: Settings, units: List[Unit],
     created_at = existing.get("created_at") or state.now_iso()
 
     def _persist() -> None:
-        state.save("entities", {"campaign_id": campaign_id, "adset_id": adset_id,
+        state.save(state_key, {"campaign_id": campaign_id, "adset_id": adset_id,
                                 "ad_ids": ad_ids, "built_content_ids": sorted(built),
                                 "created_at": created_at})
 
