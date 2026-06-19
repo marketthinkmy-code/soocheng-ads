@@ -82,6 +82,7 @@ class MetaCfg(BaseModel):
     lead_destination: LeadDestination = Field(default_factory=LeadDestination)
     conversion_domain: str = ""
     call_to_action: str = "SIGN_UP"
+    url_tags: str = ""  # UTM query string appended to destination URLs (supports Meta macros)
     budget: Budget = Field(default_factory=Budget)
     targeting: Targeting = Field(default_factory=Targeting)
     build: BuildCfg = Field(default_factory=BuildCfg)

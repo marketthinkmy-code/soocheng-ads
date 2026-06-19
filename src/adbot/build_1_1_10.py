@@ -55,6 +55,8 @@ def creative_spec(settings: Settings, unit: Unit, caption: Dict[str, Any],
     spec = {"name": f"{settings.naming.prefix} | {unit.content_id}", "object_story_spec": story}
     if settings.meta.instagram_user_id:
         spec["instagram_user_id"] = settings.meta.instagram_user_id
+    if settings.meta.url_tags:  # UTM tracking params appended to clicked URLs
+        spec["url_tags"] = settings.meta.url_tags
     return spec
 
 

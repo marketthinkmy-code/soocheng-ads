@@ -21,6 +21,7 @@ meta:
     link_url: "https://soochenginvesting.com/"
   conversion_domain: "https://soochenginvesting.com/"   # required by Meta for website-conversion ads
   call_to_action: "LEARN_MORE"             # e.g. SIGN_UP / LEARN_MORE / GET_OFFER / SUBSCRIBE
+  url_tags: "utm_source={{adset.name}}&utm_medium={{placement}}&utm_campaign={{campaign.name}}&utm_content={{ad.name}}"
 
   budget:
     level: "CAMPAIGN"                    # CBO — campaign-level budget (all ads use CBO)

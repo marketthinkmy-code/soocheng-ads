@@ -134,6 +134,13 @@ def test_build_creates_and_activates(tmp_path, monkeypatch):
     assert entities["activated"] is True
 
 
+def test_creative_spec_includes_url_tags(tmp_path):
+    s = _settings(tmp_path)
+    s.meta.url_tags = "utm_source={{adset.name}}&utm_content={{ad.name}}"
+    spec = creative_spec(s, _units()[0], CAPTIONS["vid"])
+    assert spec["url_tags"] == "utm_source={{adset.name}}&utm_content={{ad.name}}"
+
+
 def test_build_dry_run_creates_nothing(tmp_path):
     s = _settings(tmp_path)
     g = FakeGraph()
