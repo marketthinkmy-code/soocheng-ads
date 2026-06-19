@@ -51,14 +51,18 @@ class Targeting(BaseModel):
     age_min: int = 25
     age_max: int = 65
     advantage_audience: int = 1
+    locales: List[int] = Field(default_factory=list)  # Meta locale ids; 1004 = Chinese (All)
 
     def to_spec(self) -> dict:
-        return {
+        spec = {
             "geo_locations": {"countries": self.countries},
             "age_min": self.age_min,
             "age_max": self.age_max,
             "targeting_automation": {"advantage_audience": self.advantage_audience},
         }
+        if self.locales:
+            spec["locales"] = self.locales
+        return spec
 
 
 class BuildCfg(BaseModel):

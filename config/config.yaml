@@ -33,6 +33,7 @@ meta:
     age_min: 25
     age_max: 65
     advantage_audience: 1                # 1 = Broad / Advantage+ ON (age 25 = floor). 0 = hard 25+ cap.
+    locales: [1004]                      # ad-set Languages = Chinese (All)
 
   build:
     creatives_per_adset: 10              # the "10" in 1-1-10

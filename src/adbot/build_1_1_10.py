@@ -123,8 +123,9 @@ def build(graph, settings: Settings, units: List[Unit],
         thumb = graph.get_video_thumbnail(unit.assets[0].meta_id) if unit.kind == VIDEO else None
         spec = creative_spec(settings, unit, captions.get(unit.content_id, {}), thumbnail_url=thumb)
         creative_id = graph.create_adcreative(account, **spec)["id"]
+        ad_name = captions.get(unit.content_id, {}).get("name") or f"{settings.naming.prefix} | {unit.content_id}"
         ad = graph.create_ad(
-            account, name=f"{settings.naming.prefix} | {unit.content_id}",
+            account, name=ad_name,
             adset_id=adset_id, creative={"creative_id": creative_id}, status="PAUSED",
             conversion_domain=m.conversion_domain_bare or None,
         )
