@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import base64
 import os
+import re
 from pathlib import Path
 from typing import List, Optional
 
@@ -90,6 +91,12 @@ class MetaCfg(BaseModel):
     @property
     def promoted_object(self) -> dict:
         return {"pixel_id": self.pixel_id, "custom_event_type": self.conversion_event}
+
+    @property
+    def conversion_domain_bare(self) -> str:
+        """Meta wants a bare domain (no scheme/path) for website-conversion ads."""
+        domain = re.sub(r"^https?://", "", (self.conversion_domain or "").strip())
+        return domain.split("/")[0]
 
 
 class Naming(BaseModel):

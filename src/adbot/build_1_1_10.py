@@ -97,7 +97,7 @@ def build(graph, settings: Settings, units: List[Unit],
         ad = graph.create_ad(
             account, name=f"{settings.naming.prefix} | {unit.content_id}",
             adset_id=adset_id, creative={"creative_id": creative_id}, status="PAUSED",
-            conversion_domain=m.conversion_domain or None,
+            conversion_domain=m.conversion_domain_bare or None,
         )
         ad_ids.append(ad["id"])
         log.info("  Created ad %s (%s, creative %s)", ad["id"], unit.kind, creative_id)

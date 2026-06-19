@@ -55,6 +55,12 @@ def test_has_placeholder():
     assert not has_placeholder("act_123")
 
 
+def test_conversion_domain_bare_strips_scheme_and_path():
+    from adbot.settings import MetaCfg
+    m = MetaCfg(conversion_domain="https://soochenginvesting.com/")
+    assert m.conversion_domain_bare == "soochenginvesting.com"
+
+
 def test_base64_service_account_takes_precedence(tmp_path, monkeypatch):
     import base64 as _b64
     raw = '{"type":"service_account","project_id":"p"}'

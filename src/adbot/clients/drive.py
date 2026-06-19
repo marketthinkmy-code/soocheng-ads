@@ -14,19 +14,31 @@ SCOPES = [
 ]
 
 
+def _load_sa_info(value: str) -> dict:
+    """Accept raw JSON or base64-encoded JSON (tolerant of which env var / format was used)."""
+    try:
+        return json.loads(value)
+    except json.JSONDecodeError:
+        pass
+    try:
+        import base64  # lazy
+        return json.loads(base64.b64decode(value).decode("utf-8"))
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(
+            "Google service-account key is neither a readable path, valid JSON, "
+            "nor valid base64-encoded JSON"
+        ) from exc
+
+
 def build_credentials(sa_json: str):
-    """Build service-account credentials from a file path or inline JSON string."""
+    """Build service-account credentials from a file path, inline JSON, or base64 JSON."""
     from google.oauth2 import service_account  # lazy
 
     if not sa_json:
-        raise RuntimeError("GOOGLE_SERVICE_ACCOUNT_JSON is not set")
+        raise RuntimeError("GOOGLE_SERVICE_ACCOUNT_JSON[_B64] is not set")
     if os.path.exists(sa_json):
         return service_account.Credentials.from_service_account_file(sa_json, scopes=SCOPES)
-    try:
-        info = json.loads(sa_json)
-    except json.JSONDecodeError as exc:
-        raise RuntimeError("GOOGLE_SERVICE_ACCOUNT_JSON is neither a readable path nor valid JSON") from exc
-    return service_account.Credentials.from_service_account_info(info, scopes=SCOPES)
+    return service_account.Credentials.from_service_account_info(_load_sa_info(sa_json), scopes=SCOPES)
 
 
 class DriveClient:
