@@ -43,7 +43,7 @@ naming:
   weekly_off_label: "ADBOT_WEEKLY_OFF"   # label marking ads paused by the Wed OFF job (resumed Thu)
 
 drive:
-  creatives_folder_id: "GDRIVE_FOLDER_ID"   # root folder with videos / images / carousel subfolders
+  creatives_folder_id: "1j4jWK5qVxL3mGM5WrU6TloHP-tV4kzmy"   # root folder with videos / images / carousel subfolders
   carousel_subfolder_marker: "carousel"     # a subfolder whose name contains this = one carousel set
   script_sidecar_ext: ".txt"                # per-asset script/brief: same basename, this extension
 
