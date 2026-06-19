@@ -1,0 +1,28 @@
+name: adbot · weekly ON (Thu 00:00 MYT)
+
+# Resumes exactly the ads that weekly-off paused (matched by the ADBOT_WEEKLY_OFF label).
+# Cron is UTC: Wed 16:00 UTC == Thu 00:00 Asia/Kuala_Lumpur (GMT+8).
+
+on:
+  schedule:
+    - cron: "0 16 * * 3"
+  workflow_dispatch: {}
+
+concurrency:
+  group: adbot-weekly
+  cancel-in-progress: false
+
+jobs:
+  weekly-on:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: Resume the ads weekly-off paused (weekly ON)
+        env:
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+        run: python -m adbot weekly_on
