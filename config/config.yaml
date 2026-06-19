@@ -10,9 +10,9 @@ meta:
   instagram_actor_id: "25732101186427571"                # optional IG identity for IG placements; null to omit
   pixel_id: "2602956993413536"                    # pixel / dataset id for lead tracking (ads_get_datasets)
 
-  objective: "OUTCOME_LEADS"              # campaign objective (lead / CPL goal)
-  optimization_goal: "OFFSITE_CONVERSIONS"
-  conversion_event: "SALES"               # pixel event optimized for (custom_event_type)
+  objective: "OUTCOME_SALES"              # matches your live "Sales" / BROAD META ANDRO template
+  optimization_goal: "OFFSITE_CONVERSIONS"   # "Maximize number of conversions"
+  conversion_event: "COMPLETE_REGISTRATION"  # Ads Manager "Complete registration" (custom_event_type)
   special_ad_categories: []              # CONFIRM region rules: some require ["FINANCIAL_PRODUCTS_SERVICES"]
                                          #   for trading/investment ads, which forces broad targeting
 

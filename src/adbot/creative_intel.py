@@ -7,25 +7,26 @@ from typing import Any, Dict, List
 
 from . import docwriter
 from .logging import final_summary, get_logger
-from .monitor_cpl import parse_metrics
+from .monitor_cpl import event_token, parse_metrics
 from .settings import REPO_ROOT, Settings
 
 INTEL_PROMPT_PATH = Path(REPO_ROOT) / "prompts" / "intel_system.md"
 
 
 def gather_signals(graph, settings: Settings) -> List[Dict[str, Any]]:
-    """Per managed ad: name, status, spend, leads, CPL over a 30-day window."""
+    """Per managed ad: name, status, spend, results (optimized event), CPL over 30 days."""
+    token = event_token(settings.meta.conversion_event)
     signals: List[Dict[str, Any]] = []
     for campaign in graph.find_campaigns_by_prefix(settings.meta.account_path, settings.naming.prefix):
         for ad in graph.list_ads_under_campaign(campaign["id"]):
             insight = graph.get_ad_insight(ad["id"], "last_30d")
-            spend, leads = parse_metrics(insight)
+            spend, results = parse_metrics(insight, token)
             signals.append({
                 "ad_name": ad.get("name"),
                 "status": ad.get("effective_status"),
                 "spend": round(spend, 2),
-                "leads": leads,
-                "cpl": round(spend / leads, 2) if leads > 0 else None,
+                "results": results,
+                "cpl": round(spend / results, 2) if results > 0 else None,
             })
     return signals
 
