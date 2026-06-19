@@ -11,7 +11,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from adbot import build_1_1_10, media, state
+from adbot import build_1_1_10, media
 from adbot.clients.graph import GraphClient
 from adbot.creative_groups import VIDEO, Asset, Unit
 from adbot.logging import get_logger
@@ -37,12 +37,6 @@ def main() -> None:
     log = get_logger()
     settings = load_settings()
     settings.meta.build.activate_after_build = False  # PAUSED build; activate after preview
-
-    existing = state.load("entities")
-    if existing.get("campaign_id"):
-        log.info("Campaign already built (%s) — skipping. Delete state/entities.json to rebuild.",
-                 existing["campaign_id"])
-        return
 
     manifest = json.loads(
         (Path(REPO_ROOT) / "config" / "captions_june2026.json").read_text(encoding="utf-8"))

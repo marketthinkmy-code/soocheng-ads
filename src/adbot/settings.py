@@ -69,7 +69,7 @@ class BuildCfg(BaseModel):
 class MetaCfg(BaseModel):
     ad_account_id: str = "act_XXXXXXXX"
     page_id: str = "XXXXXXXX"
-    instagram_actor_id: Optional[str] = None
+    instagram_user_id: Optional[str] = None
     pixel_id: str = "XXXXXXXX"
     objective: str = "OUTCOME_LEADS"
     optimization_goal: str = "OFFSITE_CONVERSIONS"

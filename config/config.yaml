@@ -7,7 +7,7 @@
 meta:
   ad_account_id: "act_2262468824239770"          # numeric; from ads_get_ad_accounts (keep the act_ prefix)
   page_id: "1001334883061622"                     # FB Page the ads run under (ads_get_ad_account_pages)
-  instagram_actor_id: "25732101186427571"                # optional IG identity for IG placements; null to omit
+  instagram_user_id: "17841480427751602"                 # IG Business Account @soochenginvesting; null to omit
   pixel_id: "2602956993413536"                    # pixel / dataset id for lead tracking (ads_get_datasets)
 
   objective: "OUTCOME_SALES"              # matches your live "Sales" / BROAD META ANDRO template

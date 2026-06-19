@@ -74,6 +74,9 @@ class FakeGraph:
     def update_status(self, eid, status):
         self.calls.append(("status", eid, status))
 
+    def get_video_thumbnail(self, video_id):
+        return "https://example.test/thumb.jpg"
+
 
 def test_creative_spec_video(tmp_path):
     s = _settings(tmp_path)

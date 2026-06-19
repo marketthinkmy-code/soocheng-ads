@@ -153,6 +153,14 @@ class GraphClient:
             time.sleep(poll_seconds)
         raise GraphError(408, {"error": {"message": f"video {video_id} not ready after {poll_timeout}s"}})
 
+    def get_video_thumbnail(self, video_id: str) -> Optional[str]:
+        """Return a Meta-generated thumbnail URL for a processed video (preferred if present)."""
+        thumbs = self._get_all(f"{video_id}/thumbnails", {"fields": "uri,is_preferred"})
+        if not thumbs:
+            return None
+        preferred = next((t for t in thumbs if t.get("is_preferred")), thumbs[0])
+        return preferred.get("uri")
+
     # ── entity creation ────────────────────────────────────────────────────────
     def create_campaign(self, account_path: str, **fields) -> Dict[str, Any]:
         return self._request("POST", f"{account_path}/campaigns", data=_encode(fields))

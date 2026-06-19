@@ -6,7 +6,7 @@ hierarchy is then activated (campaign -> ad set -> ads) at the configured CBO bu
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from . import state
 from .creative_groups import CAROUSEL, SINGLE_IMAGE, VIDEO, Unit
@@ -19,7 +19,8 @@ def _cta(settings: Settings) -> Dict[str, Any]:
             "value": {"link": settings.meta.lead_destination.link_url}}
 
 
-def creative_spec(settings: Settings, unit: Unit, caption: Dict[str, Any]) -> Dict[str, Any]:
+def creative_spec(settings: Settings, unit: Unit, caption: Dict[str, Any],
+                  thumbnail_url: Optional[str] = None) -> Dict[str, Any]:
     """Build the ad-creative payload for one unit (video / image / carousel)."""
     page_id = settings.meta.page_id
     link = settings.meta.lead_destination.link_url
@@ -28,9 +29,11 @@ def creative_spec(settings: Settings, unit: Unit, caption: Dict[str, Any]) -> Di
     cta = _cta(settings)
 
     if unit.kind == VIDEO:
-        story = {"page_id": page_id, "video_data": {
-            "video_id": unit.assets[0].meta_id, "title": headline,
-            "message": message, "call_to_action": cta, "link_description": link}}
+        video_data = {"video_id": unit.assets[0].meta_id, "title": headline,
+                      "message": message, "call_to_action": cta}
+        if thumbnail_url:  # Meta requires a thumbnail (image_url/image_hash) for video creatives
+            video_data["image_url"] = thumbnail_url
+        story = {"page_id": page_id, "video_data": video_data}
     elif unit.kind == SINGLE_IMAGE:
         story = {"page_id": page_id, "link_data": {
             "link": link, "image_hash": unit.assets[0].meta_id,
@@ -50,8 +53,8 @@ def creative_spec(settings: Settings, unit: Unit, caption: Dict[str, Any]) -> Di
         raise ValueError(f"unknown unit kind: {unit.kind}")
 
     spec = {"name": f"{settings.naming.prefix} | {unit.content_id}", "object_story_spec": story}
-    if settings.meta.instagram_actor_id:
-        spec["instagram_actor_id"] = settings.meta.instagram_actor_id
+    if settings.meta.instagram_user_id:
+        spec["instagram_user_id"] = settings.meta.instagram_user_id
     return spec
 
 
@@ -85,14 +88,40 @@ def build(graph, settings: Settings, units: List[Unit],
                            f"at {m.budget.daily_amount_myr:.0f} MYR/day CBO (nothing created)")
         return {"dry_run": True, "ads": len(units)}
 
-    campaign_id = graph.create_campaign(account, **campaign_fields)["id"]
-    log.info("Created campaign %s", campaign_id)
-    adset_id = graph.create_adset(account, campaign_id=campaign_id, **adset_fields)["id"]
-    log.info("Created ad set %s (min daily spend %d MYR)", adset_id, m.budget.adset_min_spend_myr)
+    # Resumable: reuse any campaign / ad set / ads already recorded in state, and persist
+    # after every entity so a mid-build failure never strands work or duplicates a campaign.
+    existing = state.load("entities")
+    campaign_id = existing.get("campaign_id")
+    adset_id = existing.get("adset_id")
+    ad_ids: List[str] = list(existing.get("ad_ids", []))
+    built = set(existing.get("built_content_ids", []))
+    created_at = existing.get("created_at") or state.now_iso()
 
-    ad_ids: List[str] = []
+    def _persist() -> None:
+        state.save("entities", {"campaign_id": campaign_id, "adset_id": adset_id,
+                                "ad_ids": ad_ids, "built_content_ids": sorted(built),
+                                "created_at": created_at})
+
+    if campaign_id:
+        log.info("Reusing campaign %s", campaign_id)
+    else:
+        campaign_id = graph.create_campaign(account, **campaign_fields)["id"]
+        log.info("Created campaign %s", campaign_id)
+        _persist()
+
+    if adset_id:
+        log.info("Reusing ad set %s", adset_id)
+    else:
+        adset_id = graph.create_adset(account, campaign_id=campaign_id, **adset_fields)["id"]
+        log.info("Created ad set %s (min daily spend %d MYR)", adset_id, m.budget.adset_min_spend_myr)
+        _persist()
+
     for unit in units:
-        spec = creative_spec(settings, unit, captions.get(unit.content_id, {}))
+        if unit.content_id in built:
+            log.info("  Skipping %s (already built)", unit.content_id)
+            continue
+        thumb = graph.get_video_thumbnail(unit.assets[0].meta_id) if unit.kind == VIDEO else None
+        spec = creative_spec(settings, unit, captions.get(unit.content_id, {}), thumbnail_url=thumb)
         creative_id = graph.create_adcreative(account, **spec)["id"]
         ad = graph.create_ad(
             account, name=f"{settings.naming.prefix} | {unit.content_id}",
@@ -100,11 +129,9 @@ def build(graph, settings: Settings, units: List[Unit],
             conversion_domain=m.conversion_domain_bare or None,
         )
         ad_ids.append(ad["id"])
+        built.add(unit.content_id)
+        _persist()
         log.info("  Created ad %s (%s, creative %s)", ad["id"], unit.kind, creative_id)
-
-    entities = {"campaign_id": campaign_id, "adset_id": adset_id, "ad_ids": ad_ids,
-                "created_at": state.now_iso()}
-    state.save("entities", entities)
 
     activated = False
     if m.build.activate_after_build:
@@ -115,7 +142,6 @@ def build(graph, settings: Settings, units: List[Unit],
         activated = True
 
     state_word = "ACTIVE" if activated else "PAUSED"
-    final_summary(log, f"build: created 1 campaign + 1 ad set + {len(ad_ids)} ads "
+    final_summary(log, f"build: 1 campaign + 1 ad set + {len(ad_ids)} ads "
                        f"at {m.budget.daily_amount_myr:.0f} MYR/day CBO — now {state_word}")
-    entities["activated"] = activated
-    return entities
+    return {"campaign_id": campaign_id, "adset_id": adset_id, "ad_ids": ad_ids, "activated": activated}
