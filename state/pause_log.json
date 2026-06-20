@@ -1,1 +1,20 @@
-[]
+[
+  {
+    "ts": "2026-06-20T04:20:32+00:00",
+    "entity_id": "120245370940400688",
+    "entity_type": "ad",
+    "reason": "cpl_over_threshold",
+    "spend": 78.68,
+    "results": 1.0,
+    "cpl": 78.68
+  },
+  {
+    "ts": "2026-06-20T04:20:34+00:00",
+    "entity_id": "120245367212680688",
+    "entity_type": "ad",
+    "reason": "zero_results_over_min_spend",
+    "spend": 50.72,
+    "results": 0.0,
+    "cpl": null
+  }
+]

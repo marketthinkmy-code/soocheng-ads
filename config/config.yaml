@@ -55,8 +55,8 @@ google_docs:
 
 kpi:
   cpl_threshold_myr: 40.00               # pause ads above this CPL (project target RM35-40; ceiling 40)
-  cpl_min_spend_myr: 80.00               # don't judge CPL until ~2x target CPL spent (fair chance first)
-  cpl_lookback: "last_3d"                # insights window for the CPL read (smooths daily noise)
+  cpl_min_spend_myr: 50.00               # judge once an ad has spent ~1.25x target CPL (tightened from 80)
+  cpl_lookback: "maximum"                # lifetime window — last_3d excluded today; maximum includes it
   pause_zero_lead_after_spend: true      # spend >= min_spend & 0 leads -> infinite CPL -> pause
 
 schedule:                                # informational; the real schedule lives in the Routine triggers
