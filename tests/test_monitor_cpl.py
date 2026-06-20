@@ -1,8 +1,8 @@
 import math
 
 from adbot.monitor_cpl import (INSUFFICIENT_SPEND, NO_RESULTS_YET, OVER_THRESHOLD,
-                               WITHIN_THRESHOLD, ZERO_RESULTS, decide, event_token,
-                               extract_results, parse_metrics)
+                               WITHIN_THRESHOLD, ZERO_RESULTS, decide, extract_results,
+                               parse_metrics, result_action_type)
 from adbot.settings import KpiCfg
 
 KPI = KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80, pause_zero_lead_after_spend=True)
@@ -34,26 +34,33 @@ def test_cpl_within_threshold_keeps():
     assert not should and reason == WITHIN_THRESHOLD and cpl == 25
 
 
-def test_event_token_maps_complete_registration():
-    assert event_token("COMPLETE_REGISTRATION") == "complete_registration"
-    assert event_token("LEAD") == "lead"
+def test_result_action_type_is_exact_offsite_pixel_event():
+    assert result_action_type("COMPLETE_REGISTRATION") == "offsite_conversion.fb_pixel_complete_registration"
+    assert result_action_type("LEAD") == "offsite_conversion.fb_pixel_lead"
 
 
-def test_extract_results_matches_configured_event():
+def test_extract_results_counts_only_the_exact_bucket():
+    # Meta reports the SAME conversion under several overlapping buckets; only the exact
+    # offsite-pixel one is Ads Manager "Results". Summing the rest 5x-overcounts (the bug).
+    rat = result_action_type("COMPLETE_REGISTRATION")
     actions = [
-        {"action_type": "offsite_conversion.fb_pixel_complete_registration", "value": "3"},
-        {"action_type": "lead", "value": "99"},
+        {"action_type": "offsite_conversion.fb_pixel_complete_registration", "value": "2"},
         {"action_type": "complete_registration", "value": "2"},
+        {"action_type": "omni_complete_registration", "value": "2"},
+        {"action_type": "offsite_complete_registration_add_meta_leads", "value": "2"},
+        {"action_type": "offsite_complete_registration_add_20_s_calls", "value": "2"},
+        {"action_type": "onsite_conversion.post_net_like", "value": "4"},
     ]
-    assert extract_results(actions, "complete_registration") == 5
+    assert extract_results(actions, rat) == 2
 
 
 def test_parse_metrics_reads_spend_and_results():
-    insight = {"spend": "120.50",
-               "actions": [{"action_type": "complete_registration", "value": "2"}]}
-    spend, results = parse_metrics(insight, "complete_registration")
+    rat = result_action_type("COMPLETE_REGISTRATION")
+    insight = {"spend": "120.50", "actions": [{"action_type": rat, "value": "2"},
+                                              {"action_type": "complete_registration", "value": "2"}]}
+    spend, results = parse_metrics(insight, rat)
     assert spend == 120.5 and results == 2
 
 
 def test_parse_metrics_handles_empty():
-    assert parse_metrics(None, "complete_registration") == (0.0, 0.0)
+    assert parse_metrics(None, "offsite_conversion.fb_pixel_complete_registration") == (0.0, 0.0)

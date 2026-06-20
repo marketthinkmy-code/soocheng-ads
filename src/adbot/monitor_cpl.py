@@ -22,30 +22,21 @@ OVER_THRESHOLD = "cpl_over_threshold"
 WITHIN_THRESHOLD = "within_threshold"
 NO_RESULTS_YET = "no_results_yet"
 
-# Map a Meta custom_event_type to the substring that identifies it in an insight action_type.
-EVENT_ACTION_HINTS = {
-    "COMPLETE_REGISTRATION": "complete_registration",
-    "LEAD": "lead",
-    "PURCHASE": "purchase",
-    "SCHEDULE": "schedule",
-    "SUBSCRIBE": "subscribe",
-    "SUBMIT_APPLICATION": "submit_application",
-    "START_TRIAL": "start_trial",
-    "CONTACT": "contact",
-}
+def result_action_type(conversion_event: str) -> str:
+    """The exact insights action_type that equals Ads Manager "Results" for a pixel-optimized ad.
+
+    Meta reports the SAME conversion under several overlapping buckets (complete_registration,
+    omni_complete_registration, offsite_complete_registration_*, offsite_conversion.fb_pixel_*),
+    so we must match ONE exactly — substring-summing them multiplies the real count.
+    """
+    return f"offsite_conversion.fb_pixel_{(conversion_event or '').lower()}"
 
 
-def event_token(conversion_event: str) -> str:
-    """Substring used to find the optimized event inside an insight `action_type`."""
-    ce = (conversion_event or "").upper()
-    return EVENT_ACTION_HINTS.get(ce, ce.lower())
-
-
-def extract_results(actions: Optional[List[Dict[str, Any]]], token: str) -> float:
-    """Sum action values whose action_type contains the optimized-event token."""
+def extract_results(actions: Optional[List[Dict[str, Any]]], action_type: str) -> float:
+    """Sum values for ONLY the exact optimized-event bucket (= Ads Manager 'Results')."""
     total = 0.0
     for action in actions or []:
-        if token and token in (action.get("action_type", "")).lower():
+        if action.get("action_type") == action_type:
             try:
                 total += float(action.get("value", 0))
             except (TypeError, ValueError):
@@ -92,7 +83,7 @@ class AdDecision:
 def evaluate_account(graph, settings: Settings) -> List[AdDecision]:
     """Read every active managed ad's cost-per-result and compute pause decisions (no writes)."""
     account = settings.meta.account_path
-    token = event_token(settings.meta.conversion_event)
+    token = result_action_type(settings.meta.conversion_event)
     decisions: List[AdDecision] = []
     for campaign in graph.find_campaigns_by_prefix(account, settings.naming.prefix):
         for ad in graph.list_ads_under_campaign(campaign["id"]):

@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 
 from . import docwriter
 from .logging import final_summary, get_logger
-from .monitor_cpl import event_token, parse_metrics
+from .monitor_cpl import parse_metrics, result_action_type
 from .settings import REPO_ROOT, Settings
 
 INTEL_PROMPT_PATH = Path(REPO_ROOT) / "prompts" / "intel_system.md"
@@ -15,7 +15,7 @@ INTEL_PROMPT_PATH = Path(REPO_ROOT) / "prompts" / "intel_system.md"
 
 def gather_signals(graph, settings: Settings) -> List[Dict[str, Any]]:
     """Per managed ad: name, status, spend, results (optimized event), CPL over 30 days."""
-    token = event_token(settings.meta.conversion_event)
+    token = result_action_type(settings.meta.conversion_event)
     signals: List[Dict[str, Any]] = []
     for campaign in graph.find_campaigns_by_prefix(settings.meta.account_path, settings.naming.prefix):
         for ad in graph.list_ads_under_campaign(campaign["id"]):
