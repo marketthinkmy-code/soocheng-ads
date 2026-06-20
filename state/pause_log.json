@@ -16,5 +16,32 @@
     "spend": 50.72,
     "results": 0.0,
     "cpl": null
+  },
+  {
+    "ts": "2026-06-20T23:51:47+00:00",
+    "entity_id": "120245370950440688",
+    "entity_type": "ad",
+    "reason": "cpl_over_threshold",
+    "spend": 96.75,
+    "results": 2.0,
+    "cpl": 48.38
+  },
+  {
+    "ts": "2026-06-20T23:51:48+00:00",
+    "entity_id": "120245367218100688",
+    "entity_type": "ad",
+    "reason": "cpl_over_threshold",
+    "spend": 164.36,
+    "results": 3.0,
+    "cpl": 54.79
+  },
+  {
+    "ts": "2026-06-20T23:51:50+00:00",
+    "entity_id": "120245367226640688",
+    "entity_type": "ad",
+    "reason": "cpl_over_threshold",
+    "spend": 53.26,
+    "results": 1.0,
+    "cpl": 53.26
   }
 ]
