@@ -1,8 +1,9 @@
 name: adbot · CPL monitor (hourly)
 
-# Pauses any managed ad whose cost-per-Complete-Registration exceeds the KPI ceiling
-# (config/config.yaml: kpi.cpl_threshold_myr) once it has spent enough to judge fairly.
-# Scoped to campaigns named with the STOCKBLOOM prefix, so it covers every adbot campaign.
+# Pauses any ACTIVE ad in the account whose cost-per-Complete-Registration exceeds the KPI
+# ceiling (config/config.yaml: kpi.cpl_threshold_myr) once it has spent enough to judge fairly.
+# Whole-account scope (MTC + STOCKBLOOM), judged one ad at a time; only ads optimizing for the
+# configured conversion event are considered.
 
 on:
   schedule:
@@ -24,6 +25,10 @@ jobs:
       - run: pip install .
       - name: Run CPL monitor
         env:
+          # pip install . is non-editable, so settings.py lands in site-packages and its
+          # __file__-relative repo-root guess misses config/config.yaml. Point it at the checkout.
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
           META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
           META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
         run: python -m adbot monitor

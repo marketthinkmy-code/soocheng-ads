@@ -179,14 +179,21 @@ class GraphClient:
         return self._request("POST", entity_id, data={"status": status})
 
     # ── reads for monitoring / scoping ─────────────────────────────────────────
-    def find_campaigns_by_prefix(self, account_path: str, prefix: str) -> List[Dict[str, Any]]:
-        rows = self._get_all(f"{account_path}/campaigns",
+    def list_campaigns(self, account_path: str) -> List[Dict[str, Any]]:
+        """Every campaign in the account — whole-account scope for the monitor + weekly OFF."""
+        return self._get_all(f"{account_path}/campaigns",
                              {"fields": "id,name,effective_status", "limit": 200})
-        return [c for c in rows if (c.get("name") or "").startswith(prefix)]
+
+    def find_campaigns_by_prefix(self, account_path: str, prefix: str) -> List[Dict[str, Any]]:
+        return [c for c in self.list_campaigns(account_path)
+                if (c.get("name") or "").startswith(prefix)]
 
     def list_ads_under_campaign(self, campaign_id: str) -> List[Dict[str, Any]]:
+        # adset{promoted_object} rides along so the monitor can tell which conversion event
+        # each ad is optimized for (and never judge a non-registration ad on registration CPL).
         return self._get_all(f"{campaign_id}/ads",
-                            {"fields": "id,name,effective_status,adset_id", "limit": 200})
+                            {"fields": "id,name,effective_status,adset_id,adset{promoted_object}",
+                             "limit": 200})
 
     def get_ad_insight(self, ad_id: str, date_preset: str) -> Optional[Dict[str, Any]]:
         rows = self._request("GET", f"{ad_id}/insights", params={

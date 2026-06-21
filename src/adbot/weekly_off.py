@@ -1,8 +1,9 @@
-"""Weekly kill switch (Wed 15:00 GMT+8): pause ALL currently-live managed ads.
+"""Weekly kill switch (Wed 15:00 GMT+8): pause every currently-live ad in the account.
 
-Each delivering ad is tagged with the weekly-off label before being paused, so the
-Thursday ``weekly_on`` job can resume *exactly* these ads (and nothing the CPL monitor
-or the operator paused). The label is the cross-run state — no committed file needed.
+Whole-account scope (MTC + STOCKBLOOM). Each delivering ad is tagged with the weekly-off
+label before being paused, so the Thursday ``weekly_on`` job can resume *exactly* these ads
+(and nothing the CPL monitor or the operator paused). The label is the cross-run state — no
+committed file needed.
 """
 
 from __future__ import annotations
@@ -16,7 +17,9 @@ from .settings import Settings
 
 def _collect_active_ads(graph, settings: Settings) -> List[Dict[str, Any]]:
     active: List[Dict[str, Any]] = []
-    for campaign in graph.find_campaigns_by_prefix(settings.meta.account_path, settings.naming.prefix):
+    for campaign in graph.list_campaigns(settings.meta.account_path):
+        if campaign.get("effective_status") != "ACTIVE":
+            continue
         for ad in graph.list_ads_under_campaign(campaign["id"]):
             if ad.get("effective_status") == "ACTIVE":
                 ad["_campaign_id"] = campaign["id"]
