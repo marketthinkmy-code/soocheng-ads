@@ -178,20 +178,30 @@ def load_dotenv(path: Path) -> None:
 
 
 def _resolve_sa_json() -> str:
-    """Service-account key: accept base64 (preferred) OR raw JSON in either env var.
+    """Service-account key from either env var; pick whichever actually holds a key.
 
-    Tolerant of the common mistake of pasting raw JSON into the _B64 secret: we pass the
-    value through to build_credentials, which accepts a path, inline JSON, or base64.
+    Accepts base64 OR raw JSON in either field, and skips a junk value in one field when the
+    other holds a usable key (e.g. a stale/wrong _B64 sitting next to a correct _JSON).
     """
+    def _decode(value: str) -> str:
+        if value.lstrip().startswith("{"):
+            return value  # raw JSON pasted into the _B64 field
+        try:
+            return base64.b64decode(value).decode("utf-8")
+        except (ValueError, UnicodeDecodeError):
+            return value  # not base64 — hand to build_credentials (may be a path)
+
+    candidates = []
     b64 = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON_B64", "").strip()
     if b64:
-        if b64.lstrip().startswith("{"):
-            return b64  # raw JSON was pasted into the _B64 var
-        try:
-            return base64.b64decode(b64).decode("utf-8")
-        except (ValueError, UnicodeDecodeError):
-            return b64  # not valid base64 — pass through for build_credentials to interpret
-    return os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
+        candidates.append(_decode(b64))
+    raw = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "").strip()
+    if raw:
+        candidates.append(raw)
+    for cand in candidates:
+        if cand.lstrip().startswith("{") and "private_key" in cand:
+            return cand  # a real key beats junk in the other field
+    return candidates[0] if candidates else ""
 
 
 def _load_secrets() -> Secrets:
