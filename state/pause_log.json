@@ -62,5 +62,13 @@
     "results": 12,
     "cpl": 60.54,
     "lifetime_cpl": 42.99
+  },
+  {
+    "ts": "2026-06-21T04:04:37+00:00",
+    "entity_id": "120245365310000688",
+    "entity_type": "campaign",
+    "reason": "consolidate_into_c2",
+    "moved_budget_myr": 150.0,
+    "c2_new_budget_myr": 500.0
   }
 ]
