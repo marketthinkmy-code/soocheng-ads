@@ -10,7 +10,7 @@ from __future__ import annotations
 import datetime as dt
 import math
 
-from adbot.clients.graph import GraphClient
+from adbot.commands import graph_client
 from adbot.monitor_cpl import evaluate_account, extract_results, result_action_type
 from adbot.settings import load_settings
 
@@ -27,7 +27,7 @@ def _sort_key(spend: float, reg: float) -> float:
 
 def main() -> None:
     s = load_settings()
-    g = GraphClient(s.secrets.meta_token, "")  # unsigned read; app doesn't enforce proof
+    g = graph_client(s)  # signs with META_APP_SECRET when set (matches the monitor)
     acct = s.meta.account_path
     reg_token = result_action_type(s.meta.conversion_event)
     ceiling = s.kpi.cpl_threshold_myr

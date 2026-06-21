@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import sys
 
-from adbot.clients.graph import GraphClient
+from adbot.commands import graph_client
 from adbot.monitor_cpl import result_action_type, extract_results
 from adbot.settings import load_settings
 
@@ -14,7 +14,7 @@ since = sys.argv[1] if len(sys.argv) > 1 else "2026-06-18"  # last Thursday
 until = sys.argv[2] if len(sys.argv) > 2 else "2026-06-21"
 
 s = load_settings()
-g = GraphClient(s.secrets.meta_token, "")  # unsigned reads (local app secret is stale)
+g = graph_client(s)  # signs with META_APP_SECRET when set (matches the monitor)
 acct = s.meta.account_path
 reg_token = result_action_type(s.meta.conversion_event)
 ceiling = s.kpi.cpl_threshold_myr
