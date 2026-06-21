@@ -131,6 +131,18 @@ class KpiCfg(BaseModel):
     cpl_hold: List[str] = Field(default_factory=list)  # ad-name substrings temporarily exempt from auto-pause
 
 
+class CpaCfg(BaseModel):
+    """Cost per real paid acquisition, from the Paid Student List sheet (RM2,399/2,099 a pax)."""
+    enabled: bool = False
+    spreadsheet_id: str = ""
+    sales_tab: str = "Paid Student List"
+    price_myr: float = 2399.0
+    target_myr: float = 720.0           # primary target CPA
+    healthy_max_myr: float = 800.0      # end of healthy range (NOT an auto-pause line)
+    max_acceptable_myr: float = 960.0   # above here -> pause candidate after diagnosis
+    hard_stop_myr: float = 1200.0       # above here -> pause
+
+
 # ── secrets (.env / environment) ─────────────────────────────────────────────
 class Secrets(BaseModel):
     meta_token: str = ""
@@ -146,6 +158,7 @@ class Settings(BaseModel):
     drive: DriveCfg = Field(default_factory=DriveCfg)
     google_docs: GoogleDocsCfg = Field(default_factory=GoogleDocsCfg)
     kpi: KpiCfg = Field(default_factory=KpiCfg)
+    cpa: CpaCfg = Field(default_factory=CpaCfg)
     schedule: dict = Field(default_factory=dict)
     secrets: Secrets = Field(default_factory=Secrets)
     config_path: str = str(DEFAULT_CONFIG)
@@ -200,6 +213,7 @@ def load_settings(config_path: Optional[Path] = None) -> Settings:
         drive=DriveCfg(**(data.get("drive") or {})),
         google_docs=GoogleDocsCfg(**(data.get("google_docs") or {})),
         kpi=KpiCfg(**(data.get("kpi") or {})),
+        cpa=CpaCfg(**(data.get("cpa") or {})),
         schedule=data.get("schedule") or {},
         secrets=_load_secrets(),
         config_path=str(path),
