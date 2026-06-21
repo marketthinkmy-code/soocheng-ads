@@ -70,5 +70,12 @@
     "reason": "consolidate_into_c2",
     "moved_budget_myr": 150.0,
     "c2_new_budget_myr": 500.0
+  },
+  {
+    "ts": "2026-06-21T04:10:06+00:00",
+    "entity_id": "120237948864870688",
+    "entity_type": "campaign",
+    "reason": "manual_user_request_pause_campaign",
+    "prior_status": "ACTIVE"
   }
 ]
