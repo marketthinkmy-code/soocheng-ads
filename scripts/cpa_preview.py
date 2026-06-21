@@ -32,6 +32,9 @@ def _sa_email(sa_json: str) -> str:
 
 def main() -> None:
     s = load_settings()
+    sa = s.secrets.google_sa_json or ""
+    print(f"sa creds        : present={bool(sa)} length={len(sa)} "
+          f"looks_like_json={sa.lstrip()[:1] == '{'}")
     print("service account :", _sa_email(s.secrets.google_sa_json))
     print("spreadsheet     :", s.cpa.spreadsheet_id, "| tab:", repr(s.cpa.sales_tab))
     if not s.cpa.spreadsheet_id:

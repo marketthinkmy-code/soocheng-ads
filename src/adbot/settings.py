@@ -178,13 +178,19 @@ def load_dotenv(path: Path) -> None:
 
 
 def _resolve_sa_json() -> str:
-    """Service-account key: prefer base64 (one-line, env-var friendly), else path/inline JSON."""
+    """Service-account key: accept base64 (preferred) OR raw JSON in either env var.
+
+    Tolerant of the common mistake of pasting raw JSON into the _B64 secret: we pass the
+    value through to build_credentials, which accepts a path, inline JSON, or base64.
+    """
     b64 = os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON_B64", "").strip()
     if b64:
+        if b64.lstrip().startswith("{"):
+            return b64  # raw JSON was pasted into the _B64 var
         try:
             return base64.b64decode(b64).decode("utf-8")
         except (ValueError, UnicodeDecodeError):
-            return ""  # doctor reports the SA key as unreadable instead of crashing
+            return b64  # not valid base64 — pass through for build_credentials to interpret
     return os.environ.get("GOOGLE_SERVICE_ACCOUNT_JSON", "")
 
 
