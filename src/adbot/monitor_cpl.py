@@ -21,6 +21,7 @@ ZERO_RESULTS = "zero_results_over_min_spend"
 OVER_THRESHOLD = "cpl_over_threshold"
 WITHIN_THRESHOLD = "within_threshold"
 NO_RESULTS_YET = "no_results_yet"
+MANUAL_HOLD = "manual_hold"  # owner asked to keep this ad running despite CPL
 
 def result_action_type(conversion_event: str) -> str:
     """The exact insights action_type that equals Ads Manager "Results" for a pixel-optimized ad.
@@ -102,11 +103,15 @@ def evaluate_account(graph, settings: Settings) -> List[AdDecision]:
             promoted = (ad.get("adset") or {}).get("promoted_object") or {}
             if (promoted.get("custom_event_type") or "").upper() != want_event:
                 continue  # not optimized for our event — not ours to judge or pause
+            name = ad.get("name", ad["id"])
             insight = graph.get_ad_insight(ad["id"], settings.kpi.cpl_lookback)
             spend, results = parse_metrics(insight, token)
+            if any(h and h in name for h in settings.kpi.cpl_hold):
+                cpl = (spend / results) if results else (math.inf if spend else None)
+                decisions.append(AdDecision(ad["id"], name, spend, results, cpl, False, MANUAL_HOLD))
+                continue
             should_pause, reason, cpl = decide(spend, results, settings.kpi)
-            decisions.append(AdDecision(ad["id"], ad.get("name", ad["id"]),
-                                        spend, results, cpl, should_pause, reason))
+            decisions.append(AdDecision(ad["id"], name, spend, results, cpl, should_pause, reason))
     return decisions
 
 

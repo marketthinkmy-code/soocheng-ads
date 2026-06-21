@@ -128,6 +128,7 @@ class KpiCfg(BaseModel):
     cpl_min_spend_myr: float = 80.0
     cpl_lookback: str = "last_3d"
     pause_zero_lead_after_spend: bool = True
+    cpl_hold: List[str] = Field(default_factory=list)  # ad-name substrings temporarily exempt from auto-pause
 
 
 # ── secrets (.env / environment) ─────────────────────────────────────────────
