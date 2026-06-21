@@ -81,14 +81,27 @@ class AdDecision:
 
 
 def evaluate_account(graph, settings: Settings) -> List[AdDecision]:
-    """Read every active managed ad's cost-per-result and compute pause decisions (no writes)."""
+    """Read every active ad in the account and compute per-ad pause decisions (no writes).
+
+    Whole-account scope (every campaign, MTC + STOCKBLOOM), but judged one ad at a time —
+    a single bad creative is paused without touching the rest of its ad set or campaign.
+    Only ads whose ad set optimizes for the configured conversion event (e.g. Complete
+    Registration) are evaluated, so a campaign chasing a different objective can never be
+    paused on a registration-CPL it was never trying to produce.
+    """
     account = settings.meta.account_path
     token = result_action_type(settings.meta.conversion_event)
+    want_event = (settings.meta.conversion_event or "").upper()
     decisions: List[AdDecision] = []
-    for campaign in graph.find_campaigns_by_prefix(account, settings.naming.prefix):
+    for campaign in graph.list_campaigns(account):
+        if campaign.get("effective_status") != "ACTIVE":  # paused/archived have no live ads
+            continue
         for ad in graph.list_ads_under_campaign(campaign["id"]):
             if ad.get("effective_status") != "ACTIVE":
                 continue
+            promoted = (ad.get("adset") or {}).get("promoted_object") or {}
+            if (promoted.get("custom_event_type") or "").upper() != want_event:
+                continue  # not optimized for our event — not ours to judge or pause
             insight = graph.get_ad_insight(ad["id"], settings.kpi.cpl_lookback)
             spend, results = parse_metrics(insight, token)
             should_pause, reason, cpl = decide(spend, results, settings.kpi)

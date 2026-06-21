@@ -1,8 +1,9 @@
 name: adbot · CPL monitor (hourly)
 
-# Pauses any managed ad whose cost-per-Complete-Registration exceeds the KPI ceiling
-# (config/config.yaml: kpi.cpl_threshold_myr) once it has spent enough to judge fairly.
-# Scoped to campaigns named with the STOCKBLOOM prefix, so it covers every adbot campaign.
+# Pauses any ACTIVE ad in the account whose cost-per-Complete-Registration exceeds the KPI
+# ceiling (config/config.yaml: kpi.cpl_threshold_myr) once it has spent enough to judge fairly.
+# Whole-account scope (MTC + STOCKBLOOM), judged one ad at a time; only ads optimizing for the
+# configured conversion event are considered.
 
 on:
   schedule:

@@ -1,6 +1,7 @@
 name: adbot · weekly OFF (Wed 15:00 MYT)
 
-# Pauses ALL managed ads and labels them, so weekly-on can resume exactly this set.
+# Pauses every active ad in the account (whole-account: MTC + STOCKBLOOM) and labels them,
+# so weekly-on can resume exactly this set.
 # Cron is UTC: Wed 07:00 UTC == Wed 15:00 Asia/Kuala_Lumpur (GMT+8).
 
 on:

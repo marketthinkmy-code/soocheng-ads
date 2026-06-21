@@ -1,9 +1,9 @@
 import math
 
 from adbot.monitor_cpl import (INSUFFICIENT_SPEND, NO_RESULTS_YET, OVER_THRESHOLD,
-                               WITHIN_THRESHOLD, ZERO_RESULTS, decide, extract_results,
-                               parse_metrics, result_action_type)
-from adbot.settings import KpiCfg
+                               WITHIN_THRESHOLD, ZERO_RESULTS, decide, evaluate_account,
+                               extract_results, parse_metrics, result_action_type)
+from adbot.settings import KpiCfg, MetaCfg, Settings
 
 KPI = KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80, pause_zero_lead_after_spend=True)
 
@@ -64,3 +64,56 @@ def test_parse_metrics_reads_spend_and_results():
 
 def test_parse_metrics_handles_empty():
     assert parse_metrics(None, "offsite_conversion.fb_pixel_complete_registration") == (0.0, 0.0)
+
+
+# ── evaluate_account: whole-account scope, ad-level decisions, registration-only guard ──
+class _FakeGraph:
+    def __init__(self, campaigns, ads_by_campaign, insights):
+        self._campaigns, self._ads, self._insights = campaigns, ads_by_campaign, insights
+
+    def list_campaigns(self, account_path):
+        return self._campaigns
+
+    def list_ads_under_campaign(self, campaign_id):
+        return self._ads.get(campaign_id, [])
+
+    def get_ad_insight(self, ad_id, date_preset):
+        return self._insights.get(ad_id)
+
+
+def _ad(ad_id, status="ACTIVE", event="COMPLETE_REGISTRATION"):
+    return {"id": ad_id, "name": ad_id, "effective_status": status,
+            "adset": {"promoted_object": {"custom_event_type": event} if event else {}}}
+
+
+def _reg_insight(spend, results):
+    rat = result_action_type("COMPLETE_REGISTRATION")
+    return {"spend": str(spend), "actions": [{"action_type": rat, "value": str(results)}]}
+
+
+def test_evaluate_account_is_whole_account_ad_level_and_registration_only():
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True))
+    campaigns = [
+        {"id": "A", "name": "MTC - Watches", "effective_status": "ACTIVE"},
+        {"id": "B", "name": "STOCKBLOOM | Y", "effective_status": "PAUSED"},  # whole campaign off
+    ]
+    ads = {
+        "A": [
+            _ad("over"),                          # spend 100 / 1 reg -> CPL 100 -> PAUSE
+            _ad("within"),                        # spend 100 / 4 reg -> CPL 25 -> keep
+            _ad("paused_ad", status="PAUSED"),    # not ACTIVE -> skipped
+            _ad("purchase", event="PURCHASE"),    # wrong optimized event -> guard skips
+            _ad("zero"),                          # spend 100 / 0 reg -> PAUSE (zero results)
+        ],
+        "B": [_ad("under_paused_campaign")],      # active ad but campaign paused -> skipped
+    }
+    insights = {"over": _reg_insight(100, 1), "within": _reg_insight(100, 4),
+                "purchase": _reg_insight(100, 1), "zero": _reg_insight(100, 0),
+                "under_paused_campaign": _reg_insight(100, 1)}
+
+    decisions = evaluate_account(_FakeGraph(campaigns, ads, insights), settings)
+
+    assert {d.name for d in decisions} == {"over", "within", "zero"}
+    assert {d.name for d in decisions if d.should_pause} == {"over", "zero"}

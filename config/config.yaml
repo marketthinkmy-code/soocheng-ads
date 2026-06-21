@@ -54,10 +54,10 @@ google_docs:
   idea_backlog_doc_id: ""                # existing Doc id for content-idea backlog (empty -> create)
 
 kpi:
-  cpl_threshold_myr: 40.00               # pause ads above this CPL (project target RM35-40; ceiling 40)
-  cpl_min_spend_myr: 50.00               # judge once an ad has spent ~1.25x target CPL (tightened from 80)
-  cpl_lookback: "maximum"                # lifetime window — last_3d excluded today; maximum includes it
-  pause_zero_lead_after_spend: true      # spend >= min_spend & 0 leads -> infinite CPL -> pause
+  cpl_threshold_myr: 40.00               # pause an ad above this CPL (project target RM35-40; ceiling 40)
+  cpl_min_spend_myr: 80.00               # only judge an ad once it has spent >= RM80 (2x ceiling) — enough to be fair
+  cpl_lookback: "last_3d"                # recent 3-day window — reacts within a day; lifetime would hide a fresh decline
+  pause_zero_lead_after_spend: true      # spent >= RM80 with 0 results -> infinite CPL -> pause
 
 schedule:                                # informational; the real schedule lives in the Routine triggers
   timezone: "Asia/Kuala_Lumpur"          # GMT+8 (no DST)
