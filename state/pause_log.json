@@ -1,0 +1,81 @@
+[
+  {
+    "ts": "2026-06-20T04:20:32+00:00",
+    "entity_id": "120245370940400688",
+    "entity_type": "ad",
+    "reason": "cpl_over_threshold",
+    "spend": 78.68,
+    "results": 1.0,
+    "cpl": 78.68
+  },
+  {
+    "ts": "2026-06-20T04:20:34+00:00",
+    "entity_id": "120245367212680688",
+    "entity_type": "ad",
+    "reason": "zero_results_over_min_spend",
+    "spend": 50.72,
+    "results": 0.0,
+    "cpl": null
+  },
+  {
+    "ts": "2026-06-20T23:51:47+00:00",
+    "entity_id": "120245370950440688",
+    "entity_type": "ad",
+    "reason": "cpl_over_threshold",
+    "spend": 96.75,
+    "results": 2.0,
+    "cpl": 48.38
+  },
+  {
+    "ts": "2026-06-20T23:51:48+00:00",
+    "entity_id": "120245367218100688",
+    "entity_type": "ad",
+    "reason": "cpl_over_threshold",
+    "spend": 164.36,
+    "results": 3.0,
+    "cpl": 54.79
+  },
+  {
+    "ts": "2026-06-20T23:51:50+00:00",
+    "entity_id": "120245367226640688",
+    "entity_type": "ad",
+    "reason": "cpl_over_threshold",
+    "spend": 53.26,
+    "results": 1.0,
+    "cpl": 53.26
+  },
+  {
+    "ts": "2026-06-21T04:02:34+00:00",
+    "entity_id": "120245367223180688",
+    "entity_type": "ad",
+    "reason": "cpl_over_threshold",
+    "spend": 51.17,
+    "results": 1,
+    "cpl": 51.17
+  },
+  {
+    "ts": "2026-06-21T04:02:35+00:00",
+    "entity_id": "120237949072030688",
+    "entity_type": "adset",
+    "reason": "manual_user_request_high_cpl",
+    "spend": 726.52,
+    "results": 12,
+    "cpl": 60.54,
+    "lifetime_cpl": 42.99
+  },
+  {
+    "ts": "2026-06-21T04:04:37+00:00",
+    "entity_id": "120245365310000688",
+    "entity_type": "campaign",
+    "reason": "consolidate_into_c2",
+    "moved_budget_myr": 150.0,
+    "c2_new_budget_myr": 500.0
+  },
+  {
+    "ts": "2026-06-21T04:10:06+00:00",
+    "entity_id": "120237948864870688",
+    "entity_type": "campaign",
+    "reason": "manual_user_request_pause_campaign",
+    "prior_status": "ACTIVE"
+  }
+]

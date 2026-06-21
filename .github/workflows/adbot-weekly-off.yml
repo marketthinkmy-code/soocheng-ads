@@ -1,0 +1,28 @@
+name: adbot · weekly OFF (Wed 15:00 MYT)
+
+# Pauses ALL managed ads and labels them, so weekly-on can resume exactly this set.
+# Cron is UTC: Wed 07:00 UTC == Wed 15:00 Asia/Kuala_Lumpur (GMT+8).
+
+on:
+  schedule:
+    - cron: "0 7 * * 3"
+  workflow_dispatch: {}
+
+concurrency:
+  group: adbot-weekly
+  cancel-in-progress: false
+
+jobs:
+  weekly-off:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: Pause all managed ads (weekly OFF)
+        env:
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+        run: python -m adbot weekly_off
