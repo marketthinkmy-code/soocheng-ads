@@ -77,5 +77,16 @@
     "entity_type": "campaign",
     "reason": "manual_user_request_pause_campaign",
     "prior_status": "ACTIVE"
+  },
+  {
+    "ts": "2026-06-21T05:46:38+00:00",
+    "entity_id": "120241592974360688",
+    "entity_type": "campaign",
+    "reason": "manual_user_request_high_cpl",
+    "window": "2026-06-18..2026-06-21",
+    "spend": 1145,
+    "results": 24,
+    "cpl": 47.7,
+    "ceiling": 40
   }
 ]
