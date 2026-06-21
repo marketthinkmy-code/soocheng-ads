@@ -1,6 +1,6 @@
 import math
 
-from adbot.monitor_cpl import (INSUFFICIENT_SPEND, NO_RESULTS_YET, OVER_THRESHOLD,
+from adbot.monitor_cpl import (INSUFFICIENT_SPEND, MANUAL_HOLD, NO_RESULTS_YET, OVER_THRESHOLD,
                                WITHIN_THRESHOLD, ZERO_RESULTS, decide, evaluate_account,
                                extract_results, parse_metrics, result_action_type)
 from adbot.settings import KpiCfg, MetaCfg, Settings
@@ -117,3 +117,19 @@ def test_evaluate_account_is_whole_account_ad_level_and_registration_only():
 
     assert {d.name for d in decisions} == {"over", "within", "zero"}
     assert {d.name for d in decisions if d.should_pause} == {"over", "zero"}
+
+
+def test_evaluate_account_hold_list_exempts_over_ceiling_ad():
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True,
+                                   cpl_hold=["街头突击"]))
+    campaigns = [{"id": "A", "name": "MTC", "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad("Video 6：街头突击采访"), _ad("plain_over")]}
+    insights = {"Video 6：街头突击采访": _reg_insight(300, 5),  # CPL 60 > 40, but held
+                "plain_over": _reg_insight(100, 1)}            # CPL 100 -> still paused
+    by_name = {d.name: d for d in evaluate_account(_FakeGraph(campaigns, ads, insights), settings)}
+
+    assert by_name["Video 6：街头突击采访"].should_pause is False
+    assert by_name["Video 6：街头突击采访"].reason == MANUAL_HOLD
+    assert by_name["plain_over"].should_pause is True
