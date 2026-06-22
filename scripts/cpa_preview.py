@@ -54,6 +54,10 @@ def main() -> None:
     sales, cols, header = cpa.parse_sales(values, s.cpa.price_myr)
     print("header row      :", [h[:18] for h in header[:14]])
     print("detected columns:", cols)
+    di = cols.get("date", -1)
+    if di >= 0:
+        raw = [r[di].strip() for r in values if di < len(r) and r[di].strip()]
+        print("sample Date raw :", [v for v in raw if v.lower() != "date"][:12])
     dated = [x.date for x in sales if x.date]
     print(f"sales parsed    : {len(sales)}  (with a usable date: {len(dated)})")
     if dated:

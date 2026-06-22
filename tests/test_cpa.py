@@ -23,8 +23,16 @@ def test_find_columns_handles_reordering_and_amount():
 
 
 def test_parse_date_formats():
-    assert cpa.parse_date("14/1/2026") == dt.date(2026, 1, 14)
-    assert cpa.parse_date("2026-06-15") == dt.date(2026, 6, 15)
+    assert cpa.parse_date("14/1/2026") == dt.date(2026, 1, 14)        # D/M/Y (MY locale)
+    assert cpa.parse_date("2026-06-15") == dt.date(2026, 6, 15)       # ISO
+    assert cpa.parse_date("1/14/2026") == dt.date(2026, 1, 14)        # M/D/Y fallback
+    assert cpa.parse_date("14-01-2026") == dt.date(2026, 1, 14)       # dashes
+    assert cpa.parse_date("14.1.2026") == dt.date(2026, 1, 14)        # dots
+    assert cpa.parse_date("14 Jan 2026") == dt.date(2026, 1, 14)      # month abbr
+    assert cpa.parse_date("January 14, 2026") == dt.date(2026, 1, 14)  # month name
+    assert cpa.parse_date("14/1/2026 10:30") == dt.date(2026, 1, 14)  # time suffix
+    serial = (dt.date(2026, 1, 14) - dt.date(1899, 12, 30)).days
+    assert cpa.parse_date(str(serial)) == dt.date(2026, 1, 14)        # Sheets serial
     assert cpa.parse_date("") is None and cpa.parse_date("n/a") is None
 
 

@@ -8,6 +8,7 @@ the operator's KPI. Pure functions only — no I/O — so this is fully unit-tes
 """
 from __future__ import annotations
 
+import calendar
 import datetime as dt
 import math
 import re
@@ -58,22 +59,46 @@ def find_columns(header: List[str]) -> Dict[str, int]:
     }
 
 
+_MONTHS = {m.lower(): i for i, m in enumerate(calendar.month_abbr) if m}
+_MONTHS.update({m.lower(): i for i, m in enumerate(calendar.month_name) if m})
+
+
+def _safe(y: int, mo: int, d: int) -> Optional[dt.date]:
+    y = y + 2000 if y < 100 else y
+    try:
+        return dt.date(y, mo, d)
+    except ValueError:
+        return None
+
+
 def parse_date(s: str) -> Optional[dt.date]:
+    """Tolerant date parser: ISO, D/M/Y & M/D/Y (/ - . separators, optional time), month
+    names (14 Jan 2026 / Jan 14, 2026), and Google Sheets serial numbers."""
     s = (s or "").strip()
-    m = re.match(r"(\d{1,2})/(\d{1,2})/(\d{2,4})$", s)         # D/M/YYYY (sheet default)
-    if m:
-        d, mo, y = (int(x) for x in m.groups())
-        y = y + 2000 if y < 100 else y
-        try:
-            return dt.date(y, mo, d)
-        except ValueError:
-            return None
-    m = re.match(r"(\d{4})-(\d{1,2})-(\d{1,2})", s)            # ISO fallback
+    if not s:
+        return None
+    m = re.match(r"(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})", s)              # ISO 2026-01-14
     if m:
         y, mo, d = (int(x) for x in m.groups())
+        return _safe(y, mo, d)
+    m = re.match(r"(\d{1,2})[-/.](\d{1,2})[-/.](\d{2,4})", s)           # D/M/Y or M/D/Y
+    if m:
+        a, b, y = (int(x) for x in m.groups())
+        if a > 12 and b <= 12:
+            return _safe(y, b, a)                                       # a is the day
+        if b > 12 and a <= 12:
+            return _safe(y, a, b)                                       # month-first
+        return _safe(y, b, a) or _safe(y, a, b)                         # ambiguous -> day-first (MY)
+    m = re.match(r"(\d{1,2})\s+([A-Za-z]+)\.?,?\s+(\d{2,4})", s)        # 14 Jan 2026
+    if m and m.group(2).lower() in _MONTHS:
+        return _safe(int(m.group(3)), _MONTHS[m.group(2).lower()], int(m.group(1)))
+    m = re.match(r"([A-Za-z]+)\.?\s+(\d{1,2}),?\s+(\d{2,4})", s)        # Jan 14, 2026
+    if m and m.group(1).lower() in _MONTHS:
+        return _safe(int(m.group(3)), _MONTHS[m.group(1).lower()], int(m.group(2)))
+    if re.fullmatch(r"\d{4,6}", s):                                     # Sheets serial
         try:
-            return dt.date(y, mo, d)
-        except ValueError:
+            return dt.date(1899, 12, 30) + dt.timedelta(days=int(s))
+        except (ValueError, OverflowError):
             return None
     return None
 
