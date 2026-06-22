@@ -6,7 +6,8 @@ name: adbot · weekly OFF (Wed 15:00 MYT)
 
 on:
   schedule:
-    - cron: "0 7 * * 3"
+    - cron: "9 7 * * 3"        # Wed 15:09 MYT (off the congested ":00" slot)
+    - cron: "9 8 * * 3"        # Wed 16:09 MYT — backup if the first was dropped (re-pause is a no-op)
   workflow_dispatch: {}
 
 concurrency:

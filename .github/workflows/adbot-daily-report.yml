@@ -6,7 +6,7 @@ name: adbot · daily report (22:00 MYT)
 
 on:
   schedule:
-    - cron: "0 14 * * *"        # 22:00 MYT daily
+    - cron: "9 14 * * *"        # 22:09 MYT daily (off the congested ":00" slot)
   workflow_dispatch: {}          # allow manual runs from the Actions tab
 
 permissions:
