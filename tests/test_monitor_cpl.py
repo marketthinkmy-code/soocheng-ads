@@ -1,9 +1,12 @@
 import math
 
+import datetime as dt
+
 from adbot import cpa
 from adbot.monitor_cpl import (INSUFFICIENT_SPEND, MANUAL_HOLD, NO_RESULTS_YET, OVER_THRESHOLD,
-                               WITHIN_THRESHOLD, ZERO_RESULTS, decide, evaluate_account,
-                               extract_results, parse_metrics, result_action_type)
+                               WITHIN_THRESHOLD, ZERO_RESULTS, cpl_window, decide, evaluate_account,
+                               extract_results, parse_metrics, result_action_type,
+                               _week_start_thursday)
 from adbot.settings import CpaCfg, KpiCfg, MetaCfg, Settings
 
 KPI = KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80, pause_zero_lead_after_spend=True)
@@ -78,7 +81,7 @@ class _FakeGraph:
     def list_ads_under_campaign(self, campaign_id):
         return self._ads.get(campaign_id, [])
 
-    def get_ad_insight(self, ad_id, date_preset):
+    def get_ad_insight(self, ad_id, date_preset=None, time_range=None):
         return self._insights.get(ad_id)
 
 
@@ -134,6 +137,16 @@ def test_evaluate_account_hold_list_exempts_over_ceiling_ad():
     assert by_name["Video 6：街头突击采访"].should_pause is False
     assert by_name["Video 6：街头突击采访"].reason == MANUAL_HOLD
     assert by_name["plain_over"].should_pause is True
+
+
+def test_week_to_date_cpl_window_from_thursday():
+    # Jun 18 2026 is a Thursday; Jun 22 is the following Monday.
+    assert _week_start_thursday(dt.date(2026, 6, 22)) == dt.date(2026, 6, 18)  # Mon -> prior Thu
+    assert _week_start_thursday(dt.date(2026, 6, 18)) == dt.date(2026, 6, 18)  # Thu -> itself
+    assert _week_start_thursday(dt.date(2026, 6, 24)) == dt.date(2026, 6, 18)  # Wed -> prior Thu
+    s = Settings(kpi=KpiCfg(cpl_lookback="week_thu"))
+    assert cpl_window(s, dt.date(2026, 6, 22)) == (None, {"since": "2026-06-18", "until": "2026-06-22"})
+    assert cpl_window(Settings(kpi=KpiCfg(cpl_lookback="last_3d")), dt.date(2026, 6, 22)) == ("last_3d", None)
 
 
 def test_evaluate_account_cpa_rescues_and_hard_stops():

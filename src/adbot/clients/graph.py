@@ -195,11 +195,14 @@ class GraphClient:
                             {"fields": "id,name,effective_status,created_time,adset_id,adset{promoted_object}",
                              "limit": 200})
 
-    def get_ad_insight(self, ad_id: str, date_preset: str) -> Optional[Dict[str, Any]]:
-        rows = self._request("GET", f"{ad_id}/insights", params={
-            "fields": "spend,actions,cost_per_action_type",
-            "date_preset": date_preset,
-        }).get("data", [])
+    def get_ad_insight(self, ad_id: str, date_preset: Optional[str] = None,
+                       time_range: Optional[Dict[str, str]] = None) -> Optional[Dict[str, Any]]:
+        params: Dict[str, Any] = {"fields": "spend,actions,cost_per_action_type"}
+        if time_range:
+            params["time_range"] = json.dumps(time_range)
+        else:
+            params["date_preset"] = date_preset or "last_3d"
+        rows = self._request("GET", f"{ad_id}/insights", params=params).get("data", [])
         return rows[0] if rows else None
 
     def account_insights(self, account_path: str, *, level: str, fields: str,
