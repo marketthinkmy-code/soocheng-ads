@@ -1,9 +1,10 @@
 import math
 
+from adbot import cpa
 from adbot.monitor_cpl import (INSUFFICIENT_SPEND, MANUAL_HOLD, NO_RESULTS_YET, OVER_THRESHOLD,
                                WITHIN_THRESHOLD, ZERO_RESULTS, decide, evaluate_account,
                                extract_results, parse_metrics, result_action_type)
-from adbot.settings import KpiCfg, MetaCfg, Settings
+from adbot.settings import CpaCfg, KpiCfg, MetaCfg, Settings
 
 KPI = KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80, pause_zero_lead_after_spend=True)
 
@@ -81,8 +82,8 @@ class _FakeGraph:
         return self._insights.get(ad_id)
 
 
-def _ad(ad_id, status="ACTIVE", event="COMPLETE_REGISTRATION"):
-    return {"id": ad_id, "name": ad_id, "effective_status": status,
+def _ad(ad_id, status="ACTIVE", event="COMPLETE_REGISTRATION", created_time="2026-01-01"):
+    return {"id": ad_id, "name": ad_id, "effective_status": status, "created_time": created_time,
             "adset": {"promoted_object": {"custom_event_type": event} if event else {}}}
 
 
@@ -133,3 +134,27 @@ def test_evaluate_account_hold_list_exempts_over_ceiling_ad():
     assert by_name["Video 6：街头突击采访"].should_pause is False
     assert by_name["Video 6：街头突击采访"].reason == MANUAL_HOLD
     assert by_name["plain_over"].should_pause is True
+
+
+def test_evaluate_account_cpa_rescues_and_hard_stops():
+    # CPA folded into the CPL decision (60-day window), via an injected context.
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True),
+                        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14,
+                                   min_spend_myr=1000))
+    campaigns = [{"id": "A", "name": "MTC - News", "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad("rescue_me"), _ad("kill_me")]}
+    insights = {"rescue_me": _reg_insight(300, 3),   # CPL 100 > 40 -> CPL would pause
+                "kill_me": _reg_insight(100, 4)}      # CPL 25 -> CPL keeps
+    ck = cpa.norm("mtc - news")
+    sold = {(ck, cpa.norm("rescue_me")): 10, (ck, cpa.norm("kill_me")): 2}
+    spend60 = {"rescue_me": 7000.0, "kill_me": 4000.0}  # CPA 700 (rescue) / 2000 (hard stop)
+
+    by_name = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=(sold, spend60))}
+
+    assert by_name["rescue_me"].should_pause is False
+    assert by_name["rescue_me"].reason == cpa.CPL_RESCUED          # over-CPL but profitable
+    assert by_name["kill_me"].should_pause is True
+    assert by_name["kill_me"].reason == cpa.HARD_STOP              # CPA>1200, matured -> pause

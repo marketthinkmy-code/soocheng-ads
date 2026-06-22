@@ -8,11 +8,12 @@ un-pauses — re-activation is always a human (or weekly_on) decision.
 
 from __future__ import annotations
 
+import datetime as dt
 import math
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-from . import state
+from . import cpa, state
 from .logging import final_summary, get_logger
 from .settings import KpiCfg, Settings
 
@@ -79,9 +80,53 @@ class AdDecision:
     cpl: Optional[float]
     should_pause: bool
     reason: str
+    cpa: Optional[float] = None     # 60-day real-sales CPA (None when not judged)
+    cpa_sales: int = 0              # 60-day matched paid sales
+    age_days: Optional[int] = None  # ad age, for the conversion-window guard
 
 
-def evaluate_account(graph, settings: Settings) -> List[AdDecision]:
+def _mkey(name: str) -> str:
+    """Campaign match key: drop a leading '(Image)' tag Meta adds, then normalise."""
+    s = (name or "").strip()
+    if s.lower().startswith("(image)"):
+        s = s[len("(image)"):]
+    return cpa.norm(s)
+
+
+def build_cpa_context(graph, settings: Settings, today: dt.date):
+    """(60-day sales by (campaign,ad), 60-day spend by ad_id) for the CPA gate.
+
+    Returns empty dicts when CPA is disabled or any source is unavailable, so a Sheets/Meta
+    hiccup degrades the monitor to CPL-only rather than breaking it.
+    """
+    if not settings.cpa.enabled:
+        return {}, {}
+    try:
+        from .clients.sheets import SheetsClient
+        values = SheetsClient(settings.secrets.google_sa_json).read_tab(
+            settings.cpa.spreadsheet_id, settings.cpa.sales_tab)
+        sales, _cols, _hdr = cpa.parse_sales(values, settings.cpa.price_myr)
+        cutoff = today - dt.timedelta(days=60)
+        sold: Dict[Tuple[str, str], int] = {}
+        for s in sales:
+            if s.date and s.date > cutoff:
+                key = (_mkey(s.campaign), s.ad)
+                sold[key] = sold.get(key, 0) + 1
+        spend: Dict[str, float] = {}
+        for row in graph.account_insights(
+                settings.meta.account_path, level="ad", fields="ad_id,spend",
+                time_range={"since": cutoff.isoformat(), "until": today.isoformat()}):
+            try:
+                spend[row.get("ad_id")] = float(row.get("spend") or 0)
+            except (TypeError, ValueError):
+                continue
+        return sold, spend
+    except Exception as exc:  # noqa: BLE001
+        get_logger().warning("CPA context unavailable (%s) — CPL-only this run", exc)
+        return {}, {}
+
+
+def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecision]:
     """Read every active ad in the account and compute per-ad pause decisions (no writes).
 
     Whole-account scope (every campaign, MTC + STOCKBLOOM), but judged one ad at a time —
@@ -93,10 +138,17 @@ def evaluate_account(graph, settings: Settings) -> List[AdDecision]:
     account = settings.meta.account_path
     token = result_action_type(settings.meta.conversion_event)
     want_event = (settings.meta.conversion_event or "").upper()
+    today = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()  # MYT
+    sold60, spend60 = cpa_ctx if cpa_ctx is not None else build_cpa_context(graph, settings, today)
+    use_cpa = settings.cpa.enabled and (bool(sold60) or bool(spend60))
+    tiers = cpa.CpaTiers(settings.cpa.healthy_max_myr, settings.cpa.max_acceptable_myr,
+                         settings.cpa.hard_stop_myr)
+
     decisions: List[AdDecision] = []
     for campaign in graph.list_campaigns(account):
         if campaign.get("effective_status") != "ACTIVE":  # paused/archived have no live ads
             continue
+        camp_key = _mkey(campaign.get("name", ""))
         for ad in graph.list_ads_under_campaign(campaign["id"]):
             if ad.get("effective_status") != "ACTIVE":
                 continue
@@ -106,12 +158,30 @@ def evaluate_account(graph, settings: Settings) -> List[AdDecision]:
             name = ad.get("name", ad["id"])
             insight = graph.get_ad_insight(ad["id"], settings.kpi.cpl_lookback)
             spend, results = parse_metrics(insight, token)
-            if any(h and h in name for h in settings.kpi.cpl_hold):
+
+            held = any(h and h in name for h in settings.kpi.cpl_hold)
+            if held:                                   # a hold exempts from CPL (not CPA)
+                cpl_pause, cpl_reason = False, MANUAL_HOLD
                 cpl = (spend / results) if results else (math.inf if spend else None)
-                decisions.append(AdDecision(ad["id"], name, spend, results, cpl, False, MANUAL_HOLD))
-                continue
-            should_pause, reason, cpl = decide(spend, results, settings.kpi)
-            decisions.append(AdDecision(ad["id"], name, spend, results, cpl, should_pause, reason))
+            else:
+                cpl_pause, cpl_reason, cpl = decide(spend, results, settings.kpi)
+
+            cpa_val: Optional[float] = None
+            n_sales, age = 0, None
+            should_pause, reason = cpl_pause, cpl_reason
+            if use_cpa:
+                n_sales = sold60.get((camp_key, cpa.norm(name)), 0)
+                sp60 = spend60.get(ad["id"], 0.0)
+                cpa_val = cpa.cpa(sp60, n_sales)
+                created = cpa.parse_date((ad.get("created_time") or "")[:10])
+                age = (today - created).days if created else None
+                should_pause, reason = cpa.combined_decision(
+                    cpl_pause=cpl_pause, cpl_reason=cpl_reason, cpa_value=cpa_val,
+                    cpa_sales=n_sales, cpa_spend=sp60, age_days=age, tiers=tiers,
+                    conversion_days=settings.cpa.conversion_days, min_spend=settings.cpa.min_spend_myr)
+
+            decisions.append(AdDecision(ad["id"], name, spend, results, cpl, should_pause, reason,
+                                        cpa=cpa_val, cpa_sales=n_sales, age_days=age))
     return decisions
 
 
@@ -123,9 +193,11 @@ def run(graph, settings: Settings, *, dry_run: bool = False) -> Dict[str, Any]:
 
     for d in decisions:
         cpl_str = "∞" if d.cpl == math.inf else (f"{d.cpl:.2f}" if d.cpl is not None else "n/a")
+        cpa_str = ("" if d.cpa is None else
+                   f" CPA={'∞' if d.cpa == math.inf else f'{d.cpa:.0f}'}(60d {d.cpa_sales} sale,{d.age_days}d)")
         verb = "WOULD PAUSE" if (d.should_pause and dry_run) else ("PAUSE" if d.should_pause else "keep")
-        log.info("  [%s] %s  spend=%.2f %s=%.0f CPL=%s (%s)",
-                 verb, d.name, d.spend, event.lower(), d.results, cpl_str, d.reason)
+        log.info("  [%s] %s  spend=%.2f %s=%.0f CPL=%s%s (%s)",
+                 verb, d.name, d.spend, event.lower(), d.results, cpl_str, cpa_str, d.reason)
 
     paused = 0
     if not dry_run:
@@ -133,7 +205,9 @@ def run(graph, settings: Settings, *, dry_run: bool = False) -> Dict[str, Any]:
             graph.update_status(d.ad_id, "PAUSED")
             state.append_pause_log(d.ad_id, "ad", d.reason,
                                    {"spend": d.spend, "results": d.results,
-                                    "cpl": None if d.cpl is None or d.cpl == math.inf else round(d.cpl, 2)})
+                                    "cpl": None if d.cpl is None or d.cpl == math.inf else round(d.cpl, 2),
+                                    "cpa": None if d.cpa is None or d.cpa == math.inf else round(d.cpa, 2),
+                                    "cpa_sales": d.cpa_sales})
             paused += 1
 
     active_left = len([d for d in decisions if not d.should_pause])
