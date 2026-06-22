@@ -140,7 +140,9 @@ class CpaCfg(BaseModel):
     target_myr: float = 720.0           # primary target CPA
     healthy_max_myr: float = 800.0      # end of healthy range (NOT an auto-pause line)
     max_acceptable_myr: float = 960.0   # above here -> pause candidate after diagnosis
-    hard_stop_myr: float = 1200.0       # above here -> pause
+    hard_stop_myr: float = 1200.0       # above here (with real sales) -> auto-pause
+    conversion_days: int = 14           # don't judge CPA / 'no sales' until this old
+    min_spend_myr: float = 1000.0       # need at least this much spend to fairly judge CPA
 
 
 # ── secrets (.env / environment) ─────────────────────────────────────────────

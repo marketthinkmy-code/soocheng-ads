@@ -204,3 +204,32 @@ def cpa_tier(cpa_value, tiers: CpaTiers) -> str:
     if cpa_value <= tiers.hard_stop:
         return PAUSE_CANDIDATE
     return HARD_STOP
+
+
+# combined CPA × CPL reason codes
+CPL_RESCUED = "cpl_high_but_cpa_ok"   # over-CPL, but real sales at an acceptable CPA -> keep
+CPA_IMMATURE = "cpa_immature"         # inside the conversion window -> no CPA judgement yet
+
+
+def combined_decision(*, cpl_pause: bool, cpl_reason: str, cpa_value, cpa_sales: int,
+                      cpa_spend: float, age_days, tiers: CpaTiers,
+                      conversion_days: int = 14, min_spend: float = 0.0):
+    """Fold real-sales CPA into the CPL pause decision — the operator's policy.
+
+    1. Auto-pause on CPA only for a *proven* hard stop: real matched sales, finite CPA above
+       the hard-stop line, past the conversion window, with enough spend. Zero matched sales
+       never auto-pauses on CPA (it may be an attribution gap, not true waste).
+    2. CPA *rescues* an ad the CPL guardrail would pause when it has real sales at CPA at or
+       below the hard stop (still profitable against the ~RM2.4k price) — so registration
+       cost alone never kills a money-making ad. Rescue ignores age: real sales are real.
+
+    Returns (should_pause, reason).
+    """
+    finite_cpa = cpa_value is not None and cpa_value != math.inf
+    matured = age_days is not None and age_days >= conversion_days and cpa_spend >= min_spend
+
+    if cpa_sales > 0 and finite_cpa and cpa_value > tiers.hard_stop and matured:
+        return True, HARD_STOP                       # proven too expensive
+    if cpl_pause and cpa_sales > 0 and finite_cpa and cpa_value <= tiers.hard_stop:
+        return False, CPL_RESCUED                    # real profitable sales protect it
+    return cpl_pause, cpl_reason                      # otherwise the CPL decision stands
