@@ -1,13 +1,18 @@
-name: adbot · daily report (22:00 MYT)
+name: adbot · daily report (~22:09 MYT)
 
 # Read-only whole-account performance report, posted to the "Daily Ads Report" issue so the
 # owner gets a GitHub notification (email by default) every night without having to ask.
-# Cron is UTC: 14:00 UTC == 22:00 Asia/Kuala_Lumpur (GMT+8, no DST).
+# Cron is UTC; MYT = GMT+8 (no DST). Reliability: one primary tick + two backups (all the
+# same MYT evening, no midnight rollover), so a dropped/delayed GitHub schedule still gets the
+# report out. The post step de-dupes by MYT day, so backups never double-post (no inbox spam);
+# a manual run always posts.
 
 on:
   schedule:
-    - cron: "9 14 * * *"        # 22:09 MYT daily (off the congested ":00" slot)
-  workflow_dispatch: {}          # allow manual runs from the Actions tab
+    - cron: "9 14 * * *"        # 22:09 MYT (primary; off the congested ":00" slot)
+    - cron: "39 14 * * *"       # 22:39 MYT (backup 1 — only posts if the primary was dropped)
+    - cron: "9 15 * * *"        # 23:09 MYT (backup 2)
+  workflow_dispatch: {}          # manual run from the Actions tab — always posts
 
 permissions:
   issues: write                  # post the report as an issue comment
@@ -36,25 +41,51 @@ jobs:
           GOOGLE_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_B64 }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         run: python scripts/daily_report.py > report.md
-      - name: Post to "Daily Ads Report" issue
+      - name: Post to "Daily Ads Report" issue (self-healing, de-duped per MYT day)
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require('fs');
             const body = fs.readFileSync('report.md', 'utf8');
             const { owner, repo } = context.repo;
+
+            // Find or create the report issue.
             const found = await github.rest.issues.listForRepo({
               owner, repo, state: 'open', labels: 'daily-report', per_page: 1,
             });
-            let issue_number;
+            let issue_number, issueExisted = false;
             if (found.data.length) {
               issue_number = found.data[0].number;
+              issueExisted = true;
             } else {
               const created = await github.rest.issues.create({
                 owner, repo, title: '📊 Daily Ads Report',
-                body: 'Automated nightly whole-account performance report (22:00 MYT). See comments below.',
+                body: 'Automated nightly whole-account performance report (~22:09 MYT). See comments below.',
                 labels: ['daily-report'],
               });
               issue_number = created.data.number;
             }
+
+            // MYT "today" (GMT+8, no DST).
+            const todayMyt = new Date(Date.now() + 8 * 3600 * 1000).toISOString().slice(0, 10);
+
+            // Self-heal without spam: a SCHEDULED backup posts only when tonight's report is
+            // still missing. A manual (workflow_dispatch) run always posts, so you can force one.
+            if (context.eventName === 'schedule' && issueExisted) {
+              const sinceUtc = new Date(todayMyt + 'T00:00:00+08:00').toISOString();
+              const recent = await github.rest.issues.listComments({
+                owner, repo, issue_number, since: sinceUtc, per_page: 100,
+              });
+              const postedToday = recent.data.some(c =>
+                c.user && c.user.login === 'github-actions[bot]' &&
+                new Date(new Date(c.created_at).getTime() + 8 * 3600 * 1000)
+                  .toISOString().slice(0, 10) === todayMyt
+              );
+              if (postedToday) {
+                core.info(`Report already posted for ${todayMyt} MYT — backup tick, skipping.`);
+                return;
+              }
+            }
+
             await github.rest.issues.createComment({ owner, repo, issue_number, body });
+            core.info(`Posted daily report to issue #${issue_number} for ${todayMyt} MYT.`);
