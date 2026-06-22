@@ -71,7 +71,9 @@ cpa:                                     # cost per real PAID acquisition (joins
   target_myr: 720.00                     # primary target CPA
   healthy_max_myr: 800.00                # end of the healthy range (NOT an auto-pause line)
   max_acceptable_myr: 960.00             # above here -> pause candidate after diagnosis + conversion time
-  hard_stop_myr: 1200.00                 # above here -> pause
+  hard_stop_myr: 1200.00                 # above here (with real sales) -> auto-pause
+  conversion_days: 14                    # registrations take time to convert; don't judge CPA until this old
+  min_spend_myr: 1000.00                 # need >= this spend before a CPA verdict is fair
 
 schedule:                                # informational; the real schedule lives in the Routine triggers
   timezone: "Asia/Kuala_Lumpur"          # GMT+8 (no DST)
