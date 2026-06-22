@@ -113,10 +113,10 @@ def render_report(now_myt, week_start, rows, decisions, ceiling,
             f"Blended CPA **{_cpa_text(blended_cpa)}** · target RM{cpa_tiers.healthy_max:.0f} · "
             f"hard-stop RM{cpa_tiers.hard_stop:.0f}",
             "",
-            "_Campaigns, most spend first (⚠️ = above max acceptable):_",
+            "_Campaigns, most spend first (⚠️ = above hard-stop):_",
         ]
         for disp, sp, sa, c in cpa_rows[:14]:
-            flag = " ⚠️" if (c is None or c == math.inf or c > cpa_tiers.max_acceptable) else ""
+            flag = " ⚠️" if (c is None or c == math.inf or c > cpa_tiers.hard_stop) else ""
             out.append(f"- {_short(disp)} · CPA {_cpa_text(c)} · RM{sp:,.0f} · {sa:.0f} sales{flag}")
         out.append("")
 
