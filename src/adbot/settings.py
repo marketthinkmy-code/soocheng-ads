@@ -126,7 +126,7 @@ class GoogleDocsCfg(BaseModel):
 class KpiCfg(BaseModel):
     cpl_threshold_myr: float = 40.0
     cpl_min_spend_myr: float = 80.0
-    cpl_lookback: str = "last_3d"
+    cpl_lookback: str = "last_3d"  # 'week_thu' = week-to-date from Thursday, or any Meta date_preset
     pause_zero_lead_after_spend: bool = True
     cpl_hold: List[str] = Field(default_factory=list)  # ad-name substrings temporarily exempt from auto-pause
 

@@ -24,6 +24,23 @@ WITHIN_THRESHOLD = "within_threshold"
 NO_RESULTS_YET = "no_results_yet"
 MANUAL_HOLD = "manual_hold"  # owner asked to keep this ad running despite CPL
 
+def _week_start_thursday(today: dt.date) -> dt.date:
+    """Most recent Thursday (the weekly ON/reset day) on or before `today`."""
+    return today - dt.timedelta(days=(today.weekday() - 3) % 7)  # Mon=0..Thu=3
+
+
+def cpl_window(settings: Settings, today: dt.date):
+    """(date_preset, time_range) for the CPL lookback.
+
+    'week_thu' = week-to-date from the most recent Thursday — the window the operator
+    actually reviews (matches the weekly OFF/ON cycle). Anything else is a Meta date_preset.
+    """
+    lookback = settings.kpi.cpl_lookback
+    if lookback == "week_thu":
+        return None, {"since": _week_start_thursday(today).isoformat(), "until": today.isoformat()}
+    return lookback, None
+
+
 def result_action_type(conversion_event: str) -> str:
     """The exact insights action_type that equals Ads Manager "Results" for a pixel-optimized ad.
 
@@ -139,6 +156,7 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
     token = result_action_type(settings.meta.conversion_event)
     want_event = (settings.meta.conversion_event or "").upper()
     today = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()  # MYT
+    cpl_preset, cpl_range = cpl_window(settings, today)
     sold60, spend60 = cpa_ctx if cpa_ctx is not None else build_cpa_context(graph, settings, today)
     use_cpa = settings.cpa.enabled and (bool(sold60) or bool(spend60))
     tiers = cpa.CpaTiers(settings.cpa.healthy_max_myr, settings.cpa.max_acceptable_myr,
@@ -156,7 +174,7 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
             if (promoted.get("custom_event_type") or "").upper() != want_event:
                 continue  # not optimized for our event — not ours to judge or pause
             name = ad.get("name", ad["id"])
-            insight = graph.get_ad_insight(ad["id"], settings.kpi.cpl_lookback)
+            insight = graph.get_ad_insight(ad["id"], date_preset=cpl_preset, time_range=cpl_range)
             spend, results = parse_metrics(insight, token)
 
             held = any(h and h in name for h in settings.kpi.cpl_hold)
