@@ -147,7 +147,7 @@ def render_report(now_myt: dt.datetime, rows, decisions, ceiling: float,
     over = [d for d in decisions if d.cpl is not None and (d.cpl == math.inf or d.cpl > ceiling)]
     held = [d for d in over if d.reason == MANUAL_HOLD]
     to_pause = [d for d in over if d.should_pause]
-    out += ["## ⚠️ Over ceiling · monitor watchlist _(last 3 days)_", ""]
+    out += ["## ⚠️ Over ceiling · monitor watchlist _(this ad-week, from Thu)_", ""]
     if not over:
         out += ["> [!TIP]", "> No ads over the ceiling — nothing to pause. ✅", ""]
     else:
