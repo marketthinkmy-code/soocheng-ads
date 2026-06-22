@@ -1,5 +1,37 @@
 # Replicate this Meta-ads automation onto a new project
 
+## ⚡ 简易版(推荐 — 方便团队复制)
+
+**为什么够用:** 整套逻辑(CPL/CPA 护栏、排程、1-1-N build)都是这个 repo 里的**确定性代码**,
+prompt 不需要描述行为,只需要叫 Claude「换项目参数」。
+
+**前提(二选一):**
+- (A) 新项目直接从这个 repo 复制开始(GitHub「Use this template」/ 复制 repo),代码已全在;**或**
+- (B) 让新项目的 Claude Code session 能读到 `marketthinkmy-code/soocheng-ads`(把它加进 session 范围)。
+
+**做法:** 在新项目的 Claude Code 里,贴下面这段 ⬇️
+
+```
+这个 repo 是一套 Meta 广告自动化(adbot):自动建 1-1-N CBO 广告、每小时按 CPL+CPA 自动暂停亏的广告、
+每周三 15:00 全停 / 周四 00:00 全开、每晚出报告、自动生成新创意点子,全部用 GitHub Actions 排程。
+我要为一个新项目跑「一模一样」的自动化。
+
+请保持所有代码、护栏逻辑、cron 排程原封不动,只换项目专属的设定。
+一个一个问我所有会不一样的值:Meta 广告账户 / Page / Pixel、目标 + 转化事件、每日预算 + 货币、
+国家 / 年龄 / 语言、落地页网址、命名前缀、Google Drive 素材文件夹、用来算 CPA 的付费名单 Sheet、
+CPL 和 CPA 的阈值、时区。问完后更新 config/config.yaml、config/audience.md、prompts/caption_system.md,
+并告诉我要设哪些 GitHub secrets。不确定就问,不要乱假设。
+
+全程先保持 PAUSED;上线前先跑 python -m adbot doctor、离线测试、再 sync --dry-run 和 build --dry-run,
+把结果给我看,我确认了才真正上线。
+```
+
+> 提示:若是品牌全新、又拿不到模板 repo,才需要下面的「完整版」(它把全部规格内嵌进 prompt,能从零重建)。
+
+---
+
+## 📋 完整版(从零重建、读不到模板 repo 时才需要)
+
 > 把 `adbot` 这整套自动化(1-1-N 建构 + CPL/CPA 护栏 + 每周 OFF/ON + 每日报告 + 创意情报)
 > 原封不动搬到另一个项目(例:马丁 Martin 的新课程/品牌)。
 >
