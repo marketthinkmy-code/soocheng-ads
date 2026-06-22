@@ -202,6 +202,22 @@ class GraphClient:
         }).get("data", [])
         return rows[0] if rows else None
 
+    def account_insights(self, account_path: str, *, level: str, fields: str,
+                         date_preset: Optional[str] = None,
+                         time_range: Optional[Dict[str, str]] = None) -> List[Dict[str, Any]]:
+        """One insights row per entity at ``level`` (campaign/adset/ad) for the whole account.
+
+        A single call returns every campaign's (or ad's) spend for a window — far cheaper
+        than per-entity calls. Pass date_preset (e.g. last_30d, maximum) OR a time_range
+        {since, until} for windows Meta has no preset for (e.g. 60 days).
+        """
+        params: Dict[str, Any] = {"level": level, "fields": fields, "limit": 500}
+        if time_range:
+            params["time_range"] = json.dumps(time_range)
+        else:
+            params["date_preset"] = date_preset or "maximum"
+        return self._get_all(f"{account_path}/insights", params)
+
     # ── ad labels (stateless weekly OFF/ON coordination) ───────────────────────
     def get_or_create_label(self, account_path: str, name: str) -> str:
         rows = self._get_all(f"{account_path}/adlabels", {"fields": "id,name", "limit": 200})
