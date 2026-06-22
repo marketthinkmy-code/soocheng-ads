@@ -1,22 +1,21 @@
-"""Daily whole-account performance report (read-only), emitted as rich Markdown.
+"""Daily whole-account performance report (read-only), emitted as clean Markdown.
 
-Designed for the GitHub-issue + mobile-email view: colour comes from shields.io
-badges and 🟢/🟡/🔴 status dots, layout is card-style (no wide tables, which reflow
-badly on phones). render_report() is a pure function so the look can be previewed
-and unit-tested without hitting the API.
+Plain text, minimal colour (one ⚠️ flag for breaches only), and every section states its
+time window explicitly:
+  • CPL  — this ad-week, from Thursday (the weekly ON/reset) to now — matches how the owner
+           reviews and the monitor's judgement window.
+  • CPA  — last 60 days, from the Paid Student List.
+render_report() is a pure function so the layout can be previewed without hitting the API.
 """
 from __future__ import annotations
 
 import datetime as dt
 import math
-import re
-import sys
-from urllib.parse import quote
 
 from adbot import cpa
 from adbot.commands import graph_client
-from adbot.monitor_cpl import (MANUAL_HOLD, _mkey, evaluate_account, extract_results,
-                               result_action_type)
+from adbot.monitor_cpl import (MANUAL_HOLD, _mkey, _week_start_thursday, evaluate_account,
+                               extract_results, result_action_type)
 from adbot.settings import load_settings
 
 
@@ -26,38 +25,10 @@ def _cpl(spend: float, reg: float):
     return math.inf if spend > 0 else None
 
 
-def _tier(cpl, ceiling: float):
-    """(status dot, shields colour) for a CPL against the ceiling."""
-    if cpl is None:
-        return "⚪", "lightgrey"
-    if cpl == math.inf:
-        return "🔴", "red"
-    ratio = cpl / ceiling
-    if ratio <= 0.85:
-        return "🟢", "brightgreen"
-    if ratio <= 1.0:
-        return "🟢", "green"
-    if ratio <= 1.25:
-        return "🟡", "orange"
-    return "🔴", "red"
-
-
 def _cpl_text(cpl) -> str:
     if cpl is None:
         return "—"
-    if cpl == math.inf:
-        return "∞"
-    return f"RM{cpl:.1f}"
-
-
-def _badge(label: str, message: str, color: str) -> str:
-    lab, msg = quote(str(label), safe=""), quote(str(message), safe="")
-    return f"![{label}](https://img.shields.io/badge/{lab}-{msg}-{color})"
-
-
-def _short(name: str) -> str:
-    """Trim a trailing ' - d/m/yyyy' date so campaign names read cleanly."""
-    return re.sub(r"\s*-\s*\d+/\d+/\d+\s*$", "", name).strip()
+    return "∞" if cpl == math.inf else f"RM{cpl:.1f}"
 
 
 def _cpa_text(c) -> str:
@@ -66,19 +37,10 @@ def _cpa_text(c) -> str:
     return "∞" if c == math.inf else f"RM{c:,.0f}"
 
 
-def _cpa_dot(c, tiers):
-    """(status dot, shields colour) for a CPA against the tiers."""
-    if c is None:
-        return "⚪", "lightgrey"
-    if c == math.inf:
-        return "🔴", "red"
-    if c <= tiers.healthy_max:
-        return "🟢", "brightgreen"
-    if c <= tiers.max_acceptable:
-        return "🟡", "yellow"
-    if c <= tiers.hard_stop:
-        return "🟠", "orange"
-    return "🔴", "red"
+def _short(name: str) -> str:
+    """Trim a trailing ' - d/m/yyyy' date so campaign names read cleanly."""
+    import re
+    return re.sub(r"\s*-\s*\d+/\d+/\d+\s*$", "", name).strip()
 
 
 def cpa_money_map(graph, settings, today):
@@ -110,108 +72,92 @@ def cpa_money_map(graph, settings, today):
     return rows, cpa.cpa(tot_sp, tot_sa)
 
 
-def render_report(now_myt: dt.datetime, rows, decisions, ceiling: float,
+def _action_reason(d, cpa_tiers) -> str:
+    if d.reason == cpa.HARD_STOP:
+        return f"CPA {_cpa_text(d.cpa)} on {d.cpa_sales} sale — over hard-stop RM{cpa_tiers.hard_stop:.0f}" \
+            if cpa_tiers else f"CPA {_cpa_text(d.cpa)} on {d.cpa_sales} sale — over hard-stop"
+    if d.cpl == math.inf:
+        return f"CPL ∞ — spend with 0 regs"
+    if d.cpl is not None:
+        return f"CPL {_cpl_text(d.cpl)} — over ceiling"
+    return d.reason
+
+
+def render_report(now_myt, week_start, rows, decisions, ceiling,
                   cpa_rows=None, blended_cpa=None, cpa_tiers=None) -> str:
     tot_spend = sum(r[1] for r in rows)
     tot_reg = sum(r[2] for r in rows)
     blended = _cpl(tot_spend, tot_reg)
-    _, bcolor = _tier(blended, ceiling)
-    over_ceiling = blended is not None and blended != math.inf and blended > ceiling
+    over = blended is not None and (blended == math.inf or blended > ceiling)
 
     out = [
         "# 📊 Daily Ads Report",
-        f"### {now_myt:%a %d %b %Y} · {now_myt:%H:%M} MYT",
-        f"Whole account · MTC + STOCKBLOOM · ceiling RM{ceiling:.0f}",
+        f"{now_myt:%a %d %b %Y, %H:%M} MYT · whole account (MTC + STOCKBLOOM)",
         "",
-        " &nbsp; ".join([
-            _badge("Spend", f"RM{tot_spend:,.0f}", "0969da"),
-            _badge("Regs", f"{tot_reg:.0f}", "8250df"),
-            _badge("Blended CPL", _cpl_text(blended), bcolor),
-        ]),
+        f"## 📅 CPL · this ad-week ({week_start:%a %d %b} → now)",
+        f"Spend **RM{tot_spend:,.0f}** · **{tot_reg:.0f}** registrations · "
+        f"blended CPL **{_cpl_text(blended)}** · ceiling RM{ceiling:.0f}"
+        f"{'  ⚠️ over' if over else ''}",
         "",
-        "> [!WARNING]" if over_ceiling else "> [!TIP]",
-        (f"> Blended CPL **{_cpl_text(blended)}** is over the RM{ceiling:.0f} ceiling today."
-         if over_ceiling else
-         f"> Blended CPL **{_cpl_text(blended)}** is within the RM{ceiling:.0f} ceiling. ✅"),
-        "",
-        "## 🏆 Campaigns · best → worst",
-        "",
+        "_Campaigns, cheapest CPL first (⚠️ = over ceiling):_",
     ]
     for name, spend, reg in sorted(rows, key=lambda r: (lambda c: math.inf if c is None else c)(_cpl(r[1], r[2]))):
         cpl = _cpl(spend, reg)
-        dot, color = _tier(cpl, ceiling)
-        out.append(f"{dot} **{_short(name)}** &nbsp; {_badge('CPL', _cpl_text(cpl), color)}"
-                   f" &nbsp; <sub>RM{spend:,.0f} · {reg:.0f} reg</sub>")
+        flag = " ⚠️" if (cpl is None or cpl == math.inf or cpl > ceiling) else ""
+        out.append(f"- {_short(name)} · CPL {_cpl_text(cpl)} · RM{spend:,.0f} · {reg:.0f} reg{flag}")
     out.append("")
 
-    over = [d for d in decisions if d.cpl is not None and (d.cpl == math.inf or d.cpl > ceiling)]
-    held = [d for d in over if d.reason == MANUAL_HOLD]
-    to_pause = [d for d in over if d.should_pause]
-    out += ["## ⚠️ Over ceiling · monitor watchlist _(this ad-week, from Thu)_", ""]
-    if not over:
-        out += ["> [!TIP]", "> No ads over the ceiling — nothing to pause. ✅", ""]
-    else:
-        out += [f"> [!{'CAUTION' if to_pause else 'NOTE'}]",
-                f"> **{len(over)}** ad(s) over RM{ceiling:.0f} — 🔒 {len(held)} held · "
-                f"✂️ {len(to_pause)} to auto-pause.", ""]
-        for d in sorted(over, key=lambda x: -(x.cpl if x.cpl != math.inf else 1e9)):
-            held_one = d.reason == MANUAL_HOLD
-            icon = "🔒" if held_one else ("✂️" if d.should_pause else "👀")
-            note = "held by you" if held_one else ("would auto-pause" if d.should_pause else "watch")
-            _, color = _tier(d.cpl, ceiling)
-            out.append(f"- {icon} **{d.name[:48]}** &nbsp; {_badge('CPL', _cpl_text(d.cpl), color)}"
-                       f" &nbsp; <sub>{note}</sub>")
+    if cpa_rows is not None and cpa_tiers is not None:
+        out += [
+            f"## 💰 CPA · last 60 days (real paid sales)",
+            f"Blended CPA **{_cpa_text(blended_cpa)}** · target RM{cpa_tiers.healthy_max:.0f} · "
+            f"hard-stop RM{cpa_tiers.hard_stop:.0f}",
+            "",
+            "_Campaigns, most spend first (⚠️ = above max acceptable):_",
+        ]
+        for disp, sp, sa, c in cpa_rows[:14]:
+            flag = " ⚠️" if (c is None or c == math.inf or c > cpa_tiers.max_acceptable) else ""
+            out.append(f"- {_short(disp)} · CPA {_cpa_text(c)} · RM{sp:,.0f} · {sa:.0f} sales{flag}")
         out.append("")
 
-    if cpa_rows is not None and cpa_tiers is not None:
-        _, bcol = _cpa_dot(blended_cpa, cpa_tiers)
-        out += ["## 💰 Real-sales CPA · last 60 days",
-                f"From the Paid Student List · target RM{cpa_tiers.healthy_max:.0f} · "
-                f"hard-stop RM{cpa_tiers.hard_stop:.0f}",
-                "",
-                _badge("Blended CPA", _cpa_text(blended_cpa), bcol),
-                ""]
-        for disp, sp, sa, c in cpa_rows[:12]:
-            dot, color = _cpa_dot(c, cpa_tiers)
-            out.append(f"{dot} **{_short(disp)}** &nbsp; {_badge('CPA', _cpa_text(c), color)}"
-                       f" &nbsp; <sub>RM{sp:,.0f} · {sa:.0f} sale</sub>")
+    pausing = [d for d in decisions if d.should_pause]
+    held = [d for d in decisions if d.reason == MANUAL_HOLD]
+    rescued = [d for d in decisions if d.reason == cpa.CPL_RESCUED]
+    out += ["## 🔧 Monitor actions", ""]
+    if not pausing and not held and not rescued:
+        out += ["Nothing to pause — all ads within CPL and CPA. ✅", ""]
+    else:
+        for d in pausing:
+            out.append(f"- ✂️ **{_short(d.name)}** — {_action_reason(d, cpa_tiers)} → pausing")
+        for d in rescued:
+            out.append(f"- 🛟 **{_short(d.name)}** — high CPL but CPA {_cpa_text(d.cpa)} "
+                       f"on {d.cpa_sales} sale → kept (profitable)")
+        for d in held:
+            out.append(f"- 🔒 **{_short(d.name)}** — CPL {_cpl_text(d.cpl)} → held by you (CPL-exempt)")
+        out.append("")
 
-        cut = [d for d in decisions if d.reason == cpa.HARD_STOP]
-        rescued = [d for d in decisions if d.reason == cpa.CPL_RESCUED]
-        out += ["", "### CPA decisions _(folded into the monitor)_", ""]
-        if not cut and not rescued:
-            out += ["> [!TIP]", "> CPA and CPL agree today — no overrides. ✅", ""]
-        else:
-            for d in cut:
-                out.append(f"- ✂️ **{d.name[:46]}** &nbsp; <sub>CPA {_cpa_text(d.cpa)} on "
-                           f"{d.cpa_sales} sale · auto-paused (over hard-stop)</sub>")
-            for d in rescued:
-                out.append(f"- 🛟 **{d.name[:46]}** &nbsp; <sub>CPA {_cpa_text(d.cpa)} on "
-                           f"{d.cpa_sales} sale · kept despite high CPL</sub>")
-            out.append("")
-
-    out += ["---",
-            "<sub>🤖 Auto-generated daily · reply here or ping me to act · cc @marketthinkmy-code</sub>"]
+    out += ["---", "<sub>🤖 Auto-generated daily · reply here or ping me to act · cc @marketthinkmy-code</sub>"]
     return "\n".join(out)
 
 
 def main() -> None:
     s = load_settings()
     g = graph_client(s)
-    acct = s.meta.account_path
     reg_token = result_action_type(s.meta.conversion_event)
     ceiling = s.kpi.cpl_threshold_myr
     now_myt = dt.datetime.utcnow() + dt.timedelta(hours=8)  # Asia/Kuala_Lumpur, no DST
+    week_start = _week_start_thursday(now_myt.date())
 
     rows = []
-    for c in g.list_campaigns(acct):
-        if c.get("effective_status") != "ACTIVE":
+    for r in g.account_insights(s.meta.account_path, level="campaign",
+                                fields="campaign_name,spend,actions",
+                                time_range={"since": week_start.isoformat(),
+                                            "until": now_myt.date().isoformat()}):
+        spend = float(r.get("spend") or 0)
+        reg = extract_results(r.get("actions"), reg_token)
+        if spend <= 0 and reg == 0:
             continue
-        ins = g._get_all(f"{c['id']}/insights",
-                         {"fields": "spend,actions", "date_preset": "today", "limit": 1})
-        spend = float(ins[0].get("spend", 0)) if ins else 0.0
-        reg = extract_results(ins[0].get("actions") if ins else None, reg_token)
-        rows.append((c["name"], spend, reg))
+        rows.append((r.get("campaign_name", ""), spend, reg))
 
     decisions = evaluate_account(g, s)
 
@@ -221,10 +167,11 @@ def main() -> None:
             tiers = cpa.CpaTiers(s.cpa.healthy_max_myr, s.cpa.max_acceptable_myr, s.cpa.hard_stop_myr)
             cpa_rows, blended_cpa = cpa_money_map(g, s, now_myt.date())
         except Exception as exc:  # noqa: BLE001
+            import sys
             print(f"<!-- CPA section skipped: {type(exc).__name__}: {exc} -->", file=sys.stderr)
             cpa_rows = tiers = None
 
-    print(render_report(now_myt, rows, decisions, ceiling, cpa_rows, blended_cpa, tiers))
+    print(render_report(now_myt, week_start, rows, decisions, ceiling, cpa_rows, blended_cpa, tiers))
 
 
 if __name__ == "__main__":
