@@ -10,10 +10,12 @@ from __future__ import annotations
 import datetime as dt
 import math
 import re
+import sys
 from urllib.parse import quote
 
+from adbot import cpa
 from adbot.commands import graph_client
-from adbot.monitor_cpl import (MANUAL_HOLD, evaluate_account, extract_results,
+from adbot.monitor_cpl import (MANUAL_HOLD, _mkey, evaluate_account, extract_results,
                                result_action_type)
 from adbot.settings import load_settings
 
@@ -58,7 +60,58 @@ def _short(name: str) -> str:
     return re.sub(r"\s*-\s*\d+/\d+/\d+\s*$", "", name).strip()
 
 
-def render_report(now_myt: dt.datetime, rows, decisions, ceiling: float) -> str:
+def _cpa_text(c) -> str:
+    if c is None:
+        return "—"
+    return "∞" if c == math.inf else f"RM{c:,.0f}"
+
+
+def _cpa_dot(c, tiers):
+    """(status dot, shields colour) for a CPA against the tiers."""
+    if c is None:
+        return "⚪", "lightgrey"
+    if c == math.inf:
+        return "🔴", "red"
+    if c <= tiers.healthy_max:
+        return "🟢", "brightgreen"
+    if c <= tiers.max_acceptable:
+        return "🟡", "yellow"
+    if c <= tiers.hard_stop:
+        return "🟠", "orange"
+    return "🔴", "red"
+
+
+def cpa_money_map(graph, settings, today):
+    """Per-campaign 60-day CPA (display, spend60, sales60, cpa) + blended, joined by UTM name."""
+    from adbot.clients.sheets import SheetsClient
+    values = SheetsClient(settings.secrets.google_sa_json).read_tab(
+        settings.cpa.spreadsheet_id, settings.cpa.sales_tab)
+    sales, _cols, _hdr = cpa.parse_sales(values, settings.cpa.price_myr)
+    _by_ad, _by_adset, by_campaign = cpa.attribute(sales, today)
+    since, until = (today - dt.timedelta(days=60)).isoformat(), today.isoformat()
+    spend = {}
+    for r in graph.account_insights(settings.meta.account_path, level="campaign",
+                                    fields="campaign_name,spend",
+                                    time_range={"since": since, "until": until}):
+        try:
+            spend[_mkey(r.get("campaign_name", ""))] = (r.get("campaign_name", ""), float(r.get("spend") or 0))
+        except (TypeError, ValueError):
+            continue
+    rows = []
+    for k in set(by_campaign) | set(spend):
+        disp = spend.get(k, (k, 0))[0] or k
+        sp = spend.get(k, (None, 0.0))[1]
+        sa = by_campaign.get(k, {}).get("60d", 0)
+        if sp <= 0 and sa == 0:
+            continue
+        rows.append((disp, sp, sa, cpa.cpa(sp, sa)))
+    rows.sort(key=lambda r: -(r[1] or 0))
+    tot_sp, tot_sa = sum(r[1] for r in rows), sum(r[2] for r in rows)
+    return rows, cpa.cpa(tot_sp, tot_sa)
+
+
+def render_report(now_myt: dt.datetime, rows, decisions, ceiling: float,
+                  cpa_rows=None, blended_cpa=None, cpa_tiers=None) -> str:
     tot_spend = sum(r[1] for r in rows)
     tot_reg = sum(r[2] for r in rows)
     blended = _cpl(tot_spend, tot_reg)
@@ -110,6 +163,33 @@ def render_report(now_myt: dt.datetime, rows, decisions, ceiling: float) -> str:
                        f" &nbsp; <sub>{note}</sub>")
         out.append("")
 
+    if cpa_rows is not None and cpa_tiers is not None:
+        _, bcol = _cpa_dot(blended_cpa, cpa_tiers)
+        out += ["## 💰 Real-sales CPA · last 60 days",
+                f"From the Paid Student List · target RM{cpa_tiers.healthy_max:.0f} · "
+                f"hard-stop RM{cpa_tiers.hard_stop:.0f}",
+                "",
+                _badge("Blended CPA", _cpa_text(blended_cpa), bcol),
+                ""]
+        for disp, sp, sa, c in cpa_rows[:12]:
+            dot, color = _cpa_dot(c, cpa_tiers)
+            out.append(f"{dot} **{_short(disp)}** &nbsp; {_badge('CPA', _cpa_text(c), color)}"
+                       f" &nbsp; <sub>RM{sp:,.0f} · {sa:.0f} sale</sub>")
+
+        cut = [d for d in decisions if d.reason == cpa.HARD_STOP]
+        rescued = [d for d in decisions if d.reason == cpa.CPL_RESCUED]
+        out += ["", "### CPA decisions _(folded into the monitor)_", ""]
+        if not cut and not rescued:
+            out += ["> [!TIP]", "> CPA and CPL agree today — no overrides. ✅", ""]
+        else:
+            for d in cut:
+                out.append(f"- ✂️ **{d.name[:46]}** &nbsp; <sub>CPA {_cpa_text(d.cpa)} on "
+                           f"{d.cpa_sales} sale · auto-paused (over hard-stop)</sub>")
+            for d in rescued:
+                out.append(f"- 🛟 **{d.name[:46]}** &nbsp; <sub>CPA {_cpa_text(d.cpa)} on "
+                           f"{d.cpa_sales} sale · kept despite high CPL</sub>")
+            out.append("")
+
     out += ["---",
             "<sub>🤖 Auto-generated daily · reply here or ping me to act · cc @marketthinkmy-code</sub>"]
     return "\n".join(out)
@@ -133,7 +213,18 @@ def main() -> None:
         reg = extract_results(ins[0].get("actions") if ins else None, reg_token)
         rows.append((c["name"], spend, reg))
 
-    print(render_report(now_myt, rows, evaluate_account(g, s), ceiling))
+    decisions = evaluate_account(g, s)
+
+    cpa_rows = blended_cpa = tiers = None
+    if s.cpa.enabled:
+        try:  # the report must never fail on the CPA add-on
+            tiers = cpa.CpaTiers(s.cpa.healthy_max_myr, s.cpa.max_acceptable_myr, s.cpa.hard_stop_myr)
+            cpa_rows, blended_cpa = cpa_money_map(g, s, now_myt.date())
+        except Exception as exc:  # noqa: BLE001
+            print(f"<!-- CPA section skipped: {type(exc).__name__}: {exc} -->", file=sys.stderr)
+            cpa_rows = tiers = None
+
+    print(render_report(now_myt, rows, decisions, ceiling, cpa_rows, blended_cpa, tiers))
 
 
 if __name__ == "__main__":
