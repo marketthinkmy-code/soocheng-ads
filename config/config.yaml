@@ -5,7 +5,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 meta:
-  ad_account_id: "act_2262468824239770"          # numeric; from ads_get_ad_accounts (keep the act_ prefix)
+  ad_account_id: "act_2282909119125229"          # NEW account (new Business Portfolio); switched 2026-06-23 after the old MyTrade50 account was disabled
   page_id: "1001334883061622"                     # FB Page the ads run under (ads_get_ad_account_pages)
   instagram_user_id: "17841480427751602"                 # IG Business Account @soochenginvesting; null to omit
   pixel_id: "2602956993413536"                    # pixel / dataset id for lead tracking (ads_get_datasets)
