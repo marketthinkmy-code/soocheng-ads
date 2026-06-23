@@ -8,12 +8,10 @@ name: adbot · daily report (~22:09 MYT)
 # a manual run always posts.
 
 on:
-  # ⏸️ PAUSED 2026-06-23 — account 2262468824239770 disabled by Meta; the report would be
-  # empty/error. Re-enable by uncommenting the schedule once the account is reinstated.
-  # schedule:
-  #   - cron: "9 14 * * *"        # 22:09 MYT (primary)
-  #   - cron: "39 14 * * *"       # 22:39 MYT (backup 1)
-  #   - cron: "9 15 * * *"        # 23:09 MYT (backup 2)
+  schedule:
+    - cron: "9 14 * * *"        # 22:09 MYT (primary; off the congested ":00" slot)
+    - cron: "39 14 * * *"       # 22:39 MYT (backup 1 — only posts if the primary was dropped)
+    - cron: "9 15 * * *"        # 23:09 MYT (backup 2)
   workflow_dispatch: {}          # manual run from the Actions tab — always posts
 
 permissions:
