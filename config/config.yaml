@@ -25,7 +25,7 @@ meta:
 
   budget:
     level: "CAMPAIGN"                    # CBO — campaign-level budget (all ads use CBO)
-    daily_amount_myr: 250                # campaign daily budget (MYR); MUST be >= sum of ad-set minimums
+    daily_amount_myr: 200                # campaign daily budget (MYR); kept under the new account's ~RM208 Meta daily limit
     currency: "MYR"
     adset_min_spend_myr: 50              # per-ad-set minimum daily spend (>=50) -> daily_min_spend_target
 
