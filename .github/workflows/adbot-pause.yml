@@ -1,0 +1,30 @@
+name: adbot · pause managed campaign (manual)
+
+# Manual freeze: sets the campaign recorded in state/entities.json to PAUSED, which stops
+# ALL delivery under it (every ad set + ad). Use to halt the live build for review.
+# It stays paused (unlike weekly_off, which weekly_on would resume). workflow_dispatch only.
+
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: adbot-build
+  cancel-in-progress: false
+
+jobs:
+  pause:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: Pause the managed campaign (from state/entities.json)
+        env:
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+        run: |
+          python -c "from adbot.commands import graph_client; from adbot.settings import load_settings; from adbot import state; s=load_settings(); g=graph_client(s); cid=state.load('entities').get('campaign_id'); assert cid, 'no campaign_id in state/entities.json'; print('Pausing campaign', cid); g.update_status(cid,'PAUSED'); print('SUMMARY: campaign', cid, 'set to PAUSED')"
