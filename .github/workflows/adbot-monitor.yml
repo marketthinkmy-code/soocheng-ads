@@ -6,11 +6,11 @@ name: adbot · CPL+CPA monitor (hourly)
 # Whole-account scope (MTC + STOCKBLOOM), judged one ad at a time; registration-optimized only.
 
 on:
-  schedule:
-    # GitHub drops top-of-hour (":00") scheduled runs under load, so stagger to odd minutes
-    # AND run a few times an hour for redundancy. The monitor is safe to repeat: it only
-    # pauses over-threshold ACTIVE ads and never un-pauses, so extra runs are no-ops.
-    - cron: "7,27,47 * * * *"   # ~every 20 min, off the congested hour boundary (UTC)
+  # ⏸️ PAUSED 2026-06-23 — ad account 2262468824239770 (STOCKBLOOM X MTC / MyTrade50) was
+  # disabled by Meta, so the monitor has nothing to act on (Graph calls would just error).
+  # Re-enable by uncommenting the schedule below once the account is reinstated.
+  # schedule:
+  #   - cron: "7,27,47 * * * *"   # ~every 20 min, off the congested hour boundary (UTC)
   workflow_dispatch:            # allow manual runs from the Actions tab
     inputs:
       dry_run:
