@@ -13,7 +13,7 @@ meta:
   objective: "OUTCOME_SALES"              # matches your live "Sales" / BROAD META ANDRO template
   optimization_goal: "OFFSITE_CONVERSIONS"   # "Maximize number of conversions"
   conversion_event: "COMPLETE_REGISTRATION"  # Ads Manager "Complete registration" (custom_event_type)
-  special_ad_categories: []              # CONFIRM region rules: some require ["FINANCIAL_PRODUCTS_SERVICES"]
+  special_ad_categories: ["FINANCIAL_PRODUCTS_SERVICES"]   # declared per owner 2026-06-23 (financial vertical, MY); NOTE: forces broad targeting
                                          #   for trading/investment ads, which forces broad targeting
 
   lead_destination:
