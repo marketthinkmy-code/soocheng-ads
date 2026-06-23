@@ -1,0 +1,52 @@
+name: adbot · sync + build (manual)
+
+# Manual, MONEY-TOUCHING build for the new ad account.
+# dry_run=true (default): doctor + sync/build --dry-run only — validates token/account/page/
+#   pixel/Drive access and prints the exact payloads. No upload, no creation, NO SPEND.
+# dry_run=false: doctor, then real sync (upload creatives) + build (create + auto-activate per
+#   config.build.activate_after_build) — this PUBLISHES LIVE ADS and starts spending.
+# doctor runs first in both modes and fails the job if any credential/asset is inaccessible,
+# so a missing page/pixel permission is caught before anything is created.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Validate only (doctor + dry-run, no spend). UNCHECK to go LIVE and spend."
+        type: boolean
+        default: true
+
+concurrency:
+  group: adbot-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: doctor + sync + build
+        env:
+          # pip install . is non-editable; point settings at the checkout (not site-packages).
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+          GOOGLE_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_B64 }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: |
+          python -m adbot doctor
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "── validation mode: dry-run, no upload, no spend ──"
+            python -m adbot sync --dry-run
+            python -m adbot build --dry-run
+          else
+            echo "── LIVE mode: uploading creatives + creating + activating (real spend) ──"
+            python -m adbot sync
+            python -m adbot build
+          fi
