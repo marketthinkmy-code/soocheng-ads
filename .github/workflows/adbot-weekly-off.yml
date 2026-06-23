@@ -5,9 +5,10 @@ name: adbot · weekly OFF (Wed 15:00 MYT)
 # Cron is UTC: Wed 07:00 UTC == Wed 15:00 Asia/Kuala_Lumpur (GMT+8).
 
 on:
-  schedule:
-    - cron: "9 7 * * 3"        # Wed 15:09 MYT (off the congested ":00" slot)
-    - cron: "9 8 * * 3"        # Wed 16:09 MYT — backup if the first was dropped (re-pause is a no-op)
+  # ⏸️ PAUSED 2026-06-23 — account 2262468824239770 disabled by Meta. Re-enable when reinstated.
+  # schedule:
+  #   - cron: "9 7 * * 3"        # Wed 15:09 MYT
+  #   - cron: "9 8 * * 3"        # Wed 16:09 MYT — backup
   workflow_dispatch: {}
 
 concurrency:
