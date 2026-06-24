@@ -8,7 +8,10 @@
     {"content_id": "image_5",  "kind": "single_image", "file_id": "1tWuae3aX1TVJ5FrzkxjDa55fvnP0tWYt", "name": "Image 5：FD 还是复利",          "source": "BATCH 2 / 马丁药师2025 (13).png — FD vs 复利"},
     {"content_id": "image_6",  "kind": "single_image", "file_id": "18aa-x2nrIaITMsB_RfiybCJEi2k70GKe", "name": "Image 6：选择太多，反而卡住",   "source": "BATCH 2 / ChatGPT Apr 20 05_53 — 有资金不知道方向"},
     {"content_id": "image_7",  "kind": "single_image", "file_id": "1a75To8krIM8TPqEqMhq7jthPTkr8kY7X", "name": "Image 7：Prop Firm 不是提款机", "source": "Folder 1 / ChatGPT Jun 16 10_12 — Prop Firm 不是提款机"},
-    {"content_id": "image_8",  "kind": "single_image", "file_id": "1Hq0EyNNQktkqdpGHSzBDGq-Hotil5wiY", "name": "Image 8：有系统，才谈 Prop Firm","source": "Folder 1 / ChatGPT Jun 16 08_19 — Prop Firm (no extractable on-image text)"},
+    {"content_id": "image_8",  "kind": "single_image", "file_id": "1Hq0EyNNQktkqdpGHSzBDGq-Hotil5wiY", "name": "Image 8：有系统，才谈 Prop Firm","source": "Folder 1 / ChatGPT Jun 16 08_19 — Prop Firm (no extractable on-image text)"}
+  ],
+  "_held_comment": "image_9–11 (TESTI payout-screenshot creatives) are HELD pending Meta financial-policy review — the on-image payout amounts ($1,347 / +US2,265 / RM8,472) risk disapproval and this account was disabled once. Their copy is already written (config/captions_singleimage.json) and seeded to Notion. To include them, move these entries back into 'creatives'.",
+  "creatives_held": [
     {"content_id": "image_9",  "kind": "single_image", "file_id": "15nwQaQVWKvwVRxYu3-LcLoYTH4msZ7eD", "name": "Image 9：学员见证 · 别人已经在提款",  "source": "TESTI IMAGE 1.png — payout proof (income figures baked into image)"},
     {"content_id": "image_10", "kind": "single_image", "file_id": "1IEUxD3CYHBXW87n0a9UfP8dGsDjUiJP3", "name": "Image 10：学员见证 · 能执行才算数",  "source": "TESTI IMAGE 2.png — payout proof (income figures baked into image)"},
     {"content_id": "image_11", "kind": "single_image", "file_id": "16XZNQ7ZgXDT8Z9oa_1YeawAHBcKBZ0I0", "name": "Image 11：学员见证 · 差别不是运气", "source": "TESTI IMAGE 3.png — payout proof (income figures baked into image)"}
