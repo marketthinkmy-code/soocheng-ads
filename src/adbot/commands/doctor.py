@@ -85,6 +85,21 @@ def run(settings: Settings, *, dry_run: bool = False) -> int:
         return "configured Doc(s) readable by the service account"
     check("google docs", _docs)
 
+    # ── Notion copy source (soft — never blocks; snapshot/LLM are the floor) ──
+    def _notion() -> str:
+        if not settings.notion.enabled:
+            return "disabled (build uses snapshot/LLM)"
+        if not settings.secrets.notion_token:
+            return "enabled but NOTION_TOKEN not set — will fall back to snapshot/LLM"
+        from . import notion_client
+        from ..notion_captions import fetch_captions
+        try:
+            caps = fetch_captions(notion_client(settings), settings.notion.database_id)
+            return f"connected; {len(caps)} video caption(s) available"
+        except Exception as exc:  # noqa: BLE001 - Notion must not block the build
+            return f"enabled but unreachable ({exc}) — will fall back to snapshot/LLM"
+    check("notion copy", _notion)
+
     # ── report ───────────────────────────────────────────────────────────────
     ok_count = sum(1 for _, ok, _ in results if ok)
     for name, ok, detail in results:

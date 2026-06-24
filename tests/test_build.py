@@ -147,6 +147,18 @@ def test_creative_spec_includes_url_tags(tmp_path):
     assert spec["url_tags"] == "utm_source={{adset.name}}&utm_content={{ad.name}}"
 
 
+def test_merge_caption_is_field_level():
+    from adbot.commands.build import _merge_caption
+    notion = {"name": "Video 1：新名字", "headline": "", "caption": "完整新文案"}
+    snap = {"name": "旧名字", "headline": "🔴 旧标题", "caption": "旧文案"}
+    m = _merge_caption(notion, snap)
+    assert m["name"] == "Video 1：新名字"   # Notion non-empty value wins
+    assert m["headline"] == "🔴 旧标题"     # Notion blank -> snapshot fills it
+    assert m["caption"] == "完整新文案"
+    assert _merge_caption(None, snap) == snap          # no Notion row -> pure snapshot
+    assert _merge_caption(notion, None)["caption"] == "完整新文案"  # no snapshot -> pure Notion
+
+
 def test_build_dry_run_creates_nothing(tmp_path):
     s = _settings(tmp_path)
     g = FakeGraph()

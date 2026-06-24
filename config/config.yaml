@@ -56,6 +56,12 @@ google_docs:
   caption_log_doc_id: ""                 # existing Doc id for caption+headline log (empty -> create)
   idea_backlog_doc_id: ""                # existing Doc id for content-idea backlog (empty -> create)
 
+notion:                                  # build pulls approved copy from here (source of truth)
+  enabled: true                          # needs NOTION_TOKEN secret + DB shared with the integration
+  database_id: "89582b42449682d4ab7f01c223c9969b"   # 🎬 Stock Bloom Content Pipeline DB
+                                         #   row Title "Video N：标题" -> content_id video_N + ad name;
+                                         #   Hook -> ad headline; page body -> caption. Status NOT filtered.
+
 kpi:
   cpl_threshold_myr: 40.00               # pause an ad above this CPL (project target RM35-40; ceiling 40)
   cpl_min_spend_myr: 80.00               # only judge an ad once it has spent >= RM80 (2x ceiling) — enough to be fair
