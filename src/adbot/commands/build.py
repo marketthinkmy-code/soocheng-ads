@@ -9,14 +9,15 @@ from typing import Any, Dict
 from . import docs_client, drive_client, graph_client, llm_client, notion_client
 from .. import build_1_1_10, docwriter, media
 from ..captions import generate_for_units
-from ..drive_sync import download_assets, load_units
+from ..drive_sync import download_assets, load_units, load_units_from_manifest
 from ..logging import get_logger
 from ..notion_captions import fetch_captions
 from ..settings import REPO_ROOT
 
 # Approved-caption snapshots (from Notion): content_id -> {name, headline, caption, ...}.
 # Used in preference to LLM generation so ads keep their vetted copy + "Video N：标题" names.
-CURATED_CAPTION_FILES = ("captions_june2026.json", "captions_campaign2.json")
+CURATED_CAPTION_FILES = ("captions_june2026.json", "captions_campaign2.json",
+                         "captions_singleimage.json")
 
 
 def _load_curated_captions() -> Dict[str, Any]:
@@ -56,19 +57,34 @@ def _pull_notion_captions(settings, units, log) -> Dict[str, Any]:
     return {u.content_id: pulled[u.content_id] for u in units if u.content_id in pulled}
 
 
-def run(settings, *, dry_run: bool = False) -> Dict[str, Any]:
+def run(settings, *, dry_run: bool = False, manifest: str = None,
+        state_key: str = "entities", label: str = "1-1-10",
+        start_time: str = None, daily_budget_myr: float = None) -> Dict[str, Any]:
     log = get_logger()
     graph = graph_client(settings)
-    drive = drive_client(settings)
-    _, units = load_units(drive, settings)
-    log.info("Loaded %d creative unit(s) from Drive.", len(units))
+    if daily_budget_myr is not None:  # override CBO budget for this build without editing config
+        settings.meta.budget.daily_amount_myr = daily_budget_myr
+
+    # Creatives come from an explicit manifest (curated file_ids + clean content_ids) or, by
+    # default, the recursive Drive folder scan. Manifest mode needs no Drive client for a dry-run.
+    drive = None
+    if manifest:
+        units = load_units_from_manifest(manifest)
+        log.info("Loaded %d creative unit(s) from manifest %s.", len(units), manifest)
+    else:
+        drive = drive_client(settings)
+        _, units = load_units(drive, settings)
+        log.info("Loaded %d creative unit(s) from Drive.", len(units))
 
     if dry_run:
         # Preview structure without uploading media or calling the LLM (no spend/cost).
         stub = {u.content_id: {"caption": "<generated on live run>",
                               "headline": "<generated>"} for u in units}
-        return build_1_1_10.build(graph, settings, units, stub, dry_run=True)
+        return build_1_1_10.build(graph, settings, units, stub, dry_run=True,
+                                  state_key=state_key, label=label, start_time=start_time)
 
+    if drive is None:
+        drive = drive_client(settings)
     download_assets(drive, units)
     media.sync_media(graph, settings, units, dry_run=False)
 
@@ -98,7 +114,8 @@ def run(settings, *, dry_run: bool = False) -> Dict[str, Any]:
         log.info("All %d unit(s) covered by Notion/snapshot — skipping LLM generation.",
                  len(units))
 
-    entities = build_1_1_10.build(graph, settings, units, captions, dry_run=False)
+    entities = build_1_1_10.build(graph, settings, units, captions, dry_run=False,
+                                  state_key=state_key, label=label, start_time=start_time)
 
     # The caption-log Google Doc is an optional audit; never fail the build on it
     # (e.g. the service account's Drive storage quota being exhausted).

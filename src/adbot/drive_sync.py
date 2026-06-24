@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
-from .creative_groups import Unit, build_units, select_ten
+from .creative_groups import Asset, SINGLE_IMAGE, Unit, build_units, select_ten
 from .logging import get_logger
 from .settings import REPO_ROOT, Settings
 
@@ -48,3 +49,37 @@ def download_assets(drive, units: List[Unit], dest_dir: Path = DOWNLOAD_DIR) -> 
             unit.script_text = script_path.read_text(encoding="utf-8", errors="ignore").strip()
         log.info("  [downloaded] %s (%s, %d asset(s))", unit.content_id, unit.kind, len(unit.assets))
     return units
+
+
+def load_units_from_manifest(manifest_path, *, default_kind: str = SINGLE_IMAGE) -> List[Unit]:
+    """Build creative units from an explicit manifest, bypassing the Drive folder scan.
+
+    The folder scan grabs *every* file in a folder and derives content_ids from messy
+    filenames; a manifest instead names exactly which Drive files to use and pins clean,
+    stable content_ids (e.g. ``image_1``) so the snapshot/Notion copy maps deterministically.
+    The service account still needs read access to each ``file_id`` — ``download_assets``
+    reads it like any other creative.
+
+    Manifest JSON::
+
+        {"creatives": [
+            {"content_id": "image_1", "file_id": "<drive id>", "name": "Image 1：…"},
+            {"content_id": "carousel_1", "kind": "carousel",
+             "files": [{"file_id": "…", "name": "…", "mime": "image/png"}, …]}
+        ]}
+
+    ``kind`` defaults to ``single_image``; ``mime`` defaults to ``image/png``.
+    """
+    path = Path(manifest_path)
+    if not path.is_absolute():
+        path = Path(REPO_ROOT) / path
+    data = json.loads(path.read_text(encoding="utf-8"))
+    units: List[Unit] = []
+    for item in data.get("creatives", []):
+        kind = item.get("kind", default_kind)
+        files = item.get("files") or [{"file_id": item["file_id"],
+                                       "name": item.get("name", ""),
+                                       "mime": item.get("mime", "image/png")}]
+        assets = [Asset(f["file_id"], f.get("name", ""), f.get("mime", "image/png")) for f in files]
+        units.append(Unit(content_id=item["content_id"], kind=kind, assets=assets))
+    return select_ten(units, n=len(units))  # de-dup by content_id, keep curated order

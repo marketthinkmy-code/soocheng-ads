@@ -11,6 +11,18 @@ def test_content_id_from_title_parses_video_rows():
     assert content_id_from_title("") is None
 
 
+def test_content_id_from_title_parses_image_rows():
+    # Single-image ads share the Content Pipeline DB; "Image N" -> image_N.
+    assert content_id_from_title("Image 1：快狠准 1分钟决策") == "image_1"
+    assert content_id_from_title("Image 11：学员见证 · 差别不是运气") == "image_11"
+    assert content_id_from_title("image3 - 只需1分钟") == "image_3"
+    # Video rows still resolve to the video_ space, not image_.
+    assert content_id_from_title("Video 5：x") == "video_5"
+    # "Single Image 2" doesn't start with Video/Image + number -> not a buildable row.
+    assert content_id_from_title("Single Image 2") is None
+    assert content_id_from_title("Images batch 2") is None
+
+
 def _page(title, hook, caption=None):
     props = {
         "Title": {"type": "title", "title": [{"plain_text": title}]},

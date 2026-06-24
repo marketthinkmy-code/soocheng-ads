@@ -196,3 +196,27 @@ def test_build_dry_run_does_not_resolve_audiences(tmp_path):
     g = FakeGraph()
     build(g, s, _units(), CAPTIONS, dry_run=True)
     assert not any(c[0] == "list_custom_audiences" for c in g.calls)
+
+
+def test_build_scheduled_start_time_label_and_custom_state_key(tmp_path, monkeypatch):
+    """A second (single-image) campaign: custom label/name, scheduled ad-set start, its own
+    state key, and PAUSED (no activation) so it auto-starts at start_time only once activated."""
+    monkeypatch.setattr(state, "STATE_DIR", tmp_path / "state")
+    s = _settings(tmp_path)
+    s.meta.build.activate_after_build = False  # build PAUSED for review (scheduled, not auto-live)
+    g = FakeGraph()
+    entities = build(g, s, _units(), CAPTIONS, dry_run=False,
+                     state_key="entities_images", label="Single-Image",
+                     start_time="2026-06-25T00:00:00+08:00")
+
+    campaign = next(c[1] for c in g.calls if c[0] == "campaign")
+    assert campaign["name"] == "STOCKBLOOM | Single-Image"
+    adset = next(c[1] for c in g.calls if c[0] == "adset")
+    assert adset["name"] == "STOCKBLOOM | Single-Image | AdSet (Broad MY 25+)"
+    assert adset["start_time"] == "2026-06-25T00:00:00+08:00"
+
+    assert not any(c[0] == "status" for c in g.calls)  # PAUSED: nothing activated
+    assert entities["activated"] is False
+    # Persisted under the distinct key, so the video campaign's "entities" is untouched.
+    assert state.load("entities_images")["campaign_id"] == "camp1"
+    assert state.load("entities") == {}

@@ -1,0 +1,75 @@
+name: adbot · single-image campaign (manual)
+
+# Manual build for the curated single-image campaign — creatives come from
+# config/single_image_manifest.json (NOT the video Drive folder), copy from
+# config/captions_singleimage.json + any Notion "Image N" rows. It is a SEPARATE
+# campaign (state key entities_images, label "Single-Image"), so it never touches
+# the video campaign's entities.
+#
+# mode:
+#   check_access : read-only. doctor + print the service-account email + test SA read
+#                  access to every image in the manifest. NO upload, NO SPEND.
+#   dry_run      : adbot build --dry-run — prints the exact campaign/ad-set/ad payloads
+#                  (incl. the scheduled start_time). NO upload, NO creation, NO SPEND.
+#   live_paused  : uploads the images + creates the campaign PAUSED with a scheduled
+#                  ad-set start_time. NOTHING spends until you ACTIVATE it in Ads Manager;
+#                  once activated it begins delivering at start_time.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "check_access (read-only) | dry_run (no spend) | live_paused (creates PAUSED)"
+        type: choice
+        options: [check_access, dry_run, live_paused]
+        default: check_access
+      start_time:
+        description: "Ad-set scheduled start, ISO8601 with +08:00 (Malaysia time)"
+        default: "2026-06-25T00:00:00+08:00"
+      daily_budget_myr:
+        description: "CBO daily budget in MYR (kept under the account's ~RM208 limit)"
+        default: "200"
+
+concurrency:
+  group: adbot-images
+  cancel-in-progress: false
+
+jobs:
+  images:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: single-image build (${{ inputs.mode }})
+        env:
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+          GOOGLE_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_B64 }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: |
+          set -e
+          MANIFEST="config/single_image_manifest.json"
+          ST="${{ inputs.start_time }}"
+          BUD="${{ inputs.daily_budget_myr }}"
+          MODE="${{ inputs.mode }}"
+          if [ "$MODE" = "check_access" ]; then
+            echo "── read-only: credentials + Drive access to manifest images ──"
+            python -m adbot doctor
+            python scripts/check_manifest_access.py "$MANIFEST"
+          elif [ "$MODE" = "dry_run" ]; then
+            echo "── dry-run: preview payloads, no upload, no spend ──"
+            python -m adbot build --manifest "$MANIFEST" --state-key entities_images \
+              --label "Single-Image" --start-time "$ST" --daily-budget "$BUD" --dry-run
+          else
+            echo "── LIVE: upload images + create PAUSED campaign scheduled for $ST ──"
+            python -m adbot doctor
+            python -m adbot build --manifest "$MANIFEST" --state-key entities_images \
+              --label "Single-Image" --start-time "$ST" --daily-budget "$BUD"
+          fi
