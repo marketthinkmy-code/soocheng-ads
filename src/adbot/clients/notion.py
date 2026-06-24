@@ -89,6 +89,23 @@ class NotionClient:
                 return out
             cursor = page.get("next_cursor")
 
+    def update_page_properties(self, page_id: str, properties: Dict[str, Any]) -> Dict[str, Any]:
+        """PATCH a page's properties (needs the integration's 'Update content' capability)."""
+        return self._request("PATCH", f"pages/{page_id}", json_body={"properties": properties})
+
+
+def _chunks(value: str, size: int = 2000) -> List[str]:
+    # Notion caps a single rich_text/title text object at 2000 chars; split longer copy.
+    return [value[i:i + size] for i in range(0, len(value), size)] or [""]
+
+
+def title_property(value: str) -> Dict[str, Any]:
+    return {"title": [{"text": {"content": c}} for c in _chunks(value)]}
+
+
+def rich_text_property(value: str) -> Dict[str, Any]:
+    return {"rich_text": [{"text": {"content": c}} for c in _chunks(value)]}
+
 
 def rich_text_to_plain(rich_text: List[Dict[str, Any]]) -> str:
     """Join a Notion rich_text array into a plain string."""
