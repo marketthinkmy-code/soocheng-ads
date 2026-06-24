@@ -102,10 +102,18 @@ class GraphClient:
 
     # ── media upload (impossible via MCP) ──────────────────────────────────────
     def upload_image(self, account_path: str, file_path: str) -> str:
-        """Upload an image; return its image_hash."""
+        """Upload an image; return its image_hash.
+
+        Send an explicit (filename, bytes, content-type) tuple so Meta's /adimages can
+        identify the format — a missing/odd filename extension yields a [400] "type of
+        file is not supported" even for a valid PNG/JPEG.
+        """
+        import mimetypes  # lazy
+        fname = os.path.basename(file_path)
+        ctype = mimetypes.guess_type(fname)[0] or "image/png"
         with open(file_path, "rb") as fh:
             payload = self._request("POST", f"{account_path}/adimages",
-                                    files={"filename": fh})
+                                    files={"filename": (fname, fh, ctype)})
         images = payload.get("images", {})
         first = next(iter(images.values()))
         return first["hash"]

@@ -51,6 +51,24 @@ def download_assets(drive, units: List[Unit], dest_dir: Path = DOWNLOAD_DIR) -> 
     return units
 
 
+# Meta's /adimages rejects an upload whose filename has no (or an unrecognised) extension
+# with "[400] The type of file is not supported" — so derive a clean, ASCII, extensioned
+# filename from the content_id + mime instead of using the human-readable manifest label.
+_MIME_EXT = {
+    "image/png": ".png", "image/jpeg": ".jpg", "image/jpg": ".jpg",
+    "image/webp": ".webp", "image/gif": ".gif",
+    "video/mp4": ".mp4", "video/quicktime": ".mov",
+}
+
+
+def _safe_asset_filename(content_id: str, mime: str, idx: int = 0, total: int = 1) -> str:
+    m = (mime or "").lower()
+    ext = _MIME_EXT.get(m) or (".png" if m.startswith("image/")
+                               else ".mp4" if m.startswith("video/") else ".bin")
+    stem = content_id if total <= 1 else f"{content_id}_{idx + 1}"
+    return f"{stem}{ext}"
+
+
 def load_units_from_manifest(manifest_path, *, default_kind: str = SINGLE_IMAGE) -> List[Unit]:
     """Build creative units from an explicit manifest, bypassing the Drive folder scan.
 
@@ -78,8 +96,12 @@ def load_units_from_manifest(manifest_path, *, default_kind: str = SINGLE_IMAGE)
     for item in data.get("creatives", []):
         kind = item.get("kind", default_kind)
         files = item.get("files") or [{"file_id": item["file_id"],
-                                       "name": item.get("name", ""),
                                        "mime": item.get("mime", "image/png")}]
-        assets = [Asset(f["file_id"], f.get("name", ""), f.get("mime", "image/png")) for f in files]
+        assets = [
+            Asset(f["file_id"],
+                  _safe_asset_filename(item["content_id"], f.get("mime", "image/png"), i, len(files)),
+                  f.get("mime", "image/png"))
+            for i, f in enumerate(files)
+        ]
         units.append(Unit(content_id=item["content_id"], kind=kind, assets=assets))
     return select_ten(units, n=len(units))  # de-dup by content_id, keep curated order

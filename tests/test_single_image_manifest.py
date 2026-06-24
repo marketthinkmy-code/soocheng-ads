@@ -17,6 +17,9 @@ def test_load_units_from_manifest_single_images(tmp_path):
     assert units[0].kind == SINGLE_IMAGE
     assert units[0].assets[0].file_id == "F1"
     assert units[0].assets[0].mime == "image/png"  # default mime for a bare file_id
+    # Asset filename is a clean, extensioned name (NOT the human label) so Meta /adimages
+    # accepts the upload — a label without a .png would fail "type of file is not supported".
+    assert units[0].assets[0].name == "image_1.png"
 
 
 def test_load_units_from_manifest_carousel_files_list(tmp_path):
@@ -29,6 +32,7 @@ def test_load_units_from_manifest_carousel_files_list(tmp_path):
     units = load_units_from_manifest(m)
     assert units[0].kind == CAROUSEL
     assert [a.file_id for a in units[0].assets] == ["A", "B"]
+    assert [a.name for a in units[0].assets] == ["carousel_1_1.png", "carousel_1_2.png"]
 
 
 def test_real_single_image_manifest_matches_captions():
