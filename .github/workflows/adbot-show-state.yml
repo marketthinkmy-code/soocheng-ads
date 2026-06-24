@@ -1,0 +1,56 @@
+name: adbot · show live campaign state (manual, read-only)
+
+# READ-ONLY diagnostic: prints whether the campaign recorded in state/entities.json still
+# exists on the live account, plus every campaign in the account (id / name / status) and the
+# managed ad set + ads. Writes nothing — used to decide reuse-vs-rebuild before a live build
+# (the new account is not Ads-MCP-readable, so this is how we inspect it).
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  show:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: show live campaign state
+        env:
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+        run: |
+          python - <<'PY'
+          from adbot.commands import graph_client
+          from adbot.settings import load_settings
+          from adbot import state
+          s = load_settings()
+          g = graph_client(s)
+          acct = s.meta.account_path
+          e = state.load("entities")
+          cid, asid = e.get("campaign_id"), e.get("adset_id")
+          print("STATE campaign_id:", cid, "| adset_id:", asid, "| ads:", len(e.get("ad_ids", [])))
+          if cid:
+              try:
+                  c = g.get_object(cid, "id,name,effective_status,daily_budget")
+                  print("RECORDED CAMPAIGN EXISTS:", c)
+              except Exception as ex:
+                  print("RECORDED CAMPAIGN MISSING:", ex)
+          if asid:
+              try:
+                  a = g.get_object(asid, "id,name,effective_status")
+                  print("RECORDED ADSET EXISTS:", a)
+              except Exception as ex:
+                  print("RECORDED ADSET MISSING:", ex)
+          print("---- ALL CAMPAIGNS IN ACCOUNT", acct, "----")
+          camps = g.list_campaigns(acct)
+          if not camps:
+              print("(no campaigns in account)")
+          for camp in camps:
+              print("CAMPAIGN:", camp.get("id"), "|", camp.get("effective_status"), "|", camp.get("name"))
+          print("SUMMARY: account has", len(camps), "campaign(s)")
+          PY
