@@ -38,7 +38,7 @@ meta:
 
   build:
     creatives_per_adset: 10              # the "10" in 1-1-10
-    activate_after_build: true           # auto-activate at daily_amount_myr after a verified build
+    activate_after_build: false          # build PAUSED for review; activate in the UI after checking the ad set / Advantage+
 
 naming:
   prefix: "STOCKBLOOM"                   # name prefix for every entity this bot manages (scoping)
