@@ -34,6 +34,20 @@ def main(argv: Optional[List[str]] = None) -> int:
         if name in DRY_RUN_DEFAULT_SAFE:
             p.add_argument("--dry-run", action="store_true",
                            help="show what would happen without writing to Meta/Docs")
+        if name == "build":
+            p.add_argument("--manifest",
+                           help="path to a creatives manifest JSON (curated file_ids + clean "
+                                "content_ids); bypasses the Drive folder scan")
+            p.add_argument("--state-key", default="entities",
+                           help="state/entities key (use a distinct key, e.g. entities_images, so a "
+                                "second campaign creates fresh entities instead of reusing the first)")
+            p.add_argument("--label", default="1-1-10",
+                           help="campaign label / name suffix (e.g. 'Single-Image')")
+            p.add_argument("--start-time",
+                           help="ad-set scheduled start, ISO8601 with tz offset "
+                                "(e.g. 2026-06-25T00:00:00+08:00)")
+            p.add_argument("--daily-budget", type=float, dest="daily_budget",
+                           help="override the CBO daily budget in MYR for this build")
     args = parser.parse_args(argv)
 
     settings = load_settings(args.config)
@@ -41,8 +55,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     log.info("adbot %s  (config: %s)", args.command, settings.config_path)
 
     dry_run = getattr(args, "dry_run", False)
+    kwargs = {}
+    if args.command == "build":
+        kwargs = dict(manifest=args.manifest, state_key=args.state_key, label=args.label,
+                      start_time=args.start_time, daily_budget_myr=args.daily_budget)
     try:
-        result = _dispatch(args.command)(settings, dry_run=dry_run)
+        result = _dispatch(args.command)(settings, dry_run=dry_run, **kwargs)
     except Exception as exc:  # noqa: BLE001 - surface a clean error in the mobile log
         log.error("ERROR: %s", exc)
         return 1

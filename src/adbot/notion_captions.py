@@ -24,14 +24,16 @@ from typing import Any, Dict, Optional
 from .clients.notion import NotionClient, rich_text_to_plain
 from .logging import get_logger
 
-# "Video 1：…", "Video 11 - …", "video2 ..." -> video_1 / video_11 / video_2
-_CONTENT_ID_RE = re.compile(r"^\s*video\s*0*(\d+)", re.IGNORECASE)
+# "Video 1：…" -> video_1 ; "Image 3：…" -> image_3 ; "video2", "Image 11 - …" likewise.
+# Both creative kinds share one Content Pipeline DB; the prefix word picks the content_id space.
+_CONTENT_ID_RE = re.compile(r"^\s*(video|image)\s*0*(\d+)", re.IGNORECASE)
 
 
 def content_id_from_title(title: str) -> Optional[str]:
-    """'Video 11：你不敢下单…' -> 'video_11'; None if the title isn't a buildable video row."""
+    """'Video 11：你不敢下单…' -> 'video_11'; 'Image 3：…' -> 'image_3';
+    None if the Title doesn't name a buildable video/image row."""
     m = _CONTENT_ID_RE.match(title or "")
-    return f"video_{m.group(1)}" if m else None
+    return f"{m.group(1).lower()}_{int(m.group(2))}" if m else None
 
 
 def _title_text(props: Dict[str, Any]) -> str:
@@ -64,6 +66,6 @@ def fetch_captions(notion: NotionClient, database_id: str) -> Dict[str, Dict[str
             "headline": _rich_text_prop(props, "Hook").strip(),
             "caption": _rich_text_prop(props, "Caption").strip(),  # "" -> snapshot fills it
         }
-    log.info("Notion: pulled %d video caption(s): %s",
+    log.info("Notion: pulled %d caption(s): %s",
              len(out), ", ".join(sorted(out)) or "(none)")
     return out
