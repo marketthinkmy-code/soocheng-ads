@@ -36,6 +36,16 @@ def test_targeting_spec_is_broad_my_25plus(tmp_path):
     assert spec["geo_locations"]["countries"] == ["MY"]
     assert spec["age_min"] == 25
     assert spec["targeting_automation"]["advantage_audience"] == 1
+    # No exclusions configured / passed -> the key is absent (don't send an empty list to Meta).
+    assert "excluded_custom_audiences" not in spec
+
+
+def test_targeting_spec_injects_excluded_custom_audiences(tmp_path):
+    s = load_settings(_write(tmp_path))
+    spec = s.meta.targeting.to_spec(["aud_111", "aud_222"])
+    assert spec["excluded_custom_audiences"] == [{"id": "aud_111"}, {"id": "aud_222"}]
+    # Everything else (broad MY 25+, Advantage+) is preserved alongside the exclusion.
+    assert spec["targeting_automation"]["advantage_audience"] == 1
 
 
 def test_account_path_and_promoted_object(tmp_path):

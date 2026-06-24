@@ -178,6 +178,21 @@ class GraphClient:
         """status is ACTIVE or PAUSED."""
         return self._request("POST", entity_id, data={"status": status})
 
+    def update_targeting(self, adset_id: str, targeting: Dict[str, Any]) -> Dict[str, Any]:
+        """Replace an ad set's targeting spec — used to apply audience exclusions / Advantage+
+        to an ad set built before they were configured, without a full rebuild."""
+        return self._request("POST", adset_id, data=_encode({"targeting": targeting}))
+
+    # ── custom audiences (exclude-by-name resolution) ──────────────────────────
+    def list_custom_audiences(self, account_path: str) -> List[Dict[str, Any]]:
+        """Every custom audience on the account (id + name), to resolve exclude-by-name.
+
+        New ad accounts only expose audiences that exist on them (e.g. website custom
+        audiences off the shared pixel); names that don't resolve are skipped by the caller.
+        """
+        return self._get_all(f"{account_path}/customaudiences",
+                             {"fields": "id,name", "limit": 200})
+
     # ── reads for monitoring / scoping ─────────────────────────────────────────
     def list_campaigns(self, account_path: str) -> List[Dict[str, Any]]:
         """Every campaign in the account — whole-account scope for the monitor + weekly OFF."""

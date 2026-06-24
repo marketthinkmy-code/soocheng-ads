@@ -9,15 +9,19 @@ from typing import List, Optional
 from .logging import get_logger
 from .settings import load_settings
 
-COMMANDS = ["doctor", "sync", "build", "monitor", "weekly_off", "weekly_on", "intel"]
-DRY_RUN_DEFAULT_SAFE = {"sync", "build", "monitor", "weekly_off", "weekly_on", "intel"}
+COMMANDS = ["doctor", "sync", "build", "monitor", "weekly_off", "weekly_on", "intel",
+            "resync_targeting"]
+DRY_RUN_DEFAULT_SAFE = {"sync", "build", "monitor", "weekly_off", "weekly_on", "intel",
+                        "resync_targeting"}
 
 
 def _dispatch(command: str):
-    from .commands import build, doctor, intel, monitor, sync, weekly_off, weekly_on
+    from .commands import (build, doctor, intel, monitor, resync_targeting, sync,
+                           weekly_off, weekly_on)
     return {
         "doctor": doctor.run, "sync": sync.run, "build": build.run, "monitor": monitor.run,
         "weekly_off": weekly_off.run, "weekly_on": weekly_on.run, "intel": intel.run,
+        "resync_targeting": resync_targeting.run,
     }[command]
 
 

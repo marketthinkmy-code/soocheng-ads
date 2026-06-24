@@ -52,8 +52,11 @@ class Targeting(BaseModel):
     age_max: int = 65
     advantage_audience: int = 1
     locales: List[int] = Field(default_factory=list)  # Meta locale ids; 1004 = Chinese (All)
+    # Custom-audience NAMES to exclude from delivery (e.g. people who already registered).
+    # Names are resolved to ids against the live account at build time (see build_1_1_10).
+    excluded_custom_audiences: List[str] = Field(default_factory=list)
 
-    def to_spec(self) -> dict:
+    def to_spec(self, excluded_audience_ids: Optional[List[str]] = None) -> dict:
         spec = {
             "geo_locations": {"countries": self.countries},
             "age_min": self.age_min,
@@ -62,6 +65,8 @@ class Targeting(BaseModel):
         }
         if self.locales:
             spec["locales"] = self.locales
+        if excluded_audience_ids:
+            spec["excluded_custom_audiences"] = [{"id": aid} for aid in excluded_audience_ids]
         return spec
 
 

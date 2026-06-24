@@ -19,6 +19,27 @@ def _cta(settings: Settings) -> Dict[str, Any]:
             "value": {"link": settings.meta.lead_destination.link_url}}
 
 
+def resolve_excluded_audiences(graph, account: str, names: List[str], log) -> List[str]:
+    """Map configured custom-audience names -> ids via the Graph API (case-insensitive).
+
+    Names that don't match an audience on the account are logged and skipped — never fatal,
+    so a renamed/absent audience can't block the build.
+    """
+    if not names:
+        return []
+    available = {(row.get("name") or "").strip().lower(): row["id"]
+                 for row in graph.list_custom_audiences(account)}
+    resolved: List[str] = []
+    for name in names:
+        aid = available.get(name.strip().lower())
+        if aid:
+            resolved.append(aid)
+            log.info("  Excluding custom audience %r -> %s", name, aid)
+        else:
+            log.warning("  Excluded audience %r not found on %s — skipping", name, account)
+    return resolved
+
+
 def creative_spec(settings: Settings, unit: Unit, caption: Dict[str, Any],
                   thumbnail_url: Optional[str] = None) -> Dict[str, Any]:
     """Build the ad-creative payload for one unit (video / image / carousel)."""
@@ -75,10 +96,17 @@ def build(graph, settings: Settings, units: List[Unit],
         "daily_budget": m.budget.daily_amount_cents,
         "bid_strategy": "LOWEST_COST_WITHOUT_CAP",
     }
+    # Resolve exclude-by-name -> audience ids via Graph (live only; dry-run stays network-free
+    # so it needs no token and the offline tests' FakeGraph is never called).
+    excluded_ids: List[str] = []
+    if m.targeting.excluded_custom_audiences and not dry_run:
+        excluded_ids = resolve_excluded_audiences(
+            graph, account, m.targeting.excluded_custom_audiences, log)
     adset_fields = {
         "name": settings.naming.campaign_name(f"{label} | AdSet (Broad MY 25+)"),
         "optimization_goal": m.optimization_goal, "billing_event": "IMPRESSIONS",
-        "promoted_object": m.promoted_object, "targeting": m.targeting.to_spec(),
+        "promoted_object": m.promoted_object,
+        "targeting": m.targeting.to_spec(excluded_ids),
         "status": "PAUSED",
     }
     if start_time:  # schedule delivery to begin at this ISO8601 time (with tz offset)
@@ -87,6 +115,9 @@ def build(graph, settings: Settings, units: List[Unit],
     if dry_run:
         log.info("[dry-run] CAMPAIGN: %s", campaign_fields)
         log.info("[dry-run] AD SET:   %s", adset_fields)
+        if m.targeting.excluded_custom_audiences:
+            log.info("[dry-run] would EXCLUDE custom audiences (resolved live): %s",
+                     ", ".join(m.targeting.excluded_custom_audiences))
         for unit in units:
             log.info("[dry-run] CREATIVE %s (%s): %s", unit.content_id, unit.kind,
                      creative_spec(settings, unit, captions.get(unit.content_id, {})))

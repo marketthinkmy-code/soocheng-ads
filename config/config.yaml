@@ -35,6 +35,9 @@ meta:
     age_max: 65
     advantage_audience: 1                # 1 = Broad / Advantage+ ON (age 25 = floor). 0 = hard 25+ cap.
     locales: [1004]                      # ad-set Languages = Chinese (All)
+    excluded_custom_audiences:           # don't pay to re-reach people who already converted; names
+      - "30 days complete registration"  #   resolved to ids on the live account at build time
+
 
   build:
     creatives_per_adset: 10              # the "10" in 1-1-10

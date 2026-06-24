@@ -1,0 +1,47 @@
+name: adbot · resync ad-set targeting (manual)
+
+# Rewrites the LIVE ad set (recorded in state/entities.json) to exactly the targeting in
+# config.yaml: Broad MY + Chinese + advantage_audience + excluded_custom_audiences. Use this
+# to apply an audience exclusion (e.g. "30 days complete registration") or turn Advantage+ on
+# for an ad set that was built before they were configured — no rebuild, no re-upload.
+#
+# dry_run=true (default): resolves the exclusion names to ids and prints the targeting it WOULD
+#   write. No change to the ad set.
+# dry_run=false: writes the targeting to the live ad set. Safe while the ad set is PAUSED /
+#   zero-spend (no learning phase to reset); avoid on an actively-delivering ad set.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview the targeting only (no change). UNCHECK to write it to the live ad set."
+        type: boolean
+        default: true
+
+concurrency:
+  group: adbot-build
+  cancel-in-progress: false
+
+jobs:
+  resync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: resync ad-set targeting
+        env:
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "── preview mode: resolve exclusions + print targeting, no change ──"
+            python -m adbot resync_targeting --dry-run
+          else
+            echo "── LIVE mode: writing targeting to the ad set ──"
+            python -m adbot resync_targeting
+          fi
