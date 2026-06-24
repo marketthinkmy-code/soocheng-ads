@@ -1,0 +1,44 @@
+name: adbot · seed Notion copy (manual)
+
+# Writes the byte-exact snapshot copy (config/captions_*.json) into the Notion Content
+# Pipeline rows — Title + Hook + Caption per video, character-identical to the vetted source.
+# Use to populate / refresh the copy in Notion without hand-typing it.
+#
+# dry_run=true (default): list what would be written, no change.
+# dry_run=false: PATCH each matching Notion row. Needs the integration's "Update content"
+#   capability; a read-only token fails with a clear permission error.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Preview only (no write). UNCHECK to write the copy into Notion."
+        type: boolean
+        default: true
+
+concurrency:
+  group: adbot-notion-seed
+  cancel-in-progress: false
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: seed Notion copy
+        env:
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "── preview: no write ──"
+            python -m adbot notion_seed --dry-run
+          else
+            echo "── writing snapshot copy into Notion ──"
+            python -m adbot notion_seed
+          fi
