@@ -52,8 +52,11 @@ class Targeting(BaseModel):
     age_max: int = 65
     advantage_audience: int = 1
     locales: List[int] = Field(default_factory=list)  # Meta locale ids; 1004 = Chinese (All)
+    # Custom-audience NAMES to exclude from delivery (e.g. people who already registered).
+    # Names are resolved to ids against the live account at build time (see build_1_1_10).
+    excluded_custom_audiences: List[str] = Field(default_factory=list)
 
-    def to_spec(self) -> dict:
+    def to_spec(self, excluded_audience_ids: Optional[List[str]] = None) -> dict:
         spec = {
             "geo_locations": {"countries": self.countries},
             "age_min": self.age_min,
@@ -62,6 +65,8 @@ class Targeting(BaseModel):
         }
         if self.locales:
             spec["locales"] = self.locales
+        if excluded_audience_ids:
+            spec["excluded_custom_audiences"] = [{"id": aid} for aid in excluded_audience_ids]
         return spec
 
 
@@ -123,6 +128,12 @@ class GoogleDocsCfg(BaseModel):
     idea_backlog_doc_id: str = ""
 
 
+class NotionCfg(BaseModel):
+    """Pull approved ad copy from a Notion database (the operator's source of truth)."""
+    enabled: bool = False
+    database_id: str = ""  # Content Pipeline database id (share it with the integration)
+
+
 class KpiCfg(BaseModel):
     cpl_threshold_myr: float = 40.0
     cpl_min_spend_myr: float = 80.0
@@ -151,6 +162,7 @@ class Secrets(BaseModel):
     meta_app_secret: str = ""
     google_sa_json: str = ""
     anthropic_api_key: str = ""
+    notion_token: str = ""
 
 
 # ── top-level ────────────────────────────────────────────────────────────────
@@ -159,6 +171,7 @@ class Settings(BaseModel):
     naming: Naming = Field(default_factory=Naming)
     drive: DriveCfg = Field(default_factory=DriveCfg)
     google_docs: GoogleDocsCfg = Field(default_factory=GoogleDocsCfg)
+    notion: NotionCfg = Field(default_factory=NotionCfg)
     kpi: KpiCfg = Field(default_factory=KpiCfg)
     cpa: CpaCfg = Field(default_factory=CpaCfg)
     schedule: dict = Field(default_factory=dict)
@@ -212,10 +225,12 @@ def _load_secrets() -> Secrets:
         meta_app_secret=os.environ.get("META_APP_SECRET", ""),
         google_sa_json=_resolve_sa_json(),
         anthropic_api_key=os.environ.get("ANTHROPIC_API_KEY", ""),
+        notion_token=os.environ.get("NOTION_TOKEN", ""),
     )
     register_secret(secrets.meta_token)
     register_secret(secrets.meta_app_secret)
     register_secret(secrets.anthropic_api_key)
+    register_secret(secrets.notion_token)
     return secrets
 
 
@@ -230,6 +245,7 @@ def load_settings(config_path: Optional[Path] = None) -> Settings:
         naming=Naming(**(data.get("naming") or {})),
         drive=DriveCfg(**(data.get("drive") or {})),
         google_docs=GoogleDocsCfg(**(data.get("google_docs") or {})),
+        notion=NotionCfg(**(data.get("notion") or {})),
         kpi=KpiCfg(**(data.get("kpi") or {})),
         cpa=CpaCfg(**(data.get("cpa") or {})),
         schedule=data.get("schedule") or {},

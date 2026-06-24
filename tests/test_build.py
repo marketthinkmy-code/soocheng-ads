@@ -77,6 +77,12 @@ class FakeGraph:
     def get_video_thumbnail(self, video_id):
         return "https://example.test/thumb.jpg"
 
+    def list_custom_audiences(self, account):
+        self.calls.append(("list_custom_audiences", account))
+        # Name casing differs from config on purpose — resolution must be case-insensitive.
+        return [{"id": "aud_reg30", "name": "30 Days Complete Registration"},
+                {"id": "aud_web", "name": "Website"}]
+
 
 def test_creative_spec_video(tmp_path):
     s = _settings(tmp_path)
@@ -141,9 +147,52 @@ def test_creative_spec_includes_url_tags(tmp_path):
     assert spec["url_tags"] == "utm_source={{adset.name}}&utm_content={{ad.name}}"
 
 
+def test_merge_caption_is_field_level():
+    from adbot.commands.build import _merge_caption
+    notion = {"name": "Video 1：新名字", "headline": "", "caption": "完整新文案"}
+    snap = {"name": "旧名字", "headline": "🔴 旧标题", "caption": "旧文案"}
+    m = _merge_caption(notion, snap)
+    assert m["name"] == "Video 1：新名字"   # Notion non-empty value wins
+    assert m["headline"] == "🔴 旧标题"     # Notion blank -> snapshot fills it
+    assert m["caption"] == "完整新文案"
+    assert _merge_caption(None, snap) == snap          # no Notion row -> pure snapshot
+    assert _merge_caption(notion, None)["caption"] == "完整新文案"  # no snapshot -> pure Notion
+
+
 def test_build_dry_run_creates_nothing(tmp_path):
     s = _settings(tmp_path)
     g = FakeGraph()
     result = build(g, s, _units(), CAPTIONS, dry_run=True)
     assert result["dry_run"] is True
     assert g.calls == []
+
+
+def test_resolve_excluded_audiences_is_case_insensitive_and_skips_unknown(tmp_path):
+    from adbot.build_1_1_10 import resolve_excluded_audiences
+    from adbot.logging import get_logger
+    g = FakeGraph()
+    ids = resolve_excluded_audiences(
+        g, "act_123", ["30 days complete registration", "Nonexistent Audience"], get_logger())
+    assert ids == ["aud_reg30"]  # matched case-insensitively; the unknown name is dropped
+
+
+def test_build_injects_resolved_audience_exclusion(tmp_path, monkeypatch):
+    monkeypatch.setattr(state, "STATE_DIR", tmp_path / "state")
+    s = _settings(tmp_path)
+    s.meta.targeting.excluded_custom_audiences = ["30 days complete registration"]
+    g = FakeGraph()
+    build(g, s, _units(), CAPTIONS, dry_run=False)
+
+    adset = next(c[1] for c in g.calls if c[0] == "adset")
+    assert adset["targeting"]["excluded_custom_audiences"] == [{"id": "aud_reg30"}]
+    # Advantage+ stays on alongside the exclusion.
+    assert adset["targeting"]["targeting_automation"]["advantage_audience"] == 1
+
+
+def test_build_dry_run_does_not_resolve_audiences(tmp_path):
+    """Dry-run must stay network-free even with exclusions configured (no token in CI dry-run)."""
+    s = _settings(tmp_path)
+    s.meta.targeting.excluded_custom_audiences = ["30 days complete registration"]
+    g = FakeGraph()
+    build(g, s, _units(), CAPTIONS, dry_run=True)
+    assert not any(c[0] == "list_custom_audiences" for c in g.calls)

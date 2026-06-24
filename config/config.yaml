@@ -35,6 +35,9 @@ meta:
     age_max: 65
     advantage_audience: 1                # 1 = Broad / Advantage+ ON (age 25 = floor). 0 = hard 25+ cap.
     locales: [1004]                      # ad-set Languages = Chinese (All)
+    excluded_custom_audiences:           # don't pay to re-reach people who already converted; names
+      - "30 days complete registration"  #   resolved to ids on the live account at build time
+
 
   build:
     creatives_per_adset: 10              # the "10" in 1-1-10
@@ -52,6 +55,12 @@ drive:
 google_docs:
   caption_log_doc_id: ""                 # existing Doc id for caption+headline log (empty -> create)
   idea_backlog_doc_id: ""                # existing Doc id for content-idea backlog (empty -> create)
+
+notion:                                  # build pulls approved copy from here (source of truth)
+  enabled: true                          # needs NOTION_TOKEN secret + DB shared with the integration
+  database_id: "89582b42449682d4ab7f01c223c9969b"   # 🎬 Stock Bloom Content Pipeline DB
+                                         #   row Title "Video N：标题" -> content_id video_N + ad name;
+                                         #   Hook -> ad headline; page body -> caption. Status NOT filtered.
 
 kpi:
   cpl_threshold_myr: 40.00               # pause an ad above this CPL (project target RM35-40; ceiling 40)
