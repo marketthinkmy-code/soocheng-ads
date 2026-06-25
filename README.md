@@ -3,6 +3,10 @@
 Hands-off Meta (Facebook/Instagram) advertising for Soo Cheng 老师's STOCK BLOOM trading
 course, run in the cloud and monitored from the Claude mobile app.
 
+> 📌 **Working on ad copy or putting up an ad? Read [`CLAUDE.md`](CLAUDE.md) first** — the
+> standing SOP for the approved copy style, Andromeda feeding, compliance, and the
+> creative → Notion → build workflow.
+
 **What it does**
 1. **sync** — downloads creatives (videos / single images / multi-image carousels) from a
    Google Drive folder and uploads them to your Meta ad account.
