@@ -1,0 +1,10 @@
+{
+  "_comment": "Single-image campaign B (1-1-5). The 5 newer folder-1 images (picture<->copy pairing is best-guess; owner verifies in manual check). content_id pins copy from Notion 'Image N' rows. Built via: adbot build --manifest config/single_image_manifest_b.json --state-key entities_img_b --label 'Single-Image B' (PAUSED).",
+  "creatives": [
+    {"content_id": "image_18", "kind": "single_image", "file_id": "19w3tsAbYPCOhx2dMlpGKKtLhcHFQ4et3", "name": "Image 18：机会成本 · 慢一步", "source": "folder1 / ChatGPT Apr 21 11_00"},
+    {"content_id": "image_19", "kind": "single_image", "file_id": "1lsWhPhLzxjwWDGKzr1CqAOejPxD-8lxz", "name": "Image 19：MooMoo · 老手升级", "source": "folder1 / 马丁药师2025 (12).png"},
+    {"content_id": "image_20", "kind": "single_image", "file_id": "1bc_e8gWLAtAIBUJmydoOpDZhWjrv2sUJ", "name": "Image 20：40 岁 · 收入太单一", "source": "folder1 / 马丁药师2025 (11).png"},
+    {"content_id": "image_21", "kind": "single_image", "file_id": "11avxKg6Qt03DBSh1389RlrfO4wcl5h2I", "name": "Image 21：怀疑者", "source": "folder1 / 马丁药师2025 (4).png"},
+    {"content_id": "image_22", "kind": "single_image", "file_id": "1ONfOvsWXo_8RoaCT08yKFAsRvVgKW99v", "name": "Image 22：不选 forex 不选黄金", "source": "folder1 / 马丁药师2025 (14).png"}
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "_comment": "Single-image campaign A (1-1-6). content_id pins copy from Notion 'Image N' rows. SA must have READ access to each file_id. Built via: adbot build --manifest config/single_image_manifest_a.json --state-key entities_img_a --label 'Single-Image A' (PAUSED).",
+  "creatives": [
+    {"content_id": "image_12", "kind": "single_image", "file_id": "1kzrBFOn8l_OfuabspDXgsc-LWpk7Hw-i", "name": "Image 12：快狠准 · 我跟你讲", "source": "folder2 / 马丁药师2025 (16).png"},
+    {"content_id": "image_13", "kind": "single_image", "file_id": "1I1EsVUX21pT8duQAXE7YtBvzbTbjetyg", "name": "Image 13：Timing · 你敢吗", "source": "folder2 / 马丁药师2025 (14).png"},
+    {"content_id": "image_14", "kind": "single_image", "file_id": "1_D_a7uEfc5vpQtSnlZ2HWTwbPxSY6-Qz", "name": "Image 14：只需 1 分钟 · 盖电脑", "source": "folder2 / 马丁药师2025 (17).png"},
+    {"content_id": "image_15", "kind": "single_image", "file_id": "1ZyPKR40AguiiKtzC4UC8nANuNbNlGYb2", "name": "Image 15：有本金，不懂放大", "source": "folder1 / ChatGPT Apr 20 04_58"},
+    {"content_id": "image_16", "kind": "single_image", "file_id": "1tWuae3aX1TVJ5FrzkxjDa55fvnP0tWYt", "name": "Image 16：FD vs 复利", "source": "folder1 / 马丁药师2025 (13).png"},
+    {"content_id": "image_17", "kind": "single_image", "file_id": "18aa-x2nrIaITMsB_RfiybCJEi2k70GKe", "name": "Image 17：选择太多，反而卡住", "source": "folder1 / ChatGPT Apr 20 05_53"}
+  ]
+}
