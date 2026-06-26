@@ -1,5 +1,5 @@
 {
-  "_comment": "Single-image campaign B (1-1-5). The 5 newer folder-1 images (picture<->copy pairing is best-guess; owner verifies in manual check). content_id pins copy from Notion 'Image N' rows. Built via: adbot build --manifest config/single_image_manifest_b.json --state-key entities_img_b --label 'Single-Image B' (PAUSED).",
+  "_comment": "⛔ SCRAPPED 2026-06-26 — owner deleted this campaign: the picture↔copy pairing below was best-guess and shipped as a WRONG match. DO NOT rebuild from this file until every content_id↔file_id pairing is re-derived by OCR-ing the image and confirming its angle matches the copy. content_id pins copy from Notion 'Image N' rows.",
   "creatives": [
     {"content_id": "image_18", "kind": "single_image", "file_id": "19w3tsAbYPCOhx2dMlpGKKtLhcHFQ4et3", "name": "Image 18：机会成本 · 慢一步", "source": "folder1 / ChatGPT Apr 21 11_00"},
     {"content_id": "image_19", "kind": "single_image", "file_id": "1lsWhPhLzxjwWDGKzr1CqAOejPxD-8lxz", "name": "Image 19：MooMoo · 老手升级", "source": "folder1 / 马丁药师2025 (12).png"},

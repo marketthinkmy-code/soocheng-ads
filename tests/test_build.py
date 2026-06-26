@@ -159,6 +159,29 @@ def test_merge_caption_is_field_level():
     assert _merge_caption(notion, None)["caption"] == "完整新文案"  # no snapshot -> pure Notion
 
 
+def test_display_ad_name_drops_index_keeps_descriptor():
+    from adbot.build_1_1_10 import display_ad_name
+    # The owner's Meta format: "Image：<descriptor>" — the running number is dropped.
+    assert display_ad_name("Image 12：快狠准 · 我跟你讲") == "Image：快狠准 · 我跟你讲"
+    assert display_ad_name("Image 3：只需1分钟") == "Image：只需1分钟"
+    assert display_ad_name("Video 11：你不敢下单") == "Video：你不敢下单"
+    assert display_ad_name("image 7 - Prop Firm") == "Image：Prop Firm"  # case + dash separator
+    # A name with no "<Kind> N：" index (e.g. the build's fallback) is returned unchanged.
+    assert display_ad_name("STOCKBLOOM | image_12") == "STOCKBLOOM | image_12"
+    assert display_ad_name("") == ""
+
+
+def test_build_names_ads_in_owner_format(tmp_path, monkeypatch):
+    """The ad NAME on Meta drops the index ('Image：…'); the Notion title still carried it."""
+    monkeypatch.setattr(state, "STATE_DIR", tmp_path / "state")
+    s = _settings(tmp_path)
+    g = FakeGraph()
+    caps = {**CAPTIONS, "img": {**CAPTIONS["img"], "name": "Image 16：FD vs 复利"}}
+    build(g, s, _units(), caps, dry_run=False)
+    ad_names = [a["name"] for a in (c[1] for c in g.calls if c[0] == "ad")]
+    assert "Image：FD vs 复利" in ad_names
+
+
 def test_build_dry_run_creates_nothing(tmp_path):
     s = _settings(tmp_path)
     g = FakeGraph()

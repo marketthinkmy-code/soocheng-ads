@@ -1,5 +1,5 @@
 {
-  "_comment": "Single-image campaign A (1-1-6). content_id pins copy from Notion 'Image N' rows. SA must have READ access to each file_id. Built via: adbot build --manifest config/single_image_manifest_a.json --state-key entities_img_a --label 'Single-Image A' (PAUSED).",
+  "_comment": "⛔ SCRAPPED 2026-06-26 — owner deleted this campaign: the content_id↔file_id (image↔copy) pairing below was NOT verified against each image's on-image text, so pictures and captions were a WRONG match. DO NOT rebuild from this file until every pairing is re-derived by OCR-ing the image and confirming its angle matches the copy. content_id pins copy from Notion 'Image N' rows. SA must have READ access to each file_id.",
   "creatives": [
     {"content_id": "image_12", "kind": "single_image", "file_id": "1kzrBFOn8l_OfuabspDXgsc-LWpk7Hw-i", "name": "Image 12：快狠准 · 我跟你讲", "source": "folder2 / 马丁药师2025 (16).png"},
     {"content_id": "image_13", "kind": "single_image", "file_id": "1I1EsVUX21pT8duQAXE7YtBvzbTbjetyg", "name": "Image 13：Timing · 你敢吗", "source": "folder2 / 马丁药师2025 (14).png"},

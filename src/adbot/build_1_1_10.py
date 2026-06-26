@@ -6,12 +6,33 @@ hierarchy is then activated (campaign -> ad set -> ads) at the configured CBO bu
 
 from __future__ import annotations
 
+import re
 from typing import Any, Dict, List, Optional
 
 from . import state
 from .creative_groups import CAROUSEL, SINGLE_IMAGE, VIDEO, Unit
 from .logging import final_summary, get_logger
 from .settings import Settings
+
+# "Image 12：快狠准 · 我跟你讲" / "Video 3 - …" -> drop the leading "<Kind> N：" index.
+_AD_NAME_INDEX_RE = re.compile(r"^\s*(image|video)\s*0*\d+\s*[：:．.\-、]?\s*", re.IGNORECASE)
+
+
+def display_ad_name(name: str) -> str:
+    """Owner's Meta ad-name format: ``Image：<descriptor>`` (no running number).
+
+    The Notion row Title keeps its ``Image N：…`` index — ``notion_captions`` needs it to
+    resolve the ``content_id`` — so we strip the index only when naming the ad on Meta. That
+    way the owner never hand-renames in Ads Manager and the picture/copy/name stay in sync.
+    'Image 12：快狠准 · 我跟你讲' -> 'Image：快狠准 · 我跟你讲'. A name without an index (e.g. the
+    'PREFIX | content_id' fallback) is returned unchanged.
+    """
+    if not name:
+        return name
+    m = _AD_NAME_INDEX_RE.match(name)
+    if not m:
+        return name
+    return f"{m.group(1).title()}：{name[m.end():].lstrip()}"
 
 
 def _cta(settings: Settings) -> Dict[str, Any]:
@@ -160,7 +181,8 @@ def build(graph, settings: Settings, units: List[Unit],
         thumb = graph.get_video_thumbnail(unit.assets[0].meta_id) if unit.kind == VIDEO else None
         spec = creative_spec(settings, unit, captions.get(unit.content_id, {}), thumbnail_url=thumb)
         creative_id = graph.create_adcreative(account, **spec)["id"]
-        ad_name = captions.get(unit.content_id, {}).get("name") or f"{settings.naming.prefix} | {unit.content_id}"
+        raw_name = captions.get(unit.content_id, {}).get("name") or f"{settings.naming.prefix} | {unit.content_id}"
+        ad_name = display_ad_name(raw_name)
         ad = graph.create_ad(
             account, name=ad_name,
             adset_id=adset_id, creative={"creative_id": creative_id}, status="PAUSED",
