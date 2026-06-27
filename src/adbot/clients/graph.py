@@ -22,6 +22,14 @@ from tenacity import (retry, retry_if_exception_type, stop_after_attempt,
 API_VERSION = "v21.0"
 BASE = f"https://graph.facebook.com/{API_VERSION}"
 
+# Meta reports rate limiting as an HTTP 400/403 carrying one of these error codes (NOT a 429),
+# so it slips past the status-code retry below and surfaces as a hard GraphError. The codes:
+# 4 = app-level limit, 17 = user/ad-account limit ("too many calls from this ad account"),
+# 32 = page-level limit, 613 = custom-level limit; subcodes are the ad-account throttle variants.
+# Treat them as transient so the existing exponential backoff rides through a brief throttle.
+_THROTTLE_CODES = {4, 17, 32, 613}
+_THROTTLE_SUBCODES = {2446079, 1487742}
+
 
 class GraphError(RuntimeError):
     """A Meta Graph API error with the structured payload attached."""
@@ -77,6 +85,9 @@ class GraphClient:
         except ValueError:
             payload = {"raw": resp.text}
         if resp.status_code >= 400:
+            err = (payload or {}).get("error", {})
+            if err.get("code") in _THROTTLE_CODES or err.get("error_subcode") in _THROTTLE_SUBCODES:
+                raise _Retryable(f"Meta throttle [{err.get('code')}]: {err.get('message')}")
             raise GraphError(resp.status_code, payload)
         return payload
 
