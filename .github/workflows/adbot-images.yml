@@ -23,11 +23,20 @@ on:
         type: choice
         options: [check_access, dry_run, live_paused]
         default: check_access
+      manifest:
+        description: "Path to the manifest JSON (which images to build)"
+        default: "config/single_image_manifest.json"
+      state_key:
+        description: "State key for this campaign's entities (unique per campaign so they don't collide)"
+        default: "entities_images"
+      label:
+        description: "Campaign label"
+        default: "Single-Image"
       start_time:
         description: "Ad-set scheduled start, ISO8601 with +08:00 (Malaysia time)"
         default: "2026-06-25T00:00:00+08:00"
       daily_budget_myr:
-        description: "CBO daily budget in MYR (kept under the account's ~RM208 limit)"
+        description: "CBO daily budget in MYR"
         default: "200"
 
 concurrency:
@@ -55,21 +64,24 @@ jobs:
           NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
         run: |
           set -e
-          MANIFEST="config/single_image_manifest.json"
+          MANIFEST="${{ inputs.manifest }}"
+          SK="${{ inputs.state_key }}"
+          LABEL="${{ inputs.label }}"
           ST="${{ inputs.start_time }}"
           BUD="${{ inputs.daily_budget_myr }}"
           MODE="${{ inputs.mode }}"
+          echo "manifest=$MANIFEST · state_key=$SK · label=$LABEL"
           if [ "$MODE" = "check_access" ]; then
             echo "── read-only: credentials + Drive access to manifest images ──"
             python -m adbot doctor
             python scripts/check_manifest_access.py "$MANIFEST"
           elif [ "$MODE" = "dry_run" ]; then
             echo "── dry-run: preview payloads, no upload, no spend ──"
-            python -m adbot build --manifest "$MANIFEST" --state-key entities_images \
-              --label "Single-Image" --start-time "$ST" --daily-budget "$BUD" --dry-run
+            python -m adbot build --manifest "$MANIFEST" --state-key "$SK" \
+              --label "$LABEL" --start-time "$ST" --daily-budget "$BUD" --dry-run
           else
             echo "── LIVE: upload images + create PAUSED campaign scheduled for $ST ──"
             python -m adbot doctor
-            python -m adbot build --manifest "$MANIFEST" --state-key entities_images \
-              --label "Single-Image" --start-time "$ST" --daily-budget "$BUD"
+            python -m adbot build --manifest "$MANIFEST" --state-key "$SK" \
+              --label "$LABEL" --start-time "$ST" --daily-budget "$BUD"
           fi

@@ -11,21 +11,43 @@ lead)** → RM2,399 course. The ad objective is always *registration for the fre
 
 ## "上广告" workflow (when the owner says to put up an ad)
 
-Given a creative (video **or** image), do the whole thing end-to-end, then stop at PAUSED
-for the owner to activate:
+Every path ends the same way — **PAUSED 建好（0 花费）→ owner 在 Ads Manager 审 → owner 激活.**
+**Never auto-activate.** Which entry path depends on whether the owner hands you copy:
 
-1. **Read the creative's content**
-   - **Video** → read its script (Notion *SooCheng Video Script* pages, or the Drive file).
-   - **Image** → OCR the on-image text (`mcp__Google_Drive__read_file_content` returns text
-     for `image/png` · `image/jpeg`; or the build's Drive flow).
-2. **Write the ad copy** in the approved style below.
-3. **Write it into the Notion Content Pipeline DB** ("Stock Bloom Content Pipeline
-   Template") as the row for that creative, titled `Image N` / `Video N` so
-   `notion_captions` picks it up. **Do NOT set Status = "In Review"** — owner preference;
-   leave Status unset/default.
-4. **Build from the Notion copy** — `adbot build` (single-image/manifest via
-   `adbot-images.yml`; or the video 1-1-N build). Build pulls Notion live, so the row's
-   copy is what ships. Everything is created **PAUSED**; the owner activates in Ads Manager.
+### A) 没有文案 (owner gives only the creative)
+1. **Read the creative** — Image → OCR the on-image text (`mcp__Google_Drive__read_file_content`
+   returns text for `image/png` · `image/jpeg`). Video → read its script (Notion *SooCheng
+   Video Script* page or the Drive file).
+2. **根据已有的文案框架写文案** — write copy in the approved 马丁/Andromeda style below,
+   anchored to *what this specific creative actually says on-image*.
+
+### B) 有提供文案 (owner hands you copy)
+1. **Read the creative the same way** (OCR / script) — you must still know what each image says.
+2. **对齐图片和文案** — pair each piece of copy to the image whose on-image angle it actually
+   describes. **READ each image to align — never best-guess the pairing.**
+
+### Shared tail (both paths)
+3. **Write into the Notion Content Pipeline DB** ("Stock Bloom Content Pipeline Template") as
+   the row for that creative, Title `Image N：…` / `Video N：…` — the `N` is required, because
+   `notion_captions` parses it into the `content_id`. **Do NOT set Status = "In Review"** —
+   owner preference; leave Status default.
+4. **Build from the Notion copy** — `adbot build` (single-image manifest, or the video build).
+   Build pulls Notion live, so the row's copy is what ships. Everything is created **PAUSED**;
+   the owner reviews and activates in Ads Manager.
+
+### ⛔ The alignment rule (why the first single-image campaigns were scrapped, 26 Jun)
+A creative is an **image + its copy as ONE bound unit.** The build joins them *only* through
+the manifest's `content_id ↔ file_id` pairing — copy and image are pulled from separate
+sources and meet nowhere else. So if that pairing is guessed, the picture says one thing and
+the caption says another. That "WRONG match" got 2 campaigns deleted. **Always derive the
+pairing by reading each image's on-image text first; never write a "best-guess" pairing into
+a manifest and ship it.**
+
+### Ad naming (Meta display name)
+Ads on Meta are named **`Image：<descriptor>`** (or `Video：<descriptor>`) — **no running
+number.** `build` strips the index automatically (`display_ad_name`), so the owner never
+hand-renames in Ads Manager. The Notion row Title keeps its `Image N：…` index (needed for
+`content_id` matching); only the on-Meta name drops it.
 
 ---
 

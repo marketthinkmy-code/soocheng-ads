@@ -1,0 +1,10 @@
+{
+  "_comment": "✅ BUILT 2026-06-26 PAUSED (campaign 120248367539620115). Owner-confirmed image↔copy mapping (the text-free photos were mapped by the owner, who can see them). Copy = compliance-edited doc SI2/3/4/5 (income/profit lines pulled) in config/captions_singleimage_b.json. NOTE: image_19 and image_21 are two photo variants that share the SAME FD (SI2) copy. Build reused the image_hash already on the Meta account (Drive not needed). Notion rows Image 18–22 still hold the OLD copy — sync them before any standard `adbot build`.",
+  "creatives": [
+    {"content_id": "image_18", "kind": "single_image", "file_id": "19w3tsAbYPCOhx2dMlpGKKtLhcHFQ4et3", "name": "Image：MooMoo · 老手升级", "source": "folder1 / ChatGPT Apr 21 11_00", "copy": "doc SI5"},
+    {"content_id": "image_19", "kind": "single_image", "file_id": "1lsWhPhLzxjwWDGKzr1CqAOejPxD-8lxz", "name": "Image：FD · 等利息还是复利", "source": "folder1 / 马丁药师2025 (12).png", "copy": "doc SI2"},
+    {"content_id": "image_20", "kind": "single_image", "file_id": "1bc_e8gWLAtAIBUJmydoOpDZhWjrv2sUJ", "name": "Image：选择太多 · 反而卡住", "source": "folder1 / 马丁药师2025 (11).png", "copy": "doc SI3"},
+    {"content_id": "image_21", "kind": "single_image", "file_id": "11avxKg6Qt03DBSh1389RlrfO4wcl5h2I", "name": "Image：FD · 等利息还是复利 ②", "source": "folder1 / 马丁药师2025 (4).png", "copy": "doc SI2 (variant)"},
+    {"content_id": "image_22", "kind": "single_image", "file_id": "1ONfOvsWXo_8RoaCT08yKFAsRvVgKW99v", "name": "Image：机会成本 · 慢一步", "source": "folder1 / 马丁药师2025 (14).png", "copy": "doc SI4"}
+  ]
+}

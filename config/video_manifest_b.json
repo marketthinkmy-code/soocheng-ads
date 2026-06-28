@@ -1,0 +1,9 @@
+{
+  "_comment": "Video campaign B (1-1-4). Freestyle 2/3/4/5. Copy is pulled live from Notion 'Video N' rows (content_id video_27..30) — see the Stock Bloom Content Pipeline DB. File↔copy pairing per the owner's 'video copywriting' Google Doc (1DR4mWS_…). SA must have READ access to each file_id. Built via: adbot build --manifest config/video_manifest_b.json --state-key entities_vid_b --label 'Video B' (PAUSED).",
+  "creatives": [
+    {"content_id": "video_27", "kind": "video", "mime": "video/mp4", "file_id": "1DNfQ-WojfhUTYLX_VwLhqYLJrgW5WCR0", "name": "Video 27：Freestyle 2 · Pocket Money（Free2.mp4）", "source": "doc Freestyle 2 / Free2.mp4"},
+    {"content_id": "video_28", "kind": "video", "mime": "video/mp4", "file_id": "1Kbhw8iPOBmBHbDZtfCjLFLM-s7wS83CK", "name": "Video 28：Freestyle 3 · 有一笔钱怎么动（Free3.mp4）", "source": "doc Freestyle 3 / Free3.mp4"},
+    {"content_id": "video_29", "kind": "video", "mime": "video/mp4", "file_id": "1fTS_sjQLGGQw6wAqL5JZpTl3E5h2_3rE", "name": "Video 29：Freestyle 4 · 没有大资本（Free4.mp4）", "source": "doc Freestyle 4 / Free4.mp4"},
+    {"content_id": "video_30", "kind": "video", "mime": "video/mp4", "file_id": "1FnRmr5rXHV7JsTzxG52UHm6RtnNgVutJ", "name": "Video 30：Freestyle 5 · 策略升级课（Free5.mp4）", "source": "doc Freestyle 5 / Free5.mp4"}
+  ]
+}

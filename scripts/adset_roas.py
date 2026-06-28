@@ -80,6 +80,54 @@ def main() -> None:
     if not winners:
         print("  (no ad set with CPL under ceiling + attributed revenue)")
 
+    # ── BY AD CONTENT NAME — bridges the account switch (a creative keeps its UTM Ads Name
+    #    even when the campaign/account changes), so historical sales attribute to the creative.
+    rev_ad, n30, n60, nlife, raw = (defaultdict(float), defaultdict(int),
+                                    defaultdict(int), defaultdict(int), {})
+    for sale in sales:
+        a = sale.ad
+        if not a:
+            continue
+        raw.setdefault(a, a)
+        nlife[a] += 1
+        rev_ad[a] += sale.amount
+        if sale.date:
+            age = (today - sale.date).days
+            if age <= 60:
+                n60[a] += 1
+            if age <= 30:
+                n30[a] += 1
+    spend_ad = defaultdict(float)            # CURRENT-account lifetime spend per creative name
+    for r in g.account_insights(s.meta.account_path, level="ad",
+                                fields="ad_name,spend", date_preset="maximum"):
+        try:
+            spend_ad[cpa.norm(r.get("ad_name", ""))] += float(r.get("spend") or 0)
+        except (TypeError, ValueError):
+            pass
+    status = {}                              # current status per creative name (ACTIVE wins)
+    for camp in g.list_campaigns(s.meta.account_path):
+        if camp.get("effective_status") not in ("ACTIVE", "PAUSED"):
+            continue
+        for ad in g.list_ads_under_campaign(camp["id"]):
+            nm = cpa.norm(ad.get("name", ""))
+            if status.get(nm) != "ACTIVE":
+                status[nm] = ad.get("effective_status")
+
+    rows = sorted(nlife, key=lambda a: (-nlife[a], -rev_ad[a]))
+    print("\n\n=== BY AD CONTENT NAME (UTM Ads Name) — proven creatives + current status ===")
+    print("(revenue = all paid sales attributed to this creative name, ANY account; "
+          "newAcct$ = spend on the CURRENT account only)\n")
+    hdr = f"{'ad content name':40} {'30d':>3} {'60d':>3} {'life':>4} {'revenue':>9} {'newAcct$':>9}  status"
+    print(hdr)
+    print("-" * len(hdr))
+    for a in rows[:45]:
+        sp = spend_ad.get(a)
+        stt = status.get(a, "OFF (not on acct)")
+        sps = f"RM{sp:.0f}" if sp else "—"
+        flag = "  🟢 proven & OFF" if (nlife[a] >= 2 and stt != "ACTIVE") else ""
+        print(f"{raw.get(a, a)[:40]:40} {n30[a]:>3} {n60[a]:>3} {nlife[a]:>4} "
+              f"RM{rev_ad[a]:>7.0f} {sps:>9}  {stt}{flag}")
+
 
 if __name__ == "__main__":
     main()

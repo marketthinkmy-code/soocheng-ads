@@ -67,10 +67,7 @@ kpi:
   cpl_min_spend_myr: 80.00               # only judge an ad once it has spent >= RM80 (2x ceiling) — enough to be fair
   cpl_lookback: "week_thu"               # week-to-date from Thursday (the weekly ON/reset) — the window you review; or a Meta preset like last_3d
   pause_zero_lead_after_spend: true      # spent >= RM80 with 0 results -> infinite CPL -> pause
-  cpl_hold:                              # ad-name substrings exempt from auto-pause (temporary owner holds)
-    - "你的钱放"                          # Video 8 FD — held by owner 21 Jun, review 22 Jun
-    - "街头突击采访"                       # Video 6
-    - "不用看盘"                          # Video 8 Trading
+  cpl_hold: []                           # cleared 2026-06-28 (holds expired / weak-conversion angles); add an ad-name substring here to exempt an ad from auto-pause
 
 cpa:                                     # cost per real PAID acquisition (joins the Paid Student List sheet)
   enabled: true
