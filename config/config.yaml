@@ -63,7 +63,7 @@ notion:                                  # build pulls approved copy from here (
                                          #   Hook -> ad headline; page body -> caption. Status NOT filtered.
 
 kpi:
-  cpl_threshold_myr: 40.00               # pause an ad above this CPL (project target RM35-40; ceiling 40)
+  cpl_threshold_myr: 50.00               # pause an ad above this CPL (raised 40->50 on 2026-06-29 — new account still in learning phase, RM40 was killing ads prematurely)
   cpl_min_spend_myr: 80.00               # only judge an ad once it has spent >= RM80 (2x ceiling) — enough to be fair
   cpl_lookback: "week_thu"               # week-to-date from Thursday (the weekly ON/reset) — the window you review; or a Meta preset like last_3d
   pause_zero_lead_after_spend: true      # spent >= RM80 with 0 results -> infinite CPL -> pause
