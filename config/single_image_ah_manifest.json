@@ -1,0 +1,295 @@
+{
+ "_comment": "BUILT 2026-06-30 PAUSED. campaign 120248654339570115 / adset 120248654340360115. 32 single images (Drive folder 1kFbsYzvdwCELSFAUSFT7u9lG7ndA0J6-) mapped to Stock_Bloom 受众分类 1-32. NOTE: img 11 = 2nd \"有资金不敢用\" creative (cat 9), NOT cat 11 (频繁交易 has no image). Every image OCR/visually verified to its persona before build. Copy in config/captions_singleimage_ah.json (马丁/Andromeda format, compliance-scanned).",
+ "campaign_id": "120248654339570115",
+ "adset_id": "120248654340360115",
+ "items": [
+  {
+   "img": 1,
+   "cat": 1,
+   "persona": "上班族 / 忙碌专业人士",
+   "priority": "A",
+   "image_hash": "b8f10c5918efa8d69ccc780d86c2aab4",
+   "ad_id": "120248654342720115",
+   "ad_name": "Single Image AH 1：上班族 / 忙碌专业人士"
+  },
+  {
+   "img": 2,
+   "cat": 2,
+   "persona": "股票新手",
+   "priority": "A",
+   "image_hash": "166dc4fb67c7e7fe2dbbe68553cefae1",
+   "ad_id": "120248654345450115",
+   "ad_name": "Single Image AH 2：股票新手"
+  },
+  {
+   "img": 3,
+   "cat": 3,
+   "persona": "买了不会卖的人",
+   "priority": "A",
+   "image_hash": "80408acb94348d301dbd3c9d411018a7",
+   "ad_id": "120248654348240115",
+   "ad_name": "Single Image AH 3：买了不会卖的人"
+  },
+  {
+   "img": 4,
+   "cat": 4,
+   "persona": "追高族",
+   "priority": "A",
+   "image_hash": "7eea2a2e3184dcf68c798f942b1f34e1",
+   "ad_id": "120248654349290115",
+   "ad_name": "Single Image AH 4：追高族"
+  },
+  {
+   "img": 5,
+   "cat": 5,
+   "persona": "套牢族",
+   "priority": "A",
+   "image_hash": "4a93bb8965c66daa232274e7805936ff",
+   "ad_id": "120248654351000115",
+   "ad_name": "Single Image AH 5：套牢族"
+  },
+  {
+   "img": 6,
+   "cat": 6,
+   "persona": "看新闻交易的人",
+   "priority": "A",
+   "image_hash": "ea4d25d9b80814b9756313854e0f0bd9",
+   "ad_id": "120248654351470115",
+   "ad_name": "Single Image AH 6：看新闻交易的人"
+  },
+  {
+   "img": 7,
+   "cat": 7,
+   "persona": "看很多老师 / KOL 的人",
+   "priority": "A",
+   "image_hash": "6aa2f84835cdf6c90f037b004ee93402",
+   "ad_id": "120248654352210115",
+   "ad_name": "Single Image AH 7：看很多老师 / KOL 的人"
+  },
+  {
+   "img": 8,
+   "cat": 8,
+   "persona": "想建立第二收入的人",
+   "priority": "A",
+   "image_hash": "79f87bc16a37bb7702c7d5f6a9799e37",
+   "ad_id": "120248654352570115",
+   "ad_name": "Single Image AH 8：想建立第二收入的人"
+  },
+  {
+   "img": 9,
+   "cat": 9,
+   "persona": "有资金但不敢用的人",
+   "priority": "A",
+   "image_hash": "2b76abcdefbc3f0c4f1daf7e9c17aed9",
+   "ad_id": "120248654355230115",
+   "ad_name": "Single Image AH 9：有资金但不敢用的人"
+  },
+  {
+   "img": 10,
+   "cat": 10,
+   "persona": "小资本交易者",
+   "priority": "B",
+   "image_hash": "b53c4fbca2630617f6c0ccbce67ffaa2",
+   "ad_id": "120248654356400115",
+   "ad_name": "Single Image AH 10：小资本交易者"
+  },
+  {
+   "img": 11,
+   "cat": 9,
+   "persona": "有资金但不敢用的人（第二版）",
+   "priority": "A",
+   "image_hash": "41601a5e374c172de7114ae6ab210319",
+   "ad_id": "120248654357270115",
+   "ad_name": "Single Image AH 11：有资金但不敢用的人（第二版）"
+  },
+  {
+   "img": 12,
+   "cat": 12,
+   "persona": "技术分析学习者",
+   "priority": "A",
+   "image_hash": "df01b85207b7a892e3e2a9fa167d41e7",
+   "ad_id": "120248654359640115",
+   "ad_name": "Single Image AH 12：技术分析学习者"
+  },
+  {
+   "img": 13,
+   "cat": 13,
+   "persona": "TradingView / 看图表用户",
+   "priority": "B",
+   "image_hash": "8ffef8689b9b777deaa1b84eb6e316ba",
+   "ad_id": "120248654360840115",
+   "ad_name": "Single Image AH 13：TradingView / 看图表用户"
+  },
+  {
+   "img": 14,
+   "cat": 14,
+   "persona": "美股投资者",
+   "priority": "B",
+   "image_hash": "664110f6282e960b5442d315fd0d44d7",
+   "ad_id": "120248654361130115",
+   "ad_name": "Single Image AH 14：美股投资者"
+  },
+  {
+   "img": 15,
+   "cat": 15,
+   "persona": "马股投资者",
+   "priority": "B",
+   "image_hash": "e9d655dd9f9d2613947eaa14c9fe567c",
+   "ad_id": "120248654361750115",
+   "ad_name": "Single Image AH 15：马股投资者"
+  },
+  {
+   "img": 16,
+   "cat": 16,
+   "persona": "新加坡 / 区域市场投资者",
+   "priority": "B",
+   "image_hash": "304d06f46581ee5abf875e0fc729cb40",
+   "ad_id": "120248654362770115",
+   "ad_name": "Single Image AH 16：新加坡 / 区域市场投资者"
+  },
+  {
+   "img": 17,
+   "cat": 17,
+   "persona": "ETF / 指数投资者",
+   "priority": "B",
+   "image_hash": "ebbeb8ba657d7834694cb5f2ab99be26",
+   "ad_id": "120248654365020115",
+   "ad_name": "Single Image AH 17：ETF / 指数投资者"
+  },
+  {
+   "img": 18,
+   "cat": 18,
+   "persona": "Crypto 交易者",
+   "priority": "C",
+   "image_hash": "f0217dc233fad49b3c7f25061d4fade9",
+   "ad_id": "120248654366260115",
+   "ad_name": "Single Image AH 18：Crypto 交易者"
+  },
+  {
+   "img": 19,
+   "cat": 19,
+   "persona": "Forex / CFD 兴趣者",
+   "priority": "C",
+   "image_hash": "d91965bcbea4220a84d38bfdf6901bdb",
+   "ad_id": "120248654367070115",
+   "ad_name": "Single Image AH 19：Forex / CFD 兴趣者"
+  },
+  {
+   "img": 20,
+   "cat": 20,
+   "persona": "期权兴趣者",
+   "priority": "C",
+   "image_hash": "3609170b1b43cbc6d1fca1df6b6c2b38",
+   "ad_id": "120248654369230115",
+   "ad_name": "Single Image AH 20：期权兴趣者"
+  },
+  {
+   "img": 21,
+   "cat": 21,
+   "persona": "退休 / 中年资产保值族",
+   "priority": "B",
+   "image_hash": "7ba649fee17afa075f90a3b546c93201",
+   "ad_id": "120248654370180115",
+   "ad_name": "Single Image AH 21：退休 / 中年资产保值族"
+  },
+  {
+   "img": 22,
+   "cat": 22,
+   "persona": "企业主 / 自雇人士",
+   "priority": "A",
+   "image_hash": "8af22be06e738ed26d657494852d622b",
+   "ad_id": "120248654371270115",
+   "ad_name": "Single Image AH 22：企业主 / 自雇人士"
+  },
+  {
+   "img": 23,
+   "cat": 23,
+   "persona": "高收入专业人士",
+   "priority": "A",
+   "image_hash": "1905f6bd9770899db3b35d3dd976dc99",
+   "ad_id": "120248654372900115",
+   "ad_name": "Single Image AH 23：高收入专业人士"
+  },
+  {
+   "img": 24,
+   "cat": 24,
+   "persona": "Dividend / REITs 投资者",
+   "priority": "B",
+   "image_hash": "4cacde318c2f38d31a0344a18481a2b6",
+   "ad_id": "120248654376120115",
+   "ad_name": "Single Image AH 24：Dividend / REITs 投资者"
+  },
+  {
+   "img": 25,
+   "cat": 25,
+   "persona": "IPO / 热门题材追逐者",
+   "priority": "B",
+   "image_hash": "6cbc91ae7a34734fd151b3629379bfe1",
+   "ad_id": "120248654377690115",
+   "ad_name": "Single Image AH 25：IPO / 热门题材追逐者"
+  },
+  {
+   "img": 26,
+   "cat": 26,
+   "persona": "社群喊单依赖者",
+   "priority": "A",
+   "image_hash": "004048ab4e353c4883616a8c984177e8",
+   "ad_id": "120248654378850115",
+   "ad_name": "Single Image AH 26：社群喊单依赖者"
+  },
+  {
+   "img": 27,
+   "cat": 27,
+   "persona": "亏损后想翻本的人",
+   "priority": "B",
+   "image_hash": "0cac797ec6837c4f472dc46d611f72b0",
+   "ad_id": "120248654379810115",
+   "ad_name": "Single Image AH 27：亏损后想翻本的人"
+  },
+  {
+   "img": 28,
+   "cat": 28,
+   "persona": "交易心理卡住的人",
+   "priority": "A",
+   "image_hash": "bf2d8797102a7bb7690150ed017a7fe1",
+   "ad_id": "120248654382180115",
+   "ad_name": "Single Image AH 28：交易心理卡住的人"
+  },
+  {
+   "img": 29,
+   "cat": 29,
+   "persona": "长期投资但想学交易节奏的人",
+   "priority": "B",
+   "image_hash": "154089ca98fd046c6722d65bffcc033b",
+   "ad_id": "120248654383780115",
+   "ad_name": "Single Image AH 29：长期投资但想学交易节奏的人"
+  },
+  {
+   "img": 30,
+   "cat": 30,
+   "persona": "财务自由兴趣人群",
+   "priority": "B",
+   "image_hash": "0d57d8db18c3d58436e4884d38354cd4",
+   "ad_id": "120248654384540115",
+   "ad_name": "Single Image AH 30：财务自由兴趣人群"
+  },
+  {
+   "img": 31,
+   "cat": 31,
+   "persona": "大学生 / 年轻投资者",
+   "priority": "C",
+   "image_hash": "8f79d19b607169f70a21ac6f2efa16c4",
+   "ad_id": "120248654387520115",
+   "ad_name": "Single Image AH 31：大学生 / 年轻投资者"
+  },
+  {
+   "img": 32,
+   "cat": 32,
+   "persona": "家庭理财决策者",
+   "priority": "B",
+   "image_hash": "adaaa1ed721baeb02e812f2935913750",
+   "ad_id": "120248654392400115",
+   "ad_name": "Single Image AH 32：家庭理财决策者"
+  }
+ ]
+}
