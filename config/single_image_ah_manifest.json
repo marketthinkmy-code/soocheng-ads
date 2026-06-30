@@ -1,295 +1,261 @@
 {
- "_comment": "BUILT 2026-06-30 PAUSED. campaign 120248654339570115 / adset 120248654340360115. 32 single images (Drive folder 1kFbsYzvdwCELSFAUSFT7u9lG7ndA0J6-) mapped to Stock_Bloom 受众分类 1-32. NOTE: img 11 = 2nd \"有资金不敢用\" creative (cat 9), NOT cat 11 (频繁交易 has no image). Every image OCR/visually verified to its persona before build. Copy in config/captions_singleimage_ah.json (马丁/Andromeda format, compliance-scanned).",
- "campaign_id": "120248654339570115",
- "adset_id": "120248654340360115",
- "items": [
+ "_comment": "32 Single-Image AH creatives (personas from Stock_Bloom_Targeting_Categories). img=N -> category N EXCEPT img 11 = 2nd \"有资金不敢进场\" creative (category 9 angle); category 11 (频繁交易) has NO image in this batch. Built PAUSED, then split into 6 campaigns (1-1-5 x4, 1-1-6 x2) sequentially. Copy = approved 马丁 format, compliance-scanned.",
+ "creatives": [
   {
    "img": 1,
-   "cat": 1,
-   "persona": "上班族 / 忙碌专业人士",
+   "category_no": 1,
+   "name": "Single Image AH 1：上班族 / 忙碌专业人士",
+   "headline": "白天没空盯盘？1 分钟也能抓机会",
    "priority": "A",
-   "image_hash": "b8f10c5918efa8d69ccc780d86c2aab4",
-   "ad_id": "120248654342720115",
-   "ad_name": "Single Image AH 1：上班族 / 忙碌专业人士"
+   "image_hash": "b8f10c5918efa8d69ccc780d86c2aab4"
   },
   {
    "img": 2,
-   "cat": 2,
-   "persona": "股票新手",
+   "category_no": 2,
+   "name": "Single Image AH 2：股票新手",
+   "headline": "想开始买股票，却一直不敢下第一单？",
    "priority": "A",
-   "image_hash": "166dc4fb67c7e7fe2dbbe68553cefae1",
-   "ad_id": "120248654345450115",
-   "ad_name": "Single Image AH 2：股票新手"
+   "image_hash": "166dc4fb67c7e7fe2dbbe68553cefae1"
   },
   {
    "img": 3,
-   "cat": 3,
-   "persona": "买了不会卖的人",
+   "category_no": 3,
+   "name": "Single Image AH 3：买了不会卖的人",
+   "headline": "买得对、却总卖错时间？",
    "priority": "A",
-   "image_hash": "80408acb94348d301dbd3c9d411018a7",
-   "ad_id": "120248654348240115",
-   "ad_name": "Single Image AH 3：买了不会卖的人"
+   "image_hash": "80408acb94348d301dbd3c9d411018a7"
   },
   {
    "img": 4,
-   "cat": 4,
-   "persona": "追高族",
+   "category_no": 4,
+   "name": "Single Image AH 4：追高族",
+   "headline": "为什么你一买，就买在最高点？",
    "priority": "A",
-   "image_hash": "7eea2a2e3184dcf68c798f942b1f34e1",
-   "ad_id": "120248654349290115",
-   "ad_name": "Single Image AH 4：追高族"
+   "image_hash": "7eea2a2e3184dcf68c798f942b1f34e1"
   },
   {
    "img": 5,
-   "cat": 5,
-   "persona": "套牢族",
+   "category_no": 5,
+   "name": "Single Image AH 5：套牢族",
+   "headline": "套了很久的票，到底该抱还是该走？",
    "priority": "A",
-   "image_hash": "4a93bb8965c66daa232274e7805936ff",
-   "ad_id": "120248654351000115",
-   "ad_name": "Single Image AH 5：套牢族"
+   "image_hash": "4a93bb8965c66daa232274e7805936ff"
   },
   {
    "img": 6,
-   "cat": 6,
-   "persona": "看新闻交易的人",
+   "category_no": 6,
+   "name": "Single Image AH 6：看新闻交易的人",
+   "headline": "天天看财经新闻，还是抓不准买卖点？",
    "priority": "A",
-   "image_hash": "ea4d25d9b80814b9756313854e0f0bd9",
-   "ad_id": "120248654351470115",
-   "ad_name": "Single Image AH 6：看新闻交易的人"
+   "image_hash": "ea4d25d9b80814b9756313854e0f0bd9"
   },
   {
    "img": 7,
-   "cat": 7,
-   "persona": "看很多老师 / KOL 的人",
+   "category_no": 7,
+   "name": "Single Image AH 7：看很多老师 / KOL 的人",
+   "headline": "老师看了一堆，反而越学越乱？",
    "priority": "A",
-   "image_hash": "6aa2f84835cdf6c90f037b004ee93402",
-   "ad_id": "120248654352210115",
-   "ad_name": "Single Image AH 7：看很多老师 / KOL 的人"
+   "image_hash": "6aa2f84835cdf6c90f037b004ee93402"
   },
   {
    "img": 8,
-   "cat": 8,
-   "persona": "想建立第二收入的人",
+   "category_no": 8,
+   "name": "Single Image AH 8：想建立第二收入的人",
+   "headline": "想多一份收入，却不知从哪开始？",
    "priority": "A",
-   "image_hash": "79f87bc16a37bb7702c7d5f6a9799e37",
-   "ad_id": "120248654352570115",
-   "ad_name": "Single Image AH 8：想建立第二收入的人"
+   "image_hash": "79f87bc16a37bb7702c7d5f6a9799e37"
   },
   {
    "img": 9,
-   "cat": 9,
-   "persona": "有资金但不敢用的人",
+   "category_no": 9,
+   "name": "Single Image AH 9：有资金但不敢用的人",
+   "headline": "有资金却不敢进场？先有规则再出手",
    "priority": "A",
-   "image_hash": "2b76abcdefbc3f0c4f1daf7e9c17aed9",
-   "ad_id": "120248654355230115",
-   "ad_name": "Single Image AH 9：有资金但不敢用的人"
+   "image_hash": "2b76abcdefbc3f0c4f1daf7e9c17aed9"
   },
   {
    "img": 10,
-   "cat": 10,
-   "persona": "小资本交易者",
+   "category_no": 10,
+   "name": "Single Image AH 10：小资本交易者",
+   "headline": "本金不大，怕一买错就亏一大半？",
    "priority": "B",
-   "image_hash": "b53c4fbca2630617f6c0ccbce67ffaa2",
-   "ad_id": "120248654356400115",
-   "ad_name": "Single Image AH 10：小资本交易者"
+   "image_hash": "b53c4fbca2630617f6c0ccbce67ffaa2"
   },
   {
    "img": 11,
-   "cat": 9,
-   "persona": "有资金但不敢用的人（第二版）",
+   "category_no": 9,
+   "name": "Single Image AH 11：有资金但不敢用的人（第二版）",
+   "headline": "看太久反而不敢动？1 分钟筛一遍就好",
    "priority": "A",
-   "image_hash": "41601a5e374c172de7114ae6ab210319",
-   "ad_id": "120248654357270115",
-   "ad_name": "Single Image AH 11：有资金但不敢用的人（第二版）"
+   "image_hash": "41601a5e374c172de7114ae6ab210319"
   },
   {
    "img": 12,
-   "cat": 12,
-   "persona": "技术分析学习者",
+   "category_no": 12,
+   "name": "Single Image AH 12：技术分析学习者",
+   "headline": "会看 K 线和指标，却还是不敢进场？",
    "priority": "A",
-   "image_hash": "df01b85207b7a892e3e2a9fa167d41e7",
-   "ad_id": "120248654359640115",
-   "ad_name": "Single Image AH 12：技术分析学习者"
+   "image_hash": "df01b85207b7a892e3e2a9fa167d41e7"
   },
   {
    "img": 13,
-   "cat": 13,
-   "persona": "TradingView / 看图表用户",
+   "category_no": 13,
+   "name": "Single Image AH 13：TradingView / 看图表用户",
+   "headline": "图表看很多，却没有固定流程？",
    "priority": "B",
-   "image_hash": "8ffef8689b9b777deaa1b84eb6e316ba",
-   "ad_id": "120248654360840115",
-   "ad_name": "Single Image AH 13：TradingView / 看图表用户"
+   "image_hash": "8ffef8689b9b777deaa1b84eb6e316ba"
   },
   {
    "img": 14,
-   "cat": 14,
-   "persona": "美股投资者",
+   "category_no": 14,
+   "name": "Single Image AH 14：美股投资者",
+   "headline": "有看美股，却不知道何时进出？",
    "priority": "B",
-   "image_hash": "664110f6282e960b5442d315fd0d44d7",
-   "ad_id": "120248654361130115",
-   "ad_name": "Single Image AH 14：美股投资者"
+   "image_hash": "664110f6282e960b5442d315fd0d44d7"
   },
   {
    "img": 15,
-   "cat": 15,
-   "persona": "马股投资者",
+   "category_no": 15,
+   "name": "Single Image AH 15：马股投资者",
+   "headline": "有买马股，却不知道看哪一只？",
    "priority": "B",
-   "image_hash": "e9d655dd9f9d2613947eaa14c9fe567c",
-   "ad_id": "120248654361750115",
-   "ad_name": "Single Image AH 15：马股投资者"
+   "image_hash": "e9d655dd9f9d2613947eaa14c9fe567c"
   },
   {
    "img": 16,
-   "cat": 16,
-   "persona": "新加坡 / 区域市场投资者",
+   "category_no": 16,
+   "name": "Single Image AH 16：新加坡 / 区域市场投资者",
+   "headline": "有看 SGX / REITs，却不知何时行动？",
    "priority": "B",
-   "image_hash": "304d06f46581ee5abf875e0fc729cb40",
-   "ad_id": "120248654362770115",
-   "ad_name": "Single Image AH 16：新加坡 / 区域市场投资者"
+   "image_hash": "304d06f46581ee5abf875e0fc729cb40"
   },
   {
    "img": 17,
-   "cat": 17,
-   "persona": "ETF / 指数投资者",
+   "category_no": 17,
+   "name": "Single Image AH 17：ETF / 指数投资者",
+   "headline": "买了 ETF，市场一震就慌？1 分钟看懂该怎么动",
    "priority": "B",
-   "image_hash": "ebbeb8ba657d7834694cb5f2ab99be26",
-   "ad_id": "120248654365020115",
-   "ad_name": "Single Image AH 17：ETF / 指数投资者"
+   "image_hash": "ebbeb8ba657d7834694cb5f2ab99be26"
   },
   {
    "img": 18,
-   "cat": 18,
-   "persona": "Crypto 交易者",
+   "category_no": 18,
+   "name": "Single Image AH 18：Crypto 交易者",
+   "headline": "做惯 Crypto，换到股票却没规则？先把风控写死",
    "priority": "C",
-   "image_hash": "f0217dc233fad49b3c7f25061d4fade9",
-   "ad_id": "120248654366260115",
-   "ad_name": "Single Image AH 18：Crypto 交易者"
+   "image_hash": "f0217dc233fad49b3c7f25061d4fade9"
   },
   {
    "img": 19,
-   "cat": 19,
-   "persona": "Forex / CFD 兴趣者",
+   "category_no": 19,
+   "name": "Single Image AH 19：Forex / CFD 兴趣者",
+   "headline": "做 Forex / Gold 全靠感觉？先有计划再谈进场",
    "priority": "C",
-   "image_hash": "d91965bcbea4220a84d38bfdf6901bdb",
-   "ad_id": "120248654367070115",
-   "ad_name": "Single Image AH 19：Forex / CFD 兴趣者"
+   "image_hash": "d91965bcbea4220a84d38bfdf6901bdb"
   },
   {
    "img": 20,
-   "cat": 20,
-   "persona": "期权兴趣者",
+   "category_no": 20,
+   "name": "Single Image AH 20：期权兴趣者",
+   "headline": "对期权有兴趣，却看不清最大亏损？先搞懂风险",
    "priority": "C",
-   "image_hash": "3609170b1b43cbc6d1fca1df6b6c2b38",
-   "ad_id": "120248654369230115",
-   "ad_name": "Single Image AH 20：期权兴趣者"
+   "image_hash": "3609170b1b43cbc6d1fca1df6b6c2b38"
   },
   {
    "img": 21,
-   "cat": 21,
-   "persona": "退休 / 中年资产保值族",
+   "category_no": 21,
+   "name": "Single Image AH 21：退休 / 中年资产保值族",
+   "headline": "怕通胀、又怕亏钱？用风险优先的方式慢慢学",
    "priority": "B",
-   "image_hash": "7ba649fee17afa075f90a3b546c93201",
-   "ad_id": "120248654370180115",
-   "ad_name": "Single Image AH 21：退休 / 中年资产保值族"
+   "image_hash": "7ba649fee17afa075f90a3b546c93201"
   },
   {
    "img": 22,
-   "cat": 22,
-   "persona": "企业主 / 自雇人士",
+   "category_no": 22,
+   "name": "Single Image AH 22：企业主 / 自雇人士",
+   "headline": "当老板有资金没时间？1 分钟判断，不被人乱带单",
    "priority": "A",
-   "image_hash": "8af22be06e738ed26d657494852d622b",
-   "ad_id": "120248654371270115",
-   "ad_name": "Single Image AH 22：企业主 / 自雇人士"
+   "image_hash": "8af22be06e738ed26d657494852d622b"
   },
   {
    "img": 23,
-   "cat": 23,
-   "persona": "高收入专业人士",
+   "category_no": 23,
+   "name": "Single Image AH 23：高收入专业人士",
+   "headline": "收入不错，却没有自己的交易判断？是时候建立了",
    "priority": "A",
-   "image_hash": "1905f6bd9770899db3b35d3dd976dc99",
-   "ad_id": "120248654372900115",
-   "ad_name": "Single Image AH 23：高收入专业人士"
+   "image_hash": "1905f6bd9770899db3b35d3dd976dc99"
   },
   {
    "img": 24,
-   "cat": 24,
-   "persona": "Dividend / REITs 投资者",
+   "category_no": 24,
+   "name": "Single Image AH 24：Dividend / REITs 投资者",
+   "headline": "拿着股息，本金却在跌？用交易视角看买入位置",
    "priority": "B",
-   "image_hash": "4cacde318c2f38d31a0344a18481a2b6",
-   "ad_id": "120248654376120115",
-   "ad_name": "Single Image AH 24：Dividend / REITs 投资者"
+   "image_hash": "4cacde318c2f38d31a0344a18481a2b6"
   },
   {
    "img": 25,
-   "cat": 25,
-   "persona": "IPO / 热门题材追逐者",
+   "category_no": 25,
+   "name": "Single Image AH 25：IPO / 热门题材追逐者",
+   "headline": "题材一火你就追？小心买在最高位",
    "priority": "B",
-   "image_hash": "6cbc91ae7a34734fd151b3629379bfe1",
-   "ad_id": "120248654377690115",
-   "ad_name": "Single Image AH 25：IPO / 热门题材追逐者"
+   "image_hash": "6cbc91ae7a34734fd151b3629379bfe1"
   },
   {
    "img": 26,
-   "cat": 26,
-   "persona": "社群喊单依赖者",
+   "category_no": 26,
+   "name": "Single Image AH 26：社群喊单依赖者",
+   "headline": "群组喊买你就买？亏了却不知怎么办",
    "priority": "A",
-   "image_hash": "004048ab4e353c4883616a8c984177e8",
-   "ad_id": "120248654378850115",
-   "ad_name": "Single Image AH 26：社群喊单依赖者"
+   "image_hash": "004048ab4e353c4883616a8c984177e8"
   },
   {
    "img": 27,
-   "cat": 27,
-   "persona": "亏损后想翻本的人",
+   "category_no": 27,
+   "name": "Single Image AH 27：亏损后想翻本的人",
+   "headline": "亏过一次后，先停下来把方法做对",
    "priority": "B",
-   "image_hash": "0cac797ec6837c4f472dc46d611f72b0",
-   "ad_id": "120248654379810115",
-   "ad_name": "Single Image AH 27：亏损后想翻本的人"
+   "image_hash": "0cac797ec6837c4f472dc46d611f72b0"
   },
   {
    "img": 28,
-   "cat": 28,
-   "persona": "交易心理卡住的人",
+   "category_no": 28,
+   "name": "Single Image AH 28：交易心理卡住的人",
+   "headline": "不是不会分析，是每次执行都犹豫",
    "priority": "A",
-   "image_hash": "bf2d8797102a7bb7690150ed017a7fe1",
-   "ad_id": "120248654382180115",
-   "ad_name": "Single Image AH 28：交易心理卡住的人"
+   "image_hash": "bf2d8797102a7bb7690150ed017a7fe1"
   },
   {
    "img": 29,
-   "cat": 29,
-   "persona": "长期投资但想学交易节奏的人",
+   "category_no": 29,
+   "name": "Single Image AH 29：长期投资但想学交易节奏的人",
+   "headline": "长期投资之外，也想学会更好的买入节奏",
    "priority": "B",
-   "image_hash": "154089ca98fd046c6722d65bffcc033b",
-   "ad_id": "120248654383780115",
-   "ad_name": "Single Image AH 29：长期投资但想学交易节奏的人"
+   "image_hash": "154089ca98fd046c6722d65bffcc033b"
   },
   {
    "img": 30,
-   "cat": 30,
-   "persona": "财务自由兴趣人群",
+   "category_no": 30,
+   "name": "Single Image AH 30：财务自由兴趣人群",
+   "headline": "想财务自由，但还缺一套能执行的动作",
    "priority": "B",
-   "image_hash": "0d57d8db18c3d58436e4884d38354cd4",
-   "ad_id": "120248654384540115",
-   "ad_name": "Single Image AH 30：财务自由兴趣人群"
+   "image_hash": "0d57d8db18c3d58436e4884d38354cd4"
   },
   {
    "img": 31,
-   "cat": 31,
-   "persona": "大学生 / 年轻投资者",
+   "category_no": 31,
+   "name": "Single Image AH 31：大学生 / 年轻投资者",
+   "headline": "刚开始接触交易？先把观念建对再说",
    "priority": "C",
-   "image_hash": "8f79d19b607169f70a21ac6f2efa16c4",
-   "ad_id": "120248654387520115",
-   "ad_name": "Single Image AH 31：大学生 / 年轻投资者"
+   "image_hash": "8f79d19b607169f70a21ac6f2efa16c4"
   },
   {
    "img": 32,
-   "cat": 32,
-   "persona": "家庭理财决策者",
+   "category_no": 32,
+   "name": "Single Image AH 32：家庭理财决策者",
+   "headline": "想投资股票，又不想影响家庭现金流",
    "priority": "B",
-   "image_hash": "adaaa1ed721baeb02e812f2935913750",
-   "ad_id": "120248654392400115",
-   "ad_name": "Single Image AH 32：家庭理财决策者"
+   "image_hash": "adaaa1ed721baeb02e812f2935913750"
   }
  ]
 }
