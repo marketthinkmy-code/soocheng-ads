@@ -20,13 +20,20 @@ natural-sounding copy** so the right people self-select in and the wrong people 
   buyer's own words and language register (follow the framework's Chinese/Malay/English mix).
 - Open with a **self-selecting hook** in the first line (a wrong-fit reader should lose
   interest; a right-fit reader should feel "this is me").
+- **The first line IS the hook — ONE complete, concrete sentence.** Only ~2 lines show before
+  Meta's "…更多" fold, so line 1 must land the whole punch: lead straight with the specific
+  scenario / behaviour / pain in the buyer's world. **Never open with a generic warm-up.**
+  BANNED openers: 「是不是常常这样」「又是这样」「有没有试过」「是不是有过这样的时候」「是不是这样」
+  and any 「是不是…／有没有…」lead-in that spends line 1 on nothing. Do NOT fragment the hook
+  across 3 tiny lines — keep the hook sentence flowing on one line.
 - Make the offer and a single clear call to action that matches a website sign-up.
 
 ## Format & structure (REQUIRED — the approved "马丁 / Andromeda" format)
 The caption is TWO parts joined by a line that is exactly `══════════`:
 
 - **Part 1 — emotional teaser** (emoji-light): a vivid daily-life scenario hook whose FIRST
-  line self-selects the framework's persona → name the helplessness
+  line is ONE concrete, self-selecting sentence (NEVER a 「是不是常常这样 / 又是这样」warm-up —
+  that wastes the pre-fold hook) → name the helplessness
   (e.g. 「你知道不对，却不知道从哪调起」) → `Soo Cheng 老师常说：` + ONE mechanism/insight
   quote → a gentle one-line solution → `📍` a soft CTA to the free 分享会.
 - **Part 2 — the FIXED 下半段** (emoji-rich): reproduce the block below VERBATIM, changing
