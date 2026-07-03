@@ -128,7 +128,7 @@ def main() -> None:
         print(f"{raw.get(a, a)[:40]:40} {n30[a]:>3} {n60[a]:>3} {nlife[a]:>4} "
               f"RM{rev_ad[a]:>7.0f} {sps:>9}  {stt}{flag}")
 
-    # ── TOP BY PURCHASE-CONVERSION (paid purchases ÷ registrations, by UTM ad name) ──
+    # ── TOP ADS BY PURCHASE COUNT (Paid Student List) + full row accounting ──
     from collections import Counter
     sc = SheetsClient(s.secrets.google_sa_json)
     try:
@@ -138,45 +138,31 @@ def main() -> None:
         tabs = []; print("tab-list failed:", exc)
     print("\n\n=== SHEET TABS ===", tabs)
 
+    # purchases: `values` was read from the Paid Student List tab at the top of main()
     pnorm, praw = Counter(), {}
-    for sale in sales:                       # `sales` = every paid purchase row
+    for sale in sales:
         if sale.ad:
             pnorm[sale.ad] += 1; praw.setdefault(sale.ad, sale.ad)
+    total_rows = max(0, len(values) - 1)
+    with_ad = sum(pnorm.values())
+    print(f"PURCHASES accounting: {total_rows} data rows | {with_ad} attributable to an ad "
+          f"({len(pnorm)} distinct ads) | {total_rows - with_ad} with no ad-UTM (organic/blank)")
 
-    reg_tab = next((t for t in tabs if any(k in t.lower() for k in
-                   ["regist", "register", "报名", "注册", "lead", "sign up", "signup"])), None)
-    print("register tab picked:", reg_tab)
-    reg, reg_raw = Counter(), {}
+    reg_tab = next((t for t in tabs if "regist" in t.lower()), None)
     if reg_tab:
         try:
             rvals = sc.read_tab(s.cpa.spreadsheet_id, reg_tab)
             rsales, _c, _h = cpa.parse_sales(rvals, 0.0)
-            for rs in rsales:
-                if rs.ad:
-                    reg[rs.ad] += 1; reg_raw.setdefault(rs.ad, rs.ad)
-            print(f"register rows parsed: {len(rsales)}, distinct ad names: {len(reg)}")
+            with_ad_r = sum(1 for r in rsales if r.ad)
+            print(f"REGISTER accounting ('{reg_tab}'): {max(0,len(rvals)-1)} data rows | "
+                  f"{with_ad_r} attributable to an ad | rest = no ad-UTM (organic/blank)")
         except Exception as exc:                                  # noqa: BLE001
             print("register read failed:", exc)
 
-    MINR = 10
-    print(f"\n=== TOP 10 BY PURCHASE-CONVERSION (rate = purchases/registrations; min {MINR} reg) ===")
-    if reg:
-        conv = []
-        for ad, npur in pnorm.items():
-            nr = reg.get(ad, 0)
-            if nr >= MINR:
-                conv.append((reg_raw.get(ad, praw.get(ad, ad)), npur, nr, npur / nr))
-        conv.sort(key=lambda x: -x[3])
-        print(f"{'ad content name':40} {'buy':>4} {'reg':>5} {'conv%':>7}")
-        print("-" * 60)
-        for nm, npur, nr, rate in conv[:10]:
-            print(f"{nm[:40]:40} {npur:>4} {nr:>5} {rate*100:>6.1f}%")
-    else:
-        print("(no register tab auto-detected — see SHEET TABS above; ranking by purchase COUNT instead)")
-
-    print("\n=== TOP 15 BY PURCHASE COUNT (paid purchase list, lifetime) ===")
-    for ad, npur in sorted(pnorm.items(), key=lambda x: -x[1])[:15]:
-        print(f"  {npur:>4} buys  {praw.get(ad, ad)[:46]}")
+    print("\n=== TOP 10 ADS BY PURCHASE COUNT (Paid Student List, lifetime) ===")
+    print(f"{'#':>2}  {'buys':>4}  ad content name")
+    for i, (ad, npur) in enumerate(sorted(pnorm.items(), key=lambda x: (-x[1], x[0]))[:10], 1):
+        print(f"{i:>2}  {npur:>4}  {praw.get(ad, ad)}")
 
 
 if __name__ == "__main__":
