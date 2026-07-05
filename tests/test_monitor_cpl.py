@@ -81,8 +81,10 @@ class _FakeGraph:
     def list_ads_under_campaign(self, campaign_id):
         return self._ads.get(campaign_id, [])
 
-    def get_ad_insight(self, ad_id, date_preset=None, time_range=None):
-        return self._insights.get(ad_id)
+    def account_insights(self, account_path, *, level, fields, date_preset=None, time_range=None):
+        # evaluate_account now pulls every ad's CPL in ONE account-level call (was a
+        # get_ad_insight per ad — that tripped Meta's rate limit). Mirror that batched shape.
+        return [{"ad_id": aid, **row} for aid, row in self._insights.items()]
 
 
 def _ad(ad_id, status="ACTIVE", event="COMPLETE_REGISTRATION", created_time="2026-01-01"):
