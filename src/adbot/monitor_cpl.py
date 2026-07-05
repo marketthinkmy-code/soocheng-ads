@@ -161,6 +161,12 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
     use_cpa = settings.cpa.enabled and (bool(sold60) or bool(spend60))
     tiers = cpa.CpaTiers(settings.cpa.healthy_max_myr, settings.cpa.max_acceptable_myr,
                          settings.cpa.hard_stop_myr)
+    # ONE account-level insights call for every ad's spend+results in the window, instead of a
+    # get_ad_insight per ad — a big account otherwise makes ~1 call per ad and trips Meta's rate
+    # limit ("too many calls from this ad account"), which used to crash the whole run.
+    cpl_by_ad = {r.get("ad_id"): r for r in graph.account_insights(
+        account, level="ad", fields="ad_id,spend,actions",
+        date_preset=cpl_preset, time_range=cpl_range)}
 
     decisions: List[AdDecision] = []
     for campaign in graph.list_campaigns(account):
@@ -174,7 +180,7 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
             if (promoted.get("custom_event_type") or "").upper() != want_event:
                 continue  # not optimized for our event — not ours to judge or pause
             name = ad.get("name", ad["id"])
-            insight = graph.get_ad_insight(ad["id"], date_preset=cpl_preset, time_range=cpl_range)
+            insight = cpl_by_ad.get(ad["id"])   # from the single batched account_insights call
             spend, results = parse_metrics(insight, token)
 
             held = any(h and h in name for h in settings.kpi.cpl_hold)
