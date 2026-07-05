@@ -22,6 +22,10 @@ from tenacity import (retry, retry_if_exception_type, stop_after_attempt,
 API_VERSION = "v21.0"
 BASE = f"https://graph.facebook.com/{API_VERSION}"
 
+# Meta signals throttling with an HTTP 400 (not 429) — these error codes / messages mean
+# "you're rate-limited, back off and retry", not "your request is malformed".
+_RATE_LIMIT_CODES = {4, 17, 32, 613, 80000, 80001, 80002, 80003, 80004, 80005, 80006, 80008, 80014}
+
 
 class GraphError(RuntimeError):
     """A Meta Graph API error with the structured payload attached."""
@@ -55,8 +59,8 @@ class GraphClient:
             ).hexdigest()
         return params
 
-    @retry(reraise=True, stop=stop_after_attempt(4),
-           wait=wait_exponential(multiplier=2, min=2, max=20),
+    @retry(reraise=True, stop=stop_after_attempt(6),
+           wait=wait_exponential(multiplier=2, min=2, max=30),
            retry=retry_if_exception_type(_Retryable))
     def _request(self, method: str, path: str, *, params: Optional[Dict] = None,
                  data: Optional[Dict] = None, files: Optional[Dict] = None) -> Dict[str, Any]:
@@ -77,6 +81,15 @@ class GraphClient:
         except ValueError:
             payload = {"raw": resp.text}
         if resp.status_code >= 400:
+            # Meta reports throttling as an HTTP 400 (not 429). Retry those with backoff instead
+            # of crashing — otherwise the hourly monitor scanning a big account fails whenever the
+            # account is momentarily rate-limited ("too many calls from this ad account").
+            err = (payload or {}).get("error") or {}
+            msg = f"{err.get('message', '')} {err.get('error_user_msg', '')}".lower()
+            if (err.get("is_transient") or err.get("code") in _RATE_LIMIT_CODES
+                    or "too many calls" in msg or "request limit reached" in msg
+                    or "rate limit" in msg):
+                raise _Retryable(f"[{resp.status_code}] throttled: {msg[:120]}")
             raise GraphError(resp.status_code, payload)
         return payload
 
