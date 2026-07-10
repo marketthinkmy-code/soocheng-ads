@@ -1,0 +1,31 @@
+name: adbot · pause flagged waste ads (manual)
+
+# Owner-authorized surgical pause of the specific waste / runaway-CPL ads flagged 2026-07-10
+# (Video 2 采访, Video 9 你不是不会赚, video 1 用我的方法, Video 8 FD等死 — MY campaigns only).
+# Dry-run by default; set confirm=true to actually pause. Only touches ACTIVE, non-[SG] matches.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: "Actually pause (true) — leave false for a dry-run preview"
+        type: boolean
+        default: false
+
+jobs:
+  pause:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: Pause flagged waste ads
+        env:
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          CONFIRM_PAUSE: ${{ inputs.confirm }}
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+        run: python scripts/pause_wasters.py
