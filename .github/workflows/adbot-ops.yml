@@ -1,0 +1,43 @@
+name: adbot · ops runner (manual)
+
+# Generic manual runner for a one-off ops script under scripts/. Dispatch with the script
+# filename; dispatch from a feature branch to run that branch's version of the script.
+# `confirm` is passed through as CONFIRM / CONFIRM_PAUSE so write-scripts stay dry-run by default.
+
+on:
+  workflow_dispatch:
+    inputs:
+      script:
+        description: "Script filename under scripts/ (e.g. sg_resolve.py)"
+        required: true
+        type: string
+      confirm:
+        description: "true = allow writes (CONFIRM/CONFIRM_PAUSE); false = dry-run/read-only"
+        type: boolean
+        default: false
+
+jobs:
+  ops:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: Run script
+        env:
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          CONFIRM: ${{ inputs.confirm }}
+          CONFIRM_PAUSE: ${{ inputs.confirm }}
+          SCRIPT: ${{ inputs.script }}
+          GOOGLE_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_B64 }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+        run: |
+          case "$SCRIPT" in
+            */*|"") echo "invalid script name: $SCRIPT" >&2; exit 1 ;;
+          esac
+          python "scripts/$SCRIPT"
