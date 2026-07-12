@@ -20,7 +20,7 @@ OLD = "act_2262468824239770"    # MyTrade50 (banned 2026-06-23)
 def _nrm(x):
     """cpa.norm + fold fullwidth colon/punct so old sheet names match account ad names."""
     return (cpa.norm(x or "").replace("\uff1a", ":").replace("\uff01", "!")
-            .replace("\uff1f", "?").replace("\uff5c", "|"))
+            .replace("\uff1f", "?").replace("\uff5c", "|").replace(" ", ""))
 
 
 def main() -> None:
