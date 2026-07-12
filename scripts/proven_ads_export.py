@@ -17,6 +17,12 @@ from adbot.settings import load_settings
 OLD = "act_2262468824239770"    # MyTrade50 (banned 2026-06-23)
 
 
+def _nrm(x):
+    """cpa.norm + fold fullwidth colon/punct so old sheet names match account ad names."""
+    return (cpa.norm(x or "").replace("\uff1a", ":").replace("\uff01", "!")
+            .replace("\uff1f", "?").replace("\uff5c", "|"))
+
+
 def main() -> None:
     s = load_settings()
     g = graph_client(s)
@@ -29,7 +35,7 @@ def main() -> None:
     for sale in sales:
         if not sale.ad:
             continue
-        k = cpa.norm(sale.ad)
+        k = _nrm(sale.ad)
         buys[k] += 1
         rev[k] += sale.amount
         raw.setdefault(k, sale.ad)
@@ -53,7 +59,7 @@ def main() -> None:
     idx = defaultdict(list)
     for label, lst in ads.items():
         for a in lst:
-            idx[cpa.norm(a.get("name", ""))].append((label, a))
+            idx[_nrm(a.get("name", ""))].append((label, a))
 
     ranked = sorted(buys, key=lambda k: (-buys[k], -rev[k]))
 
@@ -65,16 +71,16 @@ def main() -> None:
         print(f"{i:>2} {buys[k]:>4} RM{rev[k]:>8,.0f}  {raw[k]}")
 
     print("\n" + "=" * 78)
-    print("B · TOP 15 BY PAID STUDENTS — with POST IDs for the new-account rebuild")
+    print("B · TOP 22 BY PAID STUDENTS — with POST IDs for the new-account rebuild")
     print("=" * 78)
-    for i, k in enumerate(ranked[:15], 1):
+    for i, k in enumerate(ranked[:22], 1):
         print(f"\n{i}. {raw[k]}   — {buys[k]} paid · RM{rev[k]:,.0f}")
         matches = idx.get(k, [])
         loose = False
         if not matches:
             matches = [(label, a) for label, lst in ads.items() for a in lst
-                       if cpa.norm(a.get("name", ""))
-                       and (k in cpa.norm(a.get("name", "")) or cpa.norm(a.get("name", "")) in k)]
+                       if _nrm(a.get("name", ""))
+                       and (k in _nrm(a.get("name", "")) or _nrm(a.get("name", "")) in k)]
             loose = bool(matches)
         if loose:
             print("   (loose name match)")
