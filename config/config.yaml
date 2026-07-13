@@ -5,10 +5,10 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 meta:
-  ad_account_id: "act_2282909119125229"          # NEW account (new Business Portfolio); switched 2026-06-23 after the old MyTrade50 account was disabled
-  page_id: "1001334883061622"                     # FB Page the ads run under (ads_get_ad_account_pages)
+  ad_account_id: "act_759339046918885"            # MTC X SB 3.0; switched 2026-07-13 after MTC X STOCKBLOOM 2 (2282909119125229) was disabled
+  page_id: "1001334883061622"                     # FB Page the ads run under (unchanged — same Soo Cheng page)
   instagram_user_id: "17841480427751602"                 # IG Business Account @soochenginvesting; null to omit
-  pixel_id: "2602956993413536"                    # pixel / dataset id for lead tracking (ads_get_datasets)
+  pixel_id: "24482357924768693"                   # "ENG options pixel" on the new account (was 2602956993413536 on the disabled acct)
 
   objective: "OUTCOME_SALES"              # matches your live "Sales" / BROAD META ANDRO template
   optimization_goal: "OFFSITE_CONVERSIONS"   # "Maximize number of conversions"
@@ -35,8 +35,8 @@ meta:
     age_max: 65
     advantage_audience: 1                # 1 = Broad / Advantage+ ON (age 25 = floor). 0 = hard 25+ cap.
     locales: [1004]                      # ad-set Languages = Chinese (All)
-    excluded_custom_audiences:           # don't pay to re-reach people who already converted; names
-      - "30 days complete registration"  #   resolved to ids on the live account at build time
+    excluded_custom_audiences: []        # cleared 2026-07-13: the old audience lived on the disabled account;
+                                         #   re-add a "30 days complete registration" audience once rebuilt on the new acct
 
 
   build:
