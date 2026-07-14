@@ -31,6 +31,9 @@ GEO = ["SG"]                                # <-- flip to ["MY"] for a verbatim 
 # Financial special-ad-category REQUIRES the declared country to match the audience geo,
 # else Meta rejects with (#2909034). Keep this in lockstep with GEO.
 SPECIAL_COUNTRY = ["SG"]
+# Singapore law requires every ad set targeting SG to declare a regional regulated
+# category; the general value is SINGAPORE_UNIVERSAL. Only applies when GEO includes SG.
+REGIONAL = ["SINGAPORE_UNIVERSAL"] if "SG" in GEO else None
 AGE_MIN, AGE_MAX = 25, 65
 LOCALES = [20, 21, 22]                       # verbatim from source adsets
 
@@ -90,7 +93,7 @@ def main() -> None:
 
     print(f"CONFIRM={CONFIRM}  ({'LIVE — will create' if CONFIRM else 'DRY RUN — prints only'})")
     print(f"DEST={DST}  GEO={GEO}  special_ad_category_country={SPECIAL_COUNTRY}  "
-          f"pixel={PIXEL}  daily=RM{DAILY/100:.0f} CBO  cats={CATS}")
+          f"regional={REGIONAL}  pixel={PIXEL}  daily=RM{DAILY/100:.0f} CBO  cats={CATS}")
     print(f"url_tags={'set' if url_tags else 'none'}  conversion_domain={conv}\n")
 
     # Preflight: remove any earlier orphan of these exact campaigns (safe — SG account was
@@ -127,10 +130,13 @@ def main() -> None:
             bid_strategy="LOWEST_COST_WITHOUT_CAP", special_ad_categories=CATS,
             special_ad_category_country=SPECIAL_COUNTRY, status="PAUSED")
         cid = camp["id"]
-        aset = g.create_adset(
-            DST, name=c["adset"], campaign_id=cid,
+        adset_kwargs = dict(
+            name=c["adset"], campaign_id=cid,
             optimization_goal="OFFSITE_CONVERSIONS", billing_event="IMPRESSIONS",
             promoted_object=PROMOTED, targeting=TARGETING, status="PAUSED")
+        if REGIONAL:
+            adset_kwargs["regional_regulated_categories"] = REGIONAL
+        aset = g.create_adset(DST, **adset_kwargs)
         asid = aset["id"]
         print(f"   ✓ campaign {cid} · adset {asid}")
         n_camp += 1
