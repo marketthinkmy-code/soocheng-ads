@@ -34,6 +34,10 @@ SPECIAL_COUNTRY = ["SG"]
 # Singapore law requires every ad set targeting SG to declare a regional regulated
 # category; the general value is SINGAPORE_UNIVERSAL. Only applies when GEO includes SG.
 REGIONAL = ["SINGAPORE_UNIVERSAL"] if "SG" in GEO else None
+# SG also requires ad-transparency beneficiary + payer on each ad set (the verified
+# advertiser). Confirmed in Ads Manager as "Beneficiary and payer: Siew Lai Yin".
+DSA_BENEFICIARY = "Siew Lai Yin" if "SG" in GEO else None
+DSA_PAYOR = "Siew Lai Yin" if "SG" in GEO else None
 AGE_MIN, AGE_MAX = 25, 65
 LOCALES = [20, 21, 22]                       # verbatim from source adsets
 
@@ -94,6 +98,7 @@ def main() -> None:
     print(f"CONFIRM={CONFIRM}  ({'LIVE — will create' if CONFIRM else 'DRY RUN — prints only'})")
     print(f"DEST={DST}  GEO={GEO}  special_ad_category_country={SPECIAL_COUNTRY}  "
           f"regional={REGIONAL}  pixel={PIXEL}  daily=RM{DAILY/100:.0f} CBO  cats={CATS}")
+    print(f"dsa_beneficiary={DSA_BENEFICIARY}  dsa_payor={DSA_PAYOR}")
     print(f"url_tags={'set' if url_tags else 'none'}  conversion_domain={conv}\n")
 
     # Preflight: remove any earlier orphan of these exact campaigns (safe — SG account was
@@ -136,6 +141,10 @@ def main() -> None:
             promoted_object=PROMOTED, targeting=TARGETING, status="PAUSED")
         if REGIONAL:
             adset_kwargs["regional_regulated_categories"] = REGIONAL
+        if DSA_BENEFICIARY:
+            adset_kwargs["dsa_beneficiary"] = DSA_BENEFICIARY
+        if DSA_PAYOR:
+            adset_kwargs["dsa_payor"] = DSA_PAYOR
         aset = g.create_adset(DST, **adset_kwargs)
         asid = aset["id"]
         print(f"   ✓ campaign {cid} · adset {asid}")
