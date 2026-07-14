@@ -28,6 +28,9 @@ PIXEL = "2602956993413536"                  # STOCK BLOOM X MTC (on the SG accou
 DAILY = 10000                               # RM100/day CBO — verbatim from source
 CATS = ["FINANCIAL_PRODUCTS_SERVICES"]
 GEO = ["SG"]                                # <-- flip to ["MY"] for a verbatim MY copy
+# Financial special-ad-category REQUIRES the declared country to match the audience geo,
+# else Meta rejects with (#2909034). Keep this in lockstep with GEO.
+SPECIAL_COUNTRY = ["SG"]
 AGE_MIN, AGE_MAX = 25, 65
 LOCALES = [20, 21, 22]                       # verbatim from source adsets
 
@@ -86,8 +89,24 @@ def main() -> None:
     conv = s.meta.conversion_domain_bare or None
 
     print(f"CONFIRM={CONFIRM}  ({'LIVE — will create' if CONFIRM else 'DRY RUN — prints only'})")
-    print(f"DEST={DST}  GEO={GEO}  pixel={PIXEL}  daily=RM{DAILY/100:.0f} CBO  cats={CATS}")
+    print(f"DEST={DST}  GEO={GEO}  special_ad_category_country={SPECIAL_COUNTRY}  "
+          f"pixel={PIXEL}  daily=RM{DAILY/100:.0f} CBO  cats={CATS}")
     print(f"url_tags={'set' if url_tags else 'none'}  conversion_domain={conv}\n")
+
+    # Preflight: remove any earlier orphan of these exact campaigns (safe — SG account was
+    # confirmed empty). Keeps re-runs idempotent after a partial failure.
+    target_names = {c["name"] for c in CAMPAIGNS}
+    existing = g._get_all(f"{DST}/campaigns", {"fields": "id,name", "limit": "200"})
+    orphans = [c for c in existing if c.get("name") in target_names]
+    if orphans:
+        print(f"PREFLIGHT: {len(orphans)} pre-existing campaign(s) with my target names:")
+        for c in orphans:
+            if CONFIRM:
+                g._request("DELETE", c["id"])
+                print(f"   deleted orphan {c['id']}  {c.get('name')}")
+            else:
+                print(f"   WOULD DELETE {c['id']}  {c.get('name')}")
+        print()
 
     n_camp = n_ad = 0
     for c in CAMPAIGNS:
@@ -106,7 +125,7 @@ def main() -> None:
         camp = g.create_campaign(
             DST, name=c["name"], objective="OUTCOME_SALES", daily_budget=DAILY,
             bid_strategy="LOWEST_COST_WITHOUT_CAP", special_ad_categories=CATS,
-            status="PAUSED")
+            special_ad_category_country=SPECIAL_COUNTRY, status="PAUSED")
         cid = camp["id"]
         aset = g.create_adset(
             DST, name=c["adset"], campaign_id=cid,
