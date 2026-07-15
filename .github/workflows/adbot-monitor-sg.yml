@@ -1,0 +1,42 @@
+name: adbot · SG CPL monitor (hourly)
+
+# Same CPL guardrail as adbot-monitor.yml, but for the Singapore ad account
+# (act_893025326577600, "[SG] MTC X SB") via ADBOT_CONFIG=config/config.sg.yaml.
+# CPL-only (cpa.enabled:false in config.sg.yaml — the MY Paid Student List sheet
+# does not map to SG ads). Whole-account scope, registration-optimized ads only,
+# pauses any ACTIVE SG ad over the RM50 ceiling; never un-pauses.
+#
+# NOTE: GitHub fires `schedule` events ONLY from the default branch, so this file
+# must be on `main` for the hourly cron to run. Until then it can be exercised with
+# workflow_dispatch (dry-run) from any branch.
+
+on:
+  schedule:
+    - cron: "13,33,53 * * * *"   # ~every 20 min, staggered off the MY monitor (7,27,47) and the hour boundary (UTC)
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run (evaluate + log what would pause, write nothing)"
+        type: boolean
+        default: false
+
+concurrency:
+  group: adbot-monitor-sg
+  cancel-in-progress: false
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: Run SG CPL monitor
+        env:
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.sg.yaml
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+        run: python -m adbot monitor ${{ inputs.dry_run && '--dry-run' || '' }}
