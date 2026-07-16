@@ -1,0 +1,91 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# adbot — SG monitor config for STOCK BLOOM《1 分钟短线交易盈利营》(Soo Cheng)
+#
+# MONITOR-ONLY. This file exists so the hourly CPL monitor can sweep the Singapore
+# ad account (act_893025326577600, "[SG] MTC X SB") in addition to the MY account
+# in config.yaml. It is loaded via ADBOT_CONFIG by .github/workflows/adbot-monitor-sg.yml.
+#
+# Only `meta.ad_account_id`, `meta.conversion_event`, `kpi.*`, and `cpa.enabled` are
+# actually read by the monitor. The build/drive/notion/budget blocks are copied from
+# config.yaml so load_settings validates cleanly; the monitor never uses them, and
+# BUILDS must NOT use this file (SG builds go through the adbot-ops GraphClient path
+# so they can set the Singapore advertiser binding — see scripts/plan2_build.py).
+# ─────────────────────────────────────────────────────────────────────────────
+
+meta:
+  ad_account_id: "act_893025326577600"            # [SG] MTC X SB — currency MYR (verified), so kpi thresholds below are direct
+  page_id: "1001334883061622"                     # same Soo Cheng FB Page as MY
+  instagram_user_id: "17841480427751602"          # @soochenginvesting
+  pixel_id: "2602956993413536"                    # "STOCK BLOOM X MTC" pixel the SG ads optimize on (not used by the monitor)
+
+  objective: "OUTCOME_SALES"
+  optimization_goal: "OFFSITE_CONVERSIONS"
+  conversion_event: "COMPLETE_REGISTRATION"       # the monitor judges only ads optimizing this event
+  special_ad_categories: ["FINANCIAL_PRODUCTS_SERVICES"]
+
+  lead_destination:
+    type: "WEBSITE"
+    link_url: "https://soochenginvesting.com/"
+  conversion_domain: "https://soochenginvesting.com/"
+  call_to_action: "LEARN_MORE"
+  url_tags: "utm_source={{adset.name}}&utm_medium={{placement}}&utm_campaign={{campaign.name}}&utm_content={{ad.name}}"
+
+  budget:                                          # unused by the monitor (builds don't use this file)
+    level: "CAMPAIGN"
+    daily_amount_myr: 100
+    currency: "MYR"
+    adset_min_spend_myr: 50
+
+  targeting:
+    countries: ["SG"]
+    age_min: 25
+    age_max: 65
+    advantage_audience: 0
+    locales: [20, 21, 22]
+    excluded_custom_audiences: []
+
+  build:
+    creatives_per_adset: 10
+    activate_after_build: false
+
+naming:
+  prefix: "STOCKBLOOM"                             # NOTE: monitor scope is whole-account, not prefix-filtered
+  weekly_off_label: "ADBOT_WEEKLY_OFF"
+
+drive:
+  creatives_folder_id: "1j4jWK5qVxL3mGM5WrU6TloHP-tV4kzmy"
+  carousel_subfolder_marker: "carousel"
+  script_sidecar_ext: ".txt"
+
+google_docs:
+  caption_log_doc_id: ""
+  idea_backlog_doc_id: ""
+
+notion:
+  enabled: false                                  # monitor doesn't read Notion
+  database_id: "89582b42449682d4ab7f01c223c9969b"
+
+kpi:                                              # identical to MY — SG account is MYR, so RM values are direct
+  cpl_threshold_myr: 50.00                         # pause an SG ad above RM50 cost-per-Complete-Registration
+  cpl_min_spend_myr: 80.00                         # only judge once it has spent >= RM80 (fair chance)
+  cpl_lookback: "week_thu"                         # week-to-date from Thursday
+  pause_zero_lead_after_spend: true                # spent >= RM80 with 0 results -> pause
+  cpl_hold: []
+
+cpa:                                              # OFF for SG: the MY "Paid Student List" sheet does not map to SG ads,
+  enabled: false                                   #   so joining it would mis-judge SG. SG is a pure CPL guardrail.
+  spreadsheet_id: ""
+  sales_tab: "Paid Student List"
+  price_myr: 2399.00
+  target_myr: 720.00
+  healthy_max_myr: 800.00
+  max_acceptable_myr: 960.00
+  hard_stop_myr: 1200.00
+  conversion_days: 14
+  min_spend_myr: 1000.00
+
+schedule:
+  timezone: "Asia/Kuala_Lumpur"
+  weekly_off: { day: "WED", time: "15:00" }
+  weekly_on:  { day: "THU", time: "00:00" }
+  monitor_interval_hours: 1
