@@ -1,10 +1,11 @@
 name: adbot · SG CPL monitor (hourly)
 
-# Same CPL guardrail as adbot-monitor.yml, but for the Singapore ad account
+# Same CPL+CPA guardrail as adbot-monitor.yml, but for the Singapore ad account
 # (act_893025326577600, "[SG] MTC X SB") via ADBOT_CONFIG=config/config.sg.yaml.
-# CPL-only (cpa.enabled:false in config.sg.yaml — the MY Paid Student List sheet
-# does not map to SG ads). Whole-account scope, registration-optimized ads only,
-# pauses any ACTIVE SG ad over the RM50 ceiling; never un-pauses.
+# Whole-account scope, registration-optimized ads only, pauses any ACTIVE SG ad over
+# the RM50 CPL ceiling; never un-pauses. CPA rescue is ON (cpa.enabled:true) — the Paid
+# Student List carries SG sales ([sg] utm_campaign), so a converting SG ad is never
+# mis-paused on CPL alone.
 #
 # NOTE: GitHub fires `schedule` events ONLY from the default branch, so this file
 # must be on `main` for the hourly cron to run. Until then it can be exercised with
@@ -39,4 +40,7 @@ jobs:
           ADBOT_CONFIG: ${{ github.workspace }}/config/config.sg.yaml
           META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
           META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+          # CPA rescue reads the Paid Student List (service account) to protect converting SG ads
+          GOOGLE_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_B64 }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
         run: python -m adbot monitor ${{ inputs.dry_run && '--dry-run' || '' }}
