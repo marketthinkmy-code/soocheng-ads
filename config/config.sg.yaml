@@ -72,9 +72,10 @@ kpi:                                              # identical to MY — SG accou
   pause_zero_lead_after_spend: true                # spent >= RM80 with 0 results -> pause
   cpl_hold: []
 
-cpa:                                              # OFF for SG: the MY "Paid Student List" sheet does not map to SG ads,
-  enabled: false                                   #   so joining it would mis-judge SG. SG is a pure CPL guardrail.
-  spreadsheet_id: ""
+cpa:                                              # ON for SG: the Paid Student List DOES carry SG sales (utm_campaign
+  enabled: true                                    #   prefixed "[sg] ..."), so the CPA gate can RESCUE a converting SG
+                                                   #   ad from a CPL pause — a proven-profitable ad is never mis-closed.
+  spreadsheet_id: "1NMtGKVHRYFSsUw3-dacNPYDZABcYKi6VZgMR0u_oZRE"   # STOCK BLOOM Register/OTO/Purchase list
   sales_tab: "Paid Student List"
   price_myr: 2399.00
   target_myr: 720.00
