@@ -146,6 +146,19 @@ pool. Feed it well:
 - Creatives that bake payout screenshots into the image stay in `creatives_held` (copy
   ready, not built) until reviewed.
 
+### ⛔ 禁跑名单 (Meta-rejected creatives — NEVER relaunch, rebuild, or scale)
+
+Even a proven top-converter here is off-limits: re-running a rejected creative risks another
+ban (this account already carries repeat-offender weight). Full forensics: `scripts/archive_ban_list.py`.
+
+- **video 3：不是怕交易** · **video 4：厌倦了等待** — original *and* the compliant rebuild were
+  both rejected (the video itself violates policy: baked-in「每週盈利 200-300 US pocket 錢」income claims).
+- **single image 5：moomoo** · **video 1：1 分钟赚 300** · **single image：每天 1 分钟就能盈利** —
+  income-promise names / props.
+- **video 2：你敢吗？** · **freestyle 2** · **video 12：炒过那么多，累而且不稳定** — rejected **2026-07-16**.
+
+Before recommending or building ANY creative, check it against this list first.
+
 ---
 
 ## Proven angles (old account purchase data, Apr 1 – Jun 23 2026 — buyers, not just CPL)
@@ -155,6 +168,9 @@ Ranked by real course buyers / conversion (use this order when prioritising):
 1. **不是怕交易** (35 buyers, RM148k — top volume) · 2. **我跟你讲** (25% conversion — most
 efficient) · 3. **盖电脑·别盯盘** (11%) · 4. **不选 forex 不选黄金** · 5. **你敢吗** ·
 6. **40 岁·收入单一** · 7. **FD·闲置资金** · 8. **怀疑者**.
+
+⚠️ #1 **不是怕交易** and #5 **你敢吗** are on the ⛔ 禁跑名单 above (Meta-rejected) — the ranking is
+historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compliant creative instead.
 
 - **Best-converting voice = personal, in-your-face direct address** (the「我跟你讲」voice).
 - **Winning audiences (CPA/ROAS ~3x): Luxury Goods, Beer/Alcohol, Omakase/Wagyu** — affluent,
