@@ -47,6 +47,9 @@ BLOCKS = [
     b("video 1: 1 分钟赚 300 — 名字即收入承诺；纸板道具写「每周多 美$200-300」"),
     b("single image: 每天 1 分钟就能盈利 — 名字即收入承诺；MY+SG 两份 7/11 均被 review 下架"),
     b("Video 2（谁讲trading一定要~ 脚本）— 口播「每个星期有多 200-300块 US Pocket钱」+ 喝茶看手机收钱画面"),
+    b("video 2：你敢吗？ — owner 报告 2026-07-16 被拒（此前是成交素材，停止 relaunch/scale；原因待 issues_info 核实）"),
+    b("freestyle 2 — owner 报告 2026-07-16 被拒（GOLF；SG 版此前已 DISAPPROVED 删除，MY 版此次亦被拒）"),
+    b("video 12：炒过那么多，累而且不稳定 — owner 报告 2026-07-16 被拒（原为上升素材，立即停止 scale）"),
 
     h2("🔍 逐支视频脚本违规点（2026-07-12 脚本核对）"),
     h3("共同违规 DNA（几乎每支视频的结尾都有同一段）"),
