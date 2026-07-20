@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import os
+import time
 
 from adbot.commands import graph_client
 from adbot.settings import load_settings
@@ -66,6 +67,7 @@ def main() -> None:
                              creative={"creative_id": cr["id"]}, status="PAUSED",
                              conversion_domain=conv)
             print(f"  ✓ {label}: ad {ad['id']} «{nm}»")
+            time.sleep(2.5)   # rate-limit hygiene between ad creations
 
     print("\n== (3) RAISE CBO (LIVE budget change) ==")
     for cid, label, newb in CBO:
