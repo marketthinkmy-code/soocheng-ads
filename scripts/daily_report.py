@@ -84,7 +84,7 @@ def _action_reason(d, cpa_tiers) -> str:
 
 
 def render_report(now_myt, week_start, rows, decisions, ceiling,
-                  cpa_rows=None, blended_cpa=None, cpa_tiers=None) -> str:
+                  cpa_rows=None, blended_cpa=None, cpa_tiers=None, notes=None) -> str:
     tot_spend = sum(r[1] for r in rows)
     tot_reg = sum(r[2] for r in rows)
     blended = _cpl(tot_spend, tot_reg)
@@ -93,6 +93,11 @@ def render_report(now_myt, week_start, rows, decisions, ceiling,
     out = [
         "# 📊 Daily Ads Report",
         f"{now_myt:%a %d %b %Y, %H:%M} MYT · whole account (MTC + STOCKBLOOM)",
+    ]
+    if notes:  # a section hit a transient Meta error (usually rate-limit) — report partial, don't fail
+        out += ["", "> ⚠️ **Partial report** — " + "; ".join(notes)
+                + ". Meta was likely rate-limiting; unaffected sections are shown normally."]
+    out += [
         "",
         f"## 📅 CPL · this ad-week ({week_start:%a %d %b} → now)",
         f"Spend **RM{tot_spend:,.0f}** · **{tot_reg:.0f}** registrations · "
@@ -148,18 +153,30 @@ def main() -> None:
     now_myt = dt.datetime.utcnow() + dt.timedelta(hours=8)  # Asia/Kuala_Lumpur, no DST
     week_start = _week_start_thursday(now_myt.date())
 
-    rows = []
-    for r in g.account_insights(s.meta.account_path, level="campaign",
-                                fields="campaign_name,spend,actions",
-                                time_range={"since": week_start.isoformat(),
-                                            "until": now_myt.date().isoformat()}):
-        spend = float(r.get("spend") or 0)
-        reg = extract_results(r.get("actions"), reg_token)
-        if spend <= 0 and reg == 0:
-            continue
-        rows.append((r.get("campaign_name", ""), spend, reg))
+    import sys
+    notes = []  # transient per-section Meta failures (usually rate-limit); surfaced, never fatal
 
-    decisions = evaluate_account(g, s)
+    rows = []
+    try:  # the report must never fail on a Meta rate-limit — post a partial report instead
+        for r in g.account_insights(s.meta.account_path, level="campaign",
+                                    fields="campaign_name,spend,actions",
+                                    time_range={"since": week_start.isoformat(),
+                                                "until": now_myt.date().isoformat()}):
+            spend = float(r.get("spend") or 0)
+            reg = extract_results(r.get("actions"), reg_token)
+            if spend <= 0 and reg == 0:
+                continue
+            rows.append((r.get("campaign_name", ""), spend, reg))
+    except Exception as exc:  # noqa: BLE001
+        print(f"<!-- CPL section skipped: {type(exc).__name__}: {exc} -->", file=sys.stderr)
+        notes.append(f"CPL section unavailable ({type(exc).__name__})")
+
+    try:  # evaluate_account is the call-heaviest step — most likely to trip 'too many calls'
+        decisions = evaluate_account(g, s)
+    except Exception as exc:  # noqa: BLE001
+        print(f"<!-- Monitor-actions section skipped: {type(exc).__name__}: {exc} -->", file=sys.stderr)
+        notes.append(f"monitor-actions section unavailable ({type(exc).__name__})")
+        decisions = []
 
     cpa_rows = blended_cpa = tiers = None
     if s.cpa.enabled:
@@ -167,11 +184,12 @@ def main() -> None:
             tiers = cpa.CpaTiers(s.cpa.healthy_max_myr, s.cpa.max_acceptable_myr, s.cpa.hard_stop_myr)
             cpa_rows, blended_cpa = cpa_money_map(g, s, now_myt.date())
         except Exception as exc:  # noqa: BLE001
-            import sys
             print(f"<!-- CPA section skipped: {type(exc).__name__}: {exc} -->", file=sys.stderr)
             cpa_rows = tiers = None
+            notes.append(f"CPA section unavailable ({type(exc).__name__})")
 
-    print(render_report(now_myt, week_start, rows, decisions, ceiling, cpa_rows, blended_cpa, tiers))
+    print(render_report(now_myt, week_start, rows, decisions, ceiling,
+                        cpa_rows, blended_cpa, tiers, notes=notes))
 
 
 if __name__ == "__main__":
