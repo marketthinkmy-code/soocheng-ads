@@ -155,7 +155,11 @@ ban (this account already carries repeat-offender weight). Full forensics: `scri
   both rejected (the video itself violates policy: baked-in「每週盈利 200-300 US pocket 錢」income claims).
 - **single image 5：moomoo** · **video 1：1 分钟赚 300** · **single image：每天 1 分钟就能盈利** —
   income-promise names / props.
-- **video 2：你敢吗？** · **freestyle 2** · **video 12：炒过那么多，累而且不稳定** — rejected **2026-07-16**.
+- **video 2：你敢吗？** · **freestyle 2** — rejected **2026-07-16**.
+- ~~video 12：炒过那么多，累而且不稳定~~ — **DE-LISTED 2026-07-30.** Rejected 2026-07-16, but the
+  owner-override resubmission (TRAVEL TOP3 1-1-3, original post reused) **PASSED Meta review**
+  (SG ACTIVE) — the 07-16 rejection was an enforcement blip, not a content violation. If it is
+  ever rejected again, it goes straight back on this list.
 
 Before recommending or building ANY creative, check it against this list first.
 
