@@ -4,8 +4,12 @@
 30-day Paid Student List basis:
   TOP 1 ad set  = Travel SG 25+ (12 buyers)  -> targeting copied LIVE from the converting
                   reference ad set (campaign 120248220646980521), not guessed.
-  TOP 3 clean ads = freestyle 1 (12) · video 5：trading 早就不是这样了！(8) ·
-                  video 5：盖电脑，喂！(8).  video 12 (#2 raw) is ⛔禁跑名单 — excluded.
+  TOP 3 ads (raw) = freestyle 1 (12) · video 12：炒过那么多 (8) · video 5：trading 早就
+                  不是这样了！(8).
+  ⚠️ video 12 was Meta-rejected 2026-07-16 (禁跑名单). OWNER OVERRIDE 2026-07-30: after the
+  strike risk was laid out (account has prior disable), the owner chose to include it — the
+  new ad re-enters Meta review; approval runs it officially, rejection adds a policy strike.
+  The rest of the 禁跑名单 (income-claim creatives) stays excluded.
 
 Each ad reuses the winner's live page POST (object_story_id) so social proof carries over.
 Post ids are resolved dynamically from live ads (SG account first, then MY; prefer ACTIVE),
@@ -42,11 +46,13 @@ def _norm(s: str) -> str:
     return " ".join((s or "").replace("：", ":").split()).casefold()
 
 
-# (display/ad name, matcher) — matcher takes the normalized live-ad name
+# (display/ad name, matcher) — matcher takes the normalized live-ad name.
+# NB: "炒过那么多" is required for video 12 — there is a DIFFERENT clean video 12
+# (不选 forex 不选黄金), so never match on the "video 12" prefix alone.
 WINNERS = [
-    ("freestyle 1",                       lambda n: n == "freestyle 1"),
-    ("video 5：trading 早就不是这样了！",   lambda n: "早就不是这样" in n),
-    ("video 5：盖电脑，喂！",              lambda n: "盖电脑" in n),
+    ("freestyle 1",                        lambda n: n == "freestyle 1"),
+    ("video 12：炒过那么多，累而且不稳定",   lambda n: "炒过那么多" in n),
+    ("video 5：trading 早就不是这样了！",    lambda n: "早就不是这样" in n),
 ]
 
 
