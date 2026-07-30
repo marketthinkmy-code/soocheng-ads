@@ -165,8 +165,13 @@ The old hard-ban treatment is retired. The rules now:
 
 History (for context, not enforcement): video 3 不是怕交易 / video 4 厌倦了等待 / moomoo /
 video 1 1分钟赚300 / 每天1分钟就能盈利 — rejected for baked-in income claims (incl. rebuilds).
-video 2 你敢吗 / freestyle 2 / video 12 炒过那么多 — rejected 2026-07-16, later re-approved
-(video 12 via TOP3 resubmission 07-30; owner reports the rest passed review too).
+video 2 你敢吗 / freestyle 2 — rejected 2026-07-16; owner reports they later passed review.
+
+⛔ **video 12：炒过那么多，累而且不稳定 — RE-LISTED 2026-07-30（owner:「video 12 不能，还是禁跑吧」）.**
+Timeline: rejected 07-16 → TOP3 resubmission passed review (SG ACTIVE) → same-day fresh copies
+in BEER ALCOHOL / DAY TRADING (both accounts) were REJECTED again. Meta's verdict on this
+creative is unstable-to-negative — do NOT build any new ad from it. The already-approved SG
+TRAVEL TOP3 instance stays governed by CPL/CPA like any running ad (owner may pause it anytime).
 
 ---
 
