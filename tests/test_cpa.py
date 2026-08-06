@@ -107,3 +107,16 @@ def test_cpa_value_and_tiers():
     assert cpa.cpa_tier(1300, t) == cpa.HARD_STOP
     assert cpa.cpa_tier(None, t) == cpa.NO_SALES
     assert cpa.cpa_tier(math.inf, t) == cpa.NO_SALES
+
+
+def test_sales_on_selects_exact_day_and_skips_undated():
+    d = dt.date(2026, 8, 6)
+    sales = [
+        cpa.Sale(dt.date(2026, 8, 5), "travel", "as", "video 2", 2399.0),
+        cpa.Sale(dt.date(2026, 8, 5), "travel", "as", "freestyle 1", 2399.0),
+        cpa.Sale(dt.date(2026, 8, 6), "luxury", "as", "video 12", 1999.0),
+        cpa.Sale(None, "travel", "as", "video 2", 2399.0),          # undated -> never counted
+    ]
+    assert len(cpa.sales_on(sales, dt.date(2026, 8, 5))) == 2
+    assert [s.ad for s in cpa.sales_on(sales, d)] == ["video 12"]
+    assert cpa.sales_on(sales, dt.date(2026, 8, 4)) == []
