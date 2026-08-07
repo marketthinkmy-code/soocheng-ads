@@ -76,6 +76,7 @@ class BuildCfg(BaseModel):
 
 
 class MetaCfg(BaseModel):
+    account_label: str = ""  # short human label ("MY" / "SG") so multi-account reports are distinguishable
     ad_account_id: str = "act_XXXXXXXX"
     page_id: str = "XXXXXXXX"
     instagram_user_id: Optional[str] = None

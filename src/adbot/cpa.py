@@ -164,6 +164,16 @@ def count_windows(sales: List[Sale], today: dt.date, windows=WINDOWS) -> Dict[st
     return out
 
 
+def sales_on(sales: List[Sale], day: dt.date) -> List[Sale]:
+    """The sales that closed on exactly `day` (undated rows are never counted).
+
+    The rolling windows above answer "how are we doing"; this answers "did we sell
+    yesterday, and which ad did it" — the question the nightly report has to settle on its
+    own, without diffing against the previous night's post.
+    """
+    return [s for s in sales if s.date == day]
+
+
 def attribute(sales: List[Sale], today: dt.date, windows=WINDOWS):
     """Group sales by (campaign, adset, ad), by (campaign, adset), and by campaign."""
     by_ad: Dict[Tuple[str, str, str], List[Sale]] = {}

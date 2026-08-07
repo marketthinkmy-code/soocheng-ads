@@ -4,6 +4,9 @@ Plain text, minimal colour (one ⚠️ flag for breaches only), and every sectio
 time window explicitly:
   • CPL  — this ad-week, from Thursday (the weekly ON/reset) to now — matches how the owner
            reviews and the monitor's judgement window.
+  • NEW  — sales dated yesterday and today, per ad, from the Paid Student List. This is the
+           "did we sell yesterday, and which ad did it" answer, computed here rather than
+           left to a human diff of last night's post.
   • CPA  — last 60 days, from the Paid Student List.
 render_report() is a pure function so the layout can be previewed without hitting the API.
 """
@@ -43,13 +46,22 @@ def _short(name: str) -> str:
     return re.sub(r"\s*-\s*\d+/\d+/\d+\s*$", "", name).strip()
 
 
-def cpa_money_map(graph, settings, today):
-    """Per-campaign 60-day CPA (display, spend60, sales60, cpa) + blended, joined by UTM name."""
+def read_sales(settings):
+    """Parse the Paid Student List once — both the CPA and the new-sales section use it."""
     from adbot.clients.sheets import SheetsClient
     values = SheetsClient(settings.secrets.google_sa_json).read_tab(
         settings.cpa.spreadsheet_id, settings.cpa.sales_tab)
     sales, _cols, _hdr = cpa.parse_sales(values, settings.cpa.price_myr)
-    _by_ad, _by_adset, by_campaign = cpa.attribute(sales, today)
+    return sales
+
+
+def campaign_spend_60d(graph, settings, today):
+    """This account's campaigns over the last 60 days: {name key: (display name, spend)}.
+
+    Doubles as the account filter. MY and SG share one Paid Student List, so a sales row only
+    belongs to this report if its utm_campaign matches a campaign that exists *in this ad
+    account* — otherwise the SG report would re-report MY's sales and vice versa.
+    """
     since, until = (today - dt.timedelta(days=60)).isoformat(), today.isoformat()
     spend = {}
     for r in graph.account_insights(settings.meta.account_path, level="campaign",
@@ -59,10 +71,21 @@ def cpa_money_map(graph, settings, today):
             spend[_mkey(r.get("campaign_name", ""))] = (r.get("campaign_name", ""), float(r.get("spend") or 0))
         except (TypeError, ValueError):
             continue
+    return spend
+
+
+def cpa_money_map(sales, spend, today):
+    """Per-campaign 60-day CPA (display, spend60, sales60, cpa) + blended, joined by UTM name.
+
+    Scoped to `spend` — i.e. to campaigns that exist in THIS ad account. MY and SG share one
+    Paid Student List, so counting every sheet row here would fold SG's sales into MY's
+    blended CPA (and vice versa) and understate it.
+    """
+    _by_ad, _by_adset, by_campaign = cpa.attribute(sales, today)
     rows = []
-    for k in set(by_campaign) | set(spend):
-        disp = spend.get(k, (k, 0))[0] or k
-        sp = spend.get(k, (None, 0.0))[1]
+    for k in spend:
+        disp = spend[k][0] or k
+        sp = spend[k][1]
         sa = by_campaign.get(k, {}).get("60d", 0)
         if sp <= 0 and sa == 0:
             continue
@@ -70,6 +93,33 @@ def cpa_money_map(graph, settings, today):
     rows.sort(key=lambda r: -(r[1] or 0))
     tot_sp, tot_sa = sum(r[1] for r in rows), sum(r[2] for r in rows)
     return rows, cpa.cpa(tot_sp, tot_sa)
+
+
+def new_sales_map(sales, spend, today):
+    """Sales that closed yesterday and today: [(day, [(campaign, ad, count, amount)], other)].
+
+    Answers "昨天有没有新成交？哪几条广告出的单" from the sheet directly, so the report never
+    depends on a human diff against last night's post. Rows carry the UTM ad name, so credit
+    lands on the creative. Scoped to this account via `spend` (see campaign_spend_60d);
+    `other` counts that day's rows belonging to another account — reported, never dropped
+    silently, so MY + SG together always account for every row in the sheet.
+    """
+    out = []
+    for day in (today - dt.timedelta(days=1), today):
+        groups, other = {}, 0
+        for s in cpa.sales_on(sales, day):
+            key = _mkey(s.campaign)  # same match key the monitor uses to join sheet → Meta
+            if key not in spend:
+                other += 1  # another account's sale (or an unmatched UTM) — not ours to claim
+                continue
+            display = spend[key][0] or s.campaign
+            g = groups.setdefault((display, s.ad), [0, 0.0])
+            g[0] += 1
+            g[1] += s.amount
+        rows = sorted(((c, a, n, amt) for (c, a), (n, amt) in groups.items()),
+                      key=lambda r: -r[2])
+        out.append((day, rows, other))
+    return out
 
 
 def _action_reason(d, cpa_tiers) -> str:
@@ -84,15 +134,17 @@ def _action_reason(d, cpa_tiers) -> str:
 
 
 def render_report(now_myt, week_start, rows, decisions, ceiling,
-                  cpa_rows=None, blended_cpa=None, cpa_tiers=None, notes=None) -> str:
+                  cpa_rows=None, blended_cpa=None, cpa_tiers=None, notes=None,
+                  account_label="", new_sales=None) -> str:
     tot_spend = sum(r[1] for r in rows)
     tot_reg = sum(r[2] for r in rows)
     blended = _cpl(tot_spend, tot_reg)
     over = blended is not None and (blended == math.inf or blended > ceiling)
 
+    who = f"{account_label} account" if account_label else "whole account (MTC + STOCKBLOOM)"
     out = [
-        "# 📊 Daily Ads Report",
-        f"{now_myt:%a %d %b %Y, %H:%M} MYT · whole account (MTC + STOCKBLOOM)",
+        f"# 📊 Daily Ads Report{f' · {account_label}' if account_label else ''}",
+        f"{now_myt:%a %d %b %Y, %H:%M} MYT · {who}",
     ]
     if notes:  # a section hit a transient Meta error (usually rate-limit) — report partial, don't fail
         out += ["", "> ⚠️ **Partial report** — " + "; ".join(notes)
@@ -106,11 +158,29 @@ def render_report(now_myt, week_start, rows, decisions, ceiling,
         "",
         "_Campaigns, cheapest CPL first (⚠️ = over ceiling):_",
     ]
+    if not rows:
+        out.append("- _(no campaign spent this ad-week yet)_")
     for name, spend, reg in sorted(rows, key=lambda r: (lambda c: math.inf if c is None else c)(_cpl(r[1], r[2]))):
         cpl = _cpl(spend, reg)
         flag = " ⚠️" if (cpl is None or cpl == math.inf or cpl > ceiling) else ""
         out.append(f"- {_short(name)} · CPL {_cpl_text(cpl)} · RM{spend:,.0f} · {reg:.0f} reg{flag}")
     out.append("")
+
+    if new_sales is not None:
+        out += ["## 🆕 New sales · yesterday & today (real paid enrolments)", ""]
+        for day, sold, other in new_sales:
+            when = "Yesterday" if day < now_myt.date() else "Today so far"
+            tail = f" _(+{other} on the other account)_" if other else ""
+            if not sold:
+                out.append(f"- **{when} ({day:%a %d %b})** — no new sale.{tail}")
+                continue
+            total, value = sum(r[2] for r in sold), sum(r[3] for r in sold)
+            out.append(f"- **{when} ({day:%a %d %b})** — **{total} sale"
+                       f"{'s' if total != 1 else ''}** · RM{value:,.0f}:{tail}")
+            for camp, ad, n, amt in sold:
+                who_sold = ad or "_(no utm_ad on the row)_"
+                out.append(f"    - {who_sold} — {n}× · RM{amt:,.0f} · _{_short(camp)}_")
+        out.append("")
 
     if cpa_rows is not None and cpa_tiers is not None:
         out += [
@@ -178,18 +248,22 @@ def main() -> None:
         notes.append(f"monitor-actions section unavailable ({type(exc).__name__})")
         decisions = []
 
-    cpa_rows = blended_cpa = tiers = None
+    cpa_rows = blended_cpa = tiers = new_sales = None
     if s.cpa.enabled:
         try:  # the report must never fail on the CPA add-on
             tiers = cpa.CpaTiers(s.cpa.healthy_max_myr, s.cpa.max_acceptable_myr, s.cpa.hard_stop_myr)
-            cpa_rows, blended_cpa = cpa_money_map(g, s, now_myt.date())
+            sales = read_sales(s)
+            spend60 = campaign_spend_60d(g, s, now_myt.date())
+            cpa_rows, blended_cpa = cpa_money_map(sales, spend60, now_myt.date())
+            new_sales = new_sales_map(sales, spend60, now_myt.date())
         except Exception as exc:  # noqa: BLE001
             print(f"<!-- CPA section skipped: {type(exc).__name__}: {exc} -->", file=sys.stderr)
-            cpa_rows = tiers = None
-            notes.append(f"CPA section unavailable ({type(exc).__name__})")
+            cpa_rows = tiers = new_sales = None
+            notes.append(f"CPA + new-sales sections unavailable ({type(exc).__name__})")
 
     print(render_report(now_myt, week_start, rows, decisions, ceiling,
-                        cpa_rows, blended_cpa, tiers, notes=notes))
+                        cpa_rows, blended_cpa, tiers, notes=notes,
+                        account_label=s.meta.account_label, new_sales=new_sales))
 
 
 if __name__ == "__main__":
