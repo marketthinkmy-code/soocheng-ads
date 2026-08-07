@@ -146,18 +146,34 @@ pool. Feed it well:
 - Creatives that bake payout screenshots into the image stay in `creatives_held` (copy
   ready, not built) until reviewed.
 
-### ⛔ 禁跑名单 (Meta-rejected creatives — NEVER relaunch, rebuild, or scale)
+### 📋 送审历史 (rejection history — OWNER POLICY 2026-07-30: judge by review status + CPL/CPA only)
 
-Even a proven top-converter here is off-limits: re-running a rejected creative risks another
-ban (this account already carries repeat-offender weight). Full forensics: `scripts/archive_ban_list.py`.
+**Owner directive 2026-07-30:「禁跑的广告都不要直接关了，因为他们都过审。一切以 CPL CPA 为主。」**
+The old hard-ban treatment is retired. The rules now:
 
-- **video 3：不是怕交易** · **video 4：厌倦了等待** — original *and* the compliant rebuild were
-  both rejected (the video itself violates policy: baked-in「每週盈利 200-300 US pocket 錢」income claims).
-- **single image 5：moomoo** · **video 1：1 分钟赚 300** · **single image：每天 1 分钟就能盈利** —
-  income-promise names / props.
-- **video 2：你敢吗？** · **freestyle 2** · **video 12：炒过那么多，累而且不稳定** — rejected **2026-07-16**.
+- A creative's **current Meta review status** is the only gate: if it PASSES review it may run,
+  be scaled, and be rebuilt — rejection history alone is NEVER a reason to pause, exclude, or
+  refuse it. If it sits DISAPPROVED it can't deliver anyway; resubmitting is the owner's call
+  (each re-rejection adds a policy strike on a repeat-offender account — advise, don't block).
+- **Pause decisions belong to the CPL/CPA monitor only** (CPL>RM50 after RM80 spend, 0-reg
+  after RM80, CPA hard-stop RM1,200; converting ads are CPA-rescued). The monitor has NEVER
+  enforced any ban list — do not pause an ad because of its rejection history.
+- Income-claim content (「每週盈利 200-300 US」 etc.) still violates Meta policy and keeps
+  failing review — for those, prefer re-cutting a clean version (forensics + compliant
+  re-edit guide: `scripts/archive_ban_list.py`). This is advice about what will pass review,
+  not a run/no-run rule.
 
-Before recommending or building ANY creative, check it against this list first.
+History (for context, not enforcement): video 3 不是怕交易 / video 4 厌倦了等待 / moomoo /
+video 1 1分钟赚300 / 每天1分钟就能盈利 — rejected for baked-in income claims (incl. rebuilds).
+video 2 你敢吗 / freestyle 2 — rejected 2026-07-16; owner reports they later passed review.
+
+✅ **video 12：炒过那么多，累而且不稳定 — UN-BANNED 2026-08-07（owner:「跑吧。解禁」）.**
+It sold 8 单 in July and another on 8/5 via SG DAY TRADING, so the owner lifted the 07-30 禁跑.
+It is now governed like every other creative: current Meta review status + CPL/CPA only.
+History for caution, not enforcement: rejected 07-16 → TOP3 resubmission passed (SG) → fresh
+copies in BEER/DAY TRADING were rejected again 07-30 (later instances passed). When scaling it,
+PREFER reusing already-approved instances over building fresh copies — each new rejection adds a
+policy strike on this repeat-offender account family.
 
 ---
 
