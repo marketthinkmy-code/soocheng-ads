@@ -27,8 +27,10 @@ REOPEN_ADS = [
 ]
 DAYTRADING_SG = ("config.sg.yaml", "120248577991730521", "DAY TRADING",
                  {"120248578056590521"})          # allowed wake-set: 早就不是这样了 only
-CHAO_AD = ("SG 炒过那么多 (DAY TRADING)", "config.sg.yaml", "120248577931520521",
-           "炒过那么多", "day trading")
+# 炒过那么多: the DAY TRADING copy that drove the 8/5 sale no longer exists (deleted after
+# the 07-30 rejection wave); surviving copies sit in paused BEER (SG/MY) and paused MY
+# campaigns. Un-banned per owner 8/7, but bringing it back needs either waking BEER or a
+# rebuild — reported back to the owner instead of guessing.
 BUDGET_UP = [
     ("SG BROAD A", "config.sg.yaml", "120248220658080521", "BROAD | 1-1-3 A"),
     ("MY INVESTMENT", "config.yaml", "120247585357770575", "INVESTMENT | 1-1-3"),
@@ -85,7 +87,6 @@ def main() -> None:
         print(f"⛔ SKIP: id {cid} is '{name}'")
     elif st == "ACTIVE":
         print(f"✓ campaign already ACTIVE: {name}")
-        reopen_ad(*CHAO_AD)
     elif st != "PAUSED":
         print(f"⚠️ SKIP campaign: effective_status={st}")
     else:
@@ -98,14 +99,12 @@ def main() -> None:
         if extra:
             print(f"⛔ SKIP — unexpected wake-set: {sorted(extra)}")
         elif not CONFIRM:
-            print("▶ would ACTIVATE campaign, then ACTIVATE 炒过那么多 ad")
-            reopen_ad(*CHAO_AD)
+            print("▶ would ACTIVATE campaign（炒过那么多在此 campaign 已不存在 — 见文件头注释）")
         else:
             try:
                 g.update_status(cid, "ACTIVE")
                 after = g.get_object(cid, "effective_status").get("effective_status")
                 print(f"✅ campaign ACTIVATED: {st} -> {after}")
-                reopen_ad(*CHAO_AD)
             except GraphError as e:
                 print(f"❌ FAILED campaign: {e}")
 
