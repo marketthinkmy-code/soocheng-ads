@@ -167,11 +167,13 @@ History (for context, not enforcement): video 3 不是怕交易 / video 4 厌倦
 video 1 1分钟赚300 / 每天1分钟就能盈利 — rejected for baked-in income claims (incl. rebuilds).
 video 2 你敢吗 / freestyle 2 — rejected 2026-07-16; owner reports they later passed review.
 
-⛔ **video 12：炒过那么多，累而且不稳定 — RE-LISTED 2026-07-30（owner:「video 12 不能，还是禁跑吧」）.**
-Timeline: rejected 07-16 → TOP3 resubmission passed review (SG ACTIVE) → same-day fresh copies
-in BEER ALCOHOL / DAY TRADING (both accounts) were REJECTED again. Meta's verdict on this
-creative is unstable-to-negative — do NOT build any new ad from it. The already-approved SG
-TRAVEL TOP3 instance stays governed by CPL/CPA like any running ad (owner may pause it anytime).
+✅ **video 12：炒过那么多，累而且不稳定 — UN-BANNED 2026-08-07（owner:「跑吧。解禁」）.**
+It sold 8 单 in July and another on 8/5 via SG DAY TRADING, so the owner lifted the 07-30 禁跑.
+It is now governed like every other creative: current Meta review status + CPL/CPA only.
+History for caution, not enforcement: rejected 07-16 → TOP3 resubmission passed (SG) → fresh
+copies in BEER/DAY TRADING were rejected again 07-30 (later instances passed). When scaling it,
+PREFER reusing already-approved instances over building fresh copies — each new rejection adds a
+policy strike on this repeat-offender account family.
 
 ---
 

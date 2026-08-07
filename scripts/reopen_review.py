@@ -25,8 +25,7 @@ from adbot.settings import REPO_ROOT, load_settings
 
 ACCOUNTS = (("MY", "config.yaml"), ("SG", "config.sg.yaml"))
 NOT_DELIVERING = {"PAUSED", "CAMPAIGN_PAUSED", "ADSET_PAUSED"}
-BANNED_SUBSTR = ("炒过那么多",)  # owner 2026-07-30 ban = video 12：炒过那么多，累而且不稳定 ONLY
-                               # (video 12：不选 forex 不选黄金 is a different creative — a proven angle)
+BANNED_SUBSTR = ()  # owner 2026-08-07「跑吧。解禁」— 炒过那么多 un-banned; no creative is ban-listed now
 
 
 def _sheet_aggregates(sales, today):
