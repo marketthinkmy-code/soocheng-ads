@@ -48,7 +48,9 @@ THEMES = {
         "travel", "tourism", "vacations", "air travel", "hotels", "luxury travel",
         "cruises", "adventure travel", "frequent travelers", "airlines", "resorts"],
 }
-SHOW = 18  # rows printed per theme (rest counted)
+SHOW = 60  # rows printed per theme (rest counted)
+# fuzzy-search artifacts that surface for ANY query — not theme keywords
+NOISE = ("Facebook access", "Birthday in", "Friends of people", "Owns:")
 
 
 def fmt_size(row) -> str:
@@ -73,8 +75,8 @@ def main() -> None:
                 print(f"   [seed '{q}' ERR: {str(exc)[:60]}]")
                 continue
             for row in res.get("data", []) or []:
-                rid = row.get("id")
-                if rid and rid not in found:
+                rid, nm = row.get("id"), row.get("name") or ""
+                if rid and rid not in found and not any(n in nm for n in NOISE):
                     found[rid] = row
         rows = sorted(found.values(),
                       key=lambda r: -(r.get("audience_size_upper_bound")
