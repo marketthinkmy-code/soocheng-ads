@@ -207,6 +207,25 @@ def ref_targeting(g, ac) -> tuple:
     return tgt, promo
 
 
+def make_video_ad(g, s, ac, theme, aset_id, vids):
+    """Create the new-video creative + ad inside aset_id (CONFIRM path only)."""
+    vid, thumb = vids[ac["acct"]]
+    video_data = {"video_id": vid, "title": NEW_HEADLINE, "message": CAPTION,
+                  "call_to_action": {"type": s.meta.call_to_action or "LEARN_MORE",
+                                     "value": {"link": s.meta.lead_destination.link_url}}}
+    if thumb:
+        video_data["image_url"] = thumb
+    spec = {"name": f"{ac['label']} | {theme} | {NEW_AD_NAME}",
+            "object_story_spec": {"page_id": s.meta.page_id, "video_data": video_data}}
+    if s.meta.url_tags:
+        spec["url_tags"] = s.meta.url_tags
+    cr = g.create_adcreative(ac["acct"], **spec)
+    ad = g.create_ad(ac["acct"], name=NEW_AD_NAME, adset_id=aset_id,
+                     creative={"creative_id": cr["id"]}, status="PAUSED",
+                     conversion_domain=s.meta.conversion_domain_bare or None)
+    print(f"     ✓ ad {ad['id']}  «{NEW_AD_NAME}» (new video)")
+
+
 def main() -> None:
     s = load_settings()
     g = graph_client(s)
@@ -228,7 +247,7 @@ def main() -> None:
     vids = {}   # acct -> (video_id, thumb)
     for ac in ACCTS:
         base_tgt, promo = scaffolds[ac["label"]]
-        existing = {c.get("name") for c in
+        existing = {c.get("name"): c.get("id") for c in
                     g._get_all(f"{ac['acct']}/campaigns", {"fields": "id,name", "limit": "500"})}
         print(f"\n══ {ac['label']}  {ac['acct']} ══")
 
@@ -243,7 +262,20 @@ def main() -> None:
             camp_name = f"{ac['prefix']} | {theme} | 1-1-4"
             aset_name = f"AdSet ({theme.title()} | {ac['label']} 25+)"
             if camp_name in existing:
-                print(f"  · '{camp_name}' already exists — skip")
+                asets = g._get_all(f"{existing[camp_name]}/adsets",
+                                   {"fields": "id,name", "limit": "10"})
+                aset_id = asets[0]["id"] if asets else None
+                have = {a.get("name") for a in g._get_all(
+                    f"{existing[camp_name]}/ads", {"fields": "name", "limit": "50"})}
+                if aset_id and NEW_AD_NAME not in have:
+                    if CONFIRM:
+                        print(f"  · '{camp_name}' exists — adding missing «{NEW_AD_NAME}»")
+                        make_video_ad(g, s, ac, theme, aset_id, vids)
+                        time.sleep(PACE)
+                    else:
+                        print(f"  · '{camp_name}' exists — WOULD ADD missing «{NEW_AD_NAME}»")
+                else:
+                    print(f"  · '{camp_name}' already complete — skip")
                 continue
             tgt = copy.deepcopy(base_tgt)
             tgt["flexible_spec"] = [{"interests": INTERESTS[theme]}]
@@ -290,24 +322,7 @@ def main() -> None:
                 print(f"     ✓ ad {ad['id']}  «{disp}»")
                 time.sleep(PACE)
 
-            vid, thumb = vids[ac["acct"]]
-            video_data = {"video_id": vid, "title": NEW_HEADLINE, "message": CAPTION,
-                          "call_to_action": {"type": s.meta.call_to_action or "LEARN_MORE",
-                                             "value": {"link": s.meta.lead_destination.link_url}}}
-            if thumb:
-                video_data["image_url"] = thumb
-            story = {"page_id": s.meta.page_id, "video_data": video_data}
-            if s.meta.instagram_user_id:
-                story["instagram_actor_id"] = s.meta.instagram_user_id
-            spec = {"name": f"{ac['label']} | {theme} | {NEW_AD_NAME}",
-                    "object_story_spec": story}
-            if s.meta.url_tags:
-                spec["url_tags"] = s.meta.url_tags
-            cr = g.create_adcreative(ac["acct"], **spec)
-            ad = g.create_ad(ac["acct"], name=NEW_AD_NAME, adset_id=aset["id"],
-                             creative={"creative_id": cr["id"]}, status="PAUSED",
-                             conversion_domain=conv)
-            print(f"     ✓ ad {ad['id']}  «{NEW_AD_NAME}» (new video)")
+            make_video_ad(g, s, ac, theme, aset["id"], vids)
             time.sleep(CAMP_GAP)
 
     print("\nDONE — 6 campaigns built PAUSED; owner activates in Ads Manager."
