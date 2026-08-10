@@ -34,7 +34,9 @@ DAILY = 5000    # RM50/day (cents)
 
 SG = "act_893025326577600"
 MY = "act_759339046918885"
-VIDEO_FILE_ID = "1SnpPW4y1LNLVLpayKEOTi3dTT-uZ1GI5"   # SOOCHENG Video 01-A02#.mp4
+VIDEO_FILE_ID = "1p_V5577TXLHWgJnEb21nSnPIyYKj8L38"   # SOOCHENG Video 01-A02.mp4 — copy
+# inside the shared creatives folder (the editor's original lives in a folder the
+# service account can't read; copied 2026-08-10 via Drive)
 NEW_AD_NAME = "Video 1：赚美金，一定要接美国客户？"
 NEW_HEADLINE = "赚 MJ，不需要美国客户"
 
