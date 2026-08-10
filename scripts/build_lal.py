@@ -14,6 +14,7 @@ Dry-run unless CONFIRM=true.
 from __future__ import annotations
 
 import hashlib
+import json
 import os
 import re
 
@@ -126,7 +127,8 @@ def main() -> None:
                 if not hashes:
                     continue
                 g._request("POST", f"{aud_id}/users", data={
-                    "payload": {"schema": schema, "data": [[h] for h in sorted(hashes)]}})
+                    "payload": json.dumps(
+                        {"schema": schema, "data": [[h] for h in sorted(hashes)]})})
                 print(f"✅ uploaded {len(hashes)} {schema} hashes")
             if lal_name in existing:
                 print(f"✓ LAL already exists: id {existing[lal_name]}")
@@ -134,7 +136,7 @@ def main() -> None:
                 res = g._request("POST", f"{acct}/customaudiences", data={
                     "name": lal_name, "subtype": "LOOKALIKE",
                     "origin_audience_id": aud_id,
-                    "lookalike_spec": {"ratio": LAL_RATIO, "country": country}})
+                    "lookalike_spec": json.dumps({"ratio": LAL_RATIO, "country": country})})
                 print(f"✅ created LAL id {res.get('id')} (populates over ~6-24h)")
         except GraphError as e:
             print(f"❌ [{label}] {e} — continuing")
