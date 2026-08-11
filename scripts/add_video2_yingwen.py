@@ -19,7 +19,7 @@ from adbot.commands import graph_client
 from adbot.settings import REPO_ROOT, load_settings
 
 CONFIRM = os.environ.get("CONFIRM", "").lower() in ("1", "true", "yes")
-PACE = 2.5
+PACE = 8.0   # slow: the SG account hit "user request limit reached" on the first pass
 
 VIDEO_FILE_ID = "1u6Cu8WF3yxm4bveTA69fOSciQJq43l39"   # SOOCHENG Video 02.mp4 (creatives copy)
 AD_NAME = "Video 2：市场不考你的英文"
