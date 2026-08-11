@@ -23,6 +23,7 @@ OVER_THRESHOLD = "cpl_over_threshold"
 WITHIN_THRESHOLD = "within_threshold"
 NO_RESULTS_YET = "no_results_yet"
 MANUAL_HOLD = "manual_hold"  # owner asked to keep this ad running despite CPL
+NAME_RESCUED = "cpl_high_but_creative_sells"  # sales matched by ad name only (renamed campaign)
 
 def _week_start_thursday(today: dt.date) -> dt.date:
     """Most recent Thursday (the weekly ON/reset day) on or before `today`."""
@@ -111,13 +112,15 @@ def _mkey(name: str) -> str:
 
 
 def build_cpa_context(graph, settings: Settings, today: dt.date):
-    """(60-day sales by (campaign,ad), 60-day spend by ad_id) for the CPA gate.
+    """(60-day sales by (campaign,ad), 60-day sales by ad name, 60-day spend by ad_id).
 
-    Returns empty dicts when CPA is disabled or any source is unavailable, so a Sheets/Meta
-    hiccup degrades the monitor to CPL-only rather than breaking it.
+    The ad-name-only index exists because campaigns get renamed in Ads Manager after the
+    UTM was stamped, so the strict (campaign, ad) join silently loses those sales (the
+    你敢吗 case, 2026-08). Returns empty dicts when CPA is disabled or any source is
+    unavailable, so a Sheets/Meta hiccup degrades the monitor to CPL-only, not a crash.
     """
     if not settings.cpa.enabled:
-        return {}, {}
+        return {}, {}, {}
     try:
         from .clients.sheets import SheetsClient
         values = SheetsClient(settings.secrets.google_sa_json).read_tab(
@@ -125,10 +128,13 @@ def build_cpa_context(graph, settings: Settings, today: dt.date):
         sales, _cols, _hdr = cpa.parse_sales(values, settings.cpa.price_myr)
         cutoff = today - dt.timedelta(days=60)
         sold: Dict[Tuple[str, str], int] = {}
+        sold_by_ad: Dict[str, int] = {}
         for s in sales:
             if s.date and s.date > cutoff:
                 key = (_mkey(s.campaign), s.ad)
                 sold[key] = sold.get(key, 0) + 1
+                if s.ad:
+                    sold_by_ad[s.ad] = sold_by_ad.get(s.ad, 0) + 1
         spend: Dict[str, float] = {}
         for row in graph.account_insights(
                 settings.meta.account_path, level="ad", fields="ad_id,spend",
@@ -137,10 +143,10 @@ def build_cpa_context(graph, settings: Settings, today: dt.date):
                 spend[row.get("ad_id")] = float(row.get("spend") or 0)
             except (TypeError, ValueError):
                 continue
-        return sold, spend
+        return sold, sold_by_ad, spend
     except Exception as exc:  # noqa: BLE001
         get_logger().warning("CPA context unavailable (%s) — CPL-only this run", exc)
-        return {}, {}
+        return {}, {}, {}
 
 
 def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecision]:
@@ -157,7 +163,11 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
     want_event = (settings.meta.conversion_event or "").upper()
     today = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()  # MYT
     cpl_preset, cpl_range = cpl_window(settings, today)
-    sold60, spend60 = cpa_ctx if cpa_ctx is not None else build_cpa_context(graph, settings, today)
+    ctx = cpa_ctx if cpa_ctx is not None else build_cpa_context(graph, settings, today)
+    if len(ctx) == 3:
+        sold60, sold60_by_ad, spend60 = ctx
+    else:                       # legacy (sold, spend) shape — no name-fallback index
+        (sold60, spend60), sold60_by_ad = ctx, {}
     use_cpa = settings.cpa.enabled and (bool(sold60) or bool(spend60))
     tiers = cpa.CpaTiers(settings.cpa.healthy_max_myr, settings.cpa.max_acceptable_myr,
                          settings.cpa.hard_stop_myr)
@@ -203,6 +213,17 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                     cpl_pause=cpl_pause, cpl_reason=cpl_reason, cpa_value=cpa_val,
                     cpa_sales=n_sales, cpa_spend=sp60, age_days=age, tiers=tiers,
                     conversion_days=settings.cpa.conversion_days, min_spend=settings.cpa.min_spend_myr)
+                if should_pause and n_sales == 0 and sold60_by_ad:
+                    # Rename-proof rescue: when the strict (campaign, ad) join finds
+                    # nothing, real sales may still exist under the creative's name with
+                    # a pre-rename campaign UTM. A name-only match may only ever RESCUE
+                    # (block a pause) — it never feeds the hard-stop path, so an
+                    # attribution gap can't auto-pause an ad.
+                    n_fb = sold60_by_ad.get(cpa.norm(name), 0)
+                    fb_cpa = cpa.cpa(sp60, n_fb) if n_fb else None
+                    if fb_cpa is not None and fb_cpa != math.inf and fb_cpa <= tiers.hard_stop:
+                        should_pause, reason = False, NAME_RESCUED
+                        cpa_val, n_sales = fb_cpa, n_fb
 
             decisions.append(AdDecision(ad["id"], name, spend, results, cpl, should_pause, reason,
                                         cpa=cpa_val, cpa_sales=n_sales, age_days=age))

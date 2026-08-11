@@ -3,10 +3,10 @@ import math
 import datetime as dt
 
 from adbot import cpa
-from adbot.monitor_cpl import (INSUFFICIENT_SPEND, MANUAL_HOLD, NO_RESULTS_YET, OVER_THRESHOLD,
-                               WITHIN_THRESHOLD, ZERO_RESULTS, cpl_window, decide, evaluate_account,
-                               extract_results, parse_metrics, result_action_type,
-                               _week_start_thursday)
+from adbot.monitor_cpl import (INSUFFICIENT_SPEND, MANUAL_HOLD, NAME_RESCUED, NO_RESULTS_YET,
+                               OVER_THRESHOLD, WITHIN_THRESHOLD, ZERO_RESULTS, cpl_window, decide,
+                               evaluate_account, extract_results, parse_metrics,
+                               result_action_type, _week_start_thursday)
 from adbot.settings import CpaCfg, KpiCfg, MetaCfg, Settings
 
 KPI = KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80, pause_zero_lead_after_spend=True)
@@ -173,3 +173,36 @@ def test_evaluate_account_cpa_rescues_and_hard_stops():
     assert by_name["rescue_me"].reason == cpa.CPL_RESCUED          # over-CPL but profitable
     assert by_name["kill_me"].should_pause is True
     assert by_name["kill_me"].reason == cpa.HARD_STOP              # CPA>1200, matured -> pause
+
+
+def test_evaluate_account_name_fallback_rescues_renamed_campaign():
+    # The 你敢吗 case (2026-08): the campaign was RENAMED in Ads Manager after sales were
+    # recorded, so the strict (campaign, ad) join finds nothing. The ad-name-only fallback
+    # must rescue the converting ad — and must never create a pause on its own.
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True),
+                        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14,
+                                   min_spend_myr=1000))
+    campaigns = [{"id": "A", "name": "RENAMED | NEW NAME", "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad("rescue_me"), _ad("still_over"), _ad("expensive_creative")]}
+    insights = {"rescue_me": _reg_insight(300, 3),          # CPL 100 -> CPL would pause
+                "still_over": _reg_insight(300, 3),         # CPL 100, no sales anywhere -> pause
+                "expensive_creative": _reg_insight(300, 3)}  # name-match CPA over hard stop
+    old_ck = cpa.norm("old campaign name")                  # sales carry the pre-rename UTM
+    sold = {(old_ck, cpa.norm("rescue_me")): 3, (old_ck, cpa.norm("expensive_creative")): 1}
+    sold_by_ad = {cpa.norm("rescue_me"): 3, cpa.norm("expensive_creative"): 1}
+    spend60 = {"rescue_me": 900.0,             # 900/3 = CPA 300 <= 1200 -> name rescue
+               "still_over": 500.0,
+               "expensive_creative": 2000.0}   # 2000/1 = CPA 2000 > 1200 -> no rescue
+
+    by_name = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings,
+        cpa_ctx=(sold, sold_by_ad, spend60))}
+
+    assert by_name["rescue_me"].should_pause is False
+    assert by_name["rescue_me"].reason == NAME_RESCUED
+    assert by_name["rescue_me"].cpa_sales == 3
+    assert by_name["still_over"].should_pause is True       # fallback never blocks real pauses
+    assert by_name["expensive_creative"].should_pause is True  # too-expensive name match: no rescue
+    assert by_name["expensive_creative"].reason == OVER_THRESHOLD  # CPL verdict stands, no CPA pause
