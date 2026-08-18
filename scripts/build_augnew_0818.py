@@ -508,10 +508,13 @@ TGT_LABEL = {
 }
 
 ACCTS = [
-    {"label": "SG", "cfg": "config.sg.yaml", "sg": True, "prefix": "[SG] STOCKBLOOM",
-     "geo": ["SG"]},
+    # MY first: SG throttled twice mid-build (2026-08-18), and running SG first burned
+    # its quota before MY ever started — MY's fresh quota completes in one pass while
+    # SG cools down, then reruns mop up the SG remainder idempotently.
     {"label": "MY", "cfg": "config.yaml", "sg": False, "prefix": "STOCKBLOOM",
      "geo": ["MY"]},
+    {"label": "SG", "cfg": "config.sg.yaml", "sg": True, "prefix": "[SG] STOCKBLOOM",
+     "geo": ["SG"]},
 ]
 
 
