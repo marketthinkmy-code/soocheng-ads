@@ -552,22 +552,25 @@ def main() -> None:
         conv = s.meta.conversion_domain_bare or None
         print(f"══ {ac['label']}  {acct} ══")
 
-        sources = {}
-        for cl, _keys in CAMPAIGNS:
-            ref = TGT[ac["label"]][cl]
-            if ref not in sources:
-                src = resolve_tgt_source(g, acct, ref)
-                tgt = _copy.deepcopy(src.get("targeting") or {})
-                tgt.pop("custom_audiences", None)
-                tgt.pop("excluded_custom_audiences", None)
-                n_flex = sum(len(v) for spec in (tgt.get("flexible_spec") or [])
-                             for v in spec.values())
-                sources[ref] = {"tgt": tgt, "promo": src.get("promoted_object") or {},
-                                "desc": f"«{src.get('name')}» ({n_flex} keywords)"}
-                time.sleep(1)
-
-        existing = {c.get("name"): c.get("id") for c in
-                    g._get_all(f"{acct}/campaigns", {"fields": "id,name", "limit": "500"})}
+        try:
+            sources = {}
+            for cl, _keys in CAMPAIGNS:
+                ref = TGT[ac["label"]][cl]
+                if ref not in sources:
+                    src = resolve_tgt_source(g, acct, ref)
+                    tgt = _copy.deepcopy(src.get("targeting") or {})
+                    tgt.pop("custom_audiences", None)
+                    tgt.pop("excluded_custom_audiences", None)
+                    n_flex = sum(len(v) for spec in (tgt.get("flexible_spec") or [])
+                                 for v in spec.values())
+                    sources[ref] = {"tgt": tgt, "promo": src.get("promoted_object") or {},
+                                    "desc": f"«{src.get('name')}» ({n_flex} keywords)"}
+                    time.sleep(1)
+            existing = {c.get("name"): c.get("id") for c in
+                        g._get_all(f"{acct}/campaigns", {"fields": "id,name", "limit": "500"})}
+        except Exception as e:  # throttled during prep — don't block the other account
+            print(f"  ⚠️ [{ac['label']}] prep failed: {str(e)[:140]} — skipping this account this run\n")
+            continue
         uploaded: dict = {}
 
         def media(key: str):
@@ -657,8 +660,8 @@ def main() -> None:
                                      conversion_domain=conv)
                     print(f"     ✓ ad {ad['id']}  «{v['name']}»")
                     time.sleep(PACE)
-            except GraphError as e:
-                print(f"  ❌ {camp_name}: {e} — continuing")
+            except Exception as e:  # incl. throttle: move to next campaign/account
+                print(f"  ❌ {camp_name}: {str(e)[:140]} — continuing")
         print()
 
     print("DONE — AUG NEW fleet built, everything scheduled to start 2026-08-20 00:00 MYT."
