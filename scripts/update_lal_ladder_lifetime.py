@@ -33,6 +33,11 @@ ACCTS = [
      "camp": "[SG] STOCKBLOOM | PURCHASE LAL 1-5% | 1-5-3"},
 ]
 
+# Owner 8/19: MY lifetime #1 不是怕交易 (44) and #4 厌倦了等待 (29) have no reusable
+# live post — owner picked 我跟你讲 as the third slot instead of the mechanical
+# next-in-line (街头突击采访, a documented weak-conversion angle).
+FORCE = {"MY": ["freestyle 1", "video 5：盖电脑，喂！", "video 6：我跟你讲！"]}
+
 
 def rank_lifetime(sales, label: str):
     """Sheet ads of one account ranked by (-lifetime, -60d, -30d)."""
@@ -103,16 +108,26 @@ def main() -> None:
             print(f"    life={d['life']:3d}  60d={d['d60']:2d}  30d={d['d30']:2d}   «{name[:52]}»")
 
         top3 = []
-        for ad_key, d in ranked:
-            hit = resolve_post(ad_key)
-            if hit:
+        if label in FORCE:
+            for name in FORCE[label]:
+                hit = resolve_post(cpa.norm(name))
+                if not hit:
+                    print(f"  ⛔ forced pick «{name}» has no live post")
+                    break
                 top3.append(hit)
-                print(f"  TOP{len(top3)}: «{hit['name']}»  life={d['life']}  "
+                print(f"  TOP{len(top3)} (owner pick): «{hit['name']}»  "
                       f"post={hit['post']}  (source ad: {hit['src_status']})")
-            else:
-                print(f"  (skip «{ad_key[:40]}» — no live post found)")
-            if len(top3) == 3:
-                break
+        else:
+            for ad_key, d in ranked:
+                hit = resolve_post(ad_key)
+                if hit:
+                    top3.append(hit)
+                    print(f"  TOP{len(top3)}: «{hit['name']}»  life={d['life']}  "
+                          f"post={hit['post']}  (source ad: {hit['src_status']})")
+                else:
+                    print(f"  (skip «{ad_key[:40]}» — no live post found)")
+                if len(top3) == 3:
+                    break
         if len(top3) < 3:
             print(f"  ⛔ only {len(top3)} resolvable — skipping account\n")
             continue
