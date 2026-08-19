@@ -198,6 +198,13 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
 
 ---
 
+## 每周排程（owner 2026-08-19 确认「留着」）
+
+**MY 账户每周三 15:00 MYT 全停（adbot-weekly-off）→ 周四 00:00 MYT 自动恢复（adbot-weekly-on，
+按 ADBOT_WEEKLY_OFF 标签精确复原，含 ad set / campaign 层）。SG 不在此周期内。**
+周三下午看到 MY 广告/ad set 被关是这个周期的正常现象——不要去「修」，也不要在周三下午
+判读 MY 当日数据；scheduled 未来开跑的新建 campaign 若跨周三也会被扫、周四自动弹回。
+
 ## Key locations
 
 - **Approved copy bank** (the 8 ads): Notion page **"SOOCHENG-Andromeda"**
