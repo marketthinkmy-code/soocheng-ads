@@ -15,6 +15,7 @@ nothing re-enters review. Idempotent at campaign/adset/ad level."""
 from __future__ import annotations
 
 import copy as _copy
+import json
 import os
 import time
 
@@ -61,7 +62,7 @@ CAMPAIGNS = [
                    "Day trading", "Stockbroker"],
      "ads": ["炒过那么多", "你敢吗", "trading早就"]},
     {"label": "MY", "name": "STOCKBLOOM | RETIREMENT | 1-1-3",
-     "aset": "AdSet (Retirement | MY 45-60)", "age": (45, 60),
+     "aset": "AdSet (Retirement | MY 45+)", "age_min": 45,
      "interests": ["Retirement planning", "Employees Provident Fund", "Retirement",
                    "Pension", "Fixed deposit"],
      "ads": ["年纪大", "用我的方法", "炒过那么多"]},
@@ -118,6 +119,24 @@ def main() -> None:
         best.sort()
         return best[0][1], best[0][2]
 
+    def valid_interests(g, ints):
+        """Filter through Meta's adinterestvalid — search can return interests
+        that are deprecated for targeting (the PRIORITY BANKING 400)."""
+        try:
+            rows = (g._request("GET", "search", params={
+                "type": "adinterestvalid",
+                "interest_fbid_list": json.dumps([i["id"] for i in ints])})
+                or {}).get("data", [])
+            ok_ids = {str(r.get("id")) for r in rows if r.get("valid")}
+            keep = [i for i in ints if str(i["id"]) in ok_ids]
+            for i in ints:
+                if str(i["id"]) not in ok_ids:
+                    print(f"   interest ⚠️ «{i['name']}» deprecated for targeting — 剔除")
+            return keep
+        except Exception as e:
+            print(f"   ⚠️ adinterestvalid 校验失败 ({str(e)[:60]}) — 保留原列表")
+            return ints
+
     def find_interest(g, name):
         try:
             rows = (g._request("GET", "search",
@@ -156,8 +175,9 @@ def main() -> None:
                 else:
                     print(f"   interest ✗ «{nm}» — 找不到，跳过")
                 time.sleep(1)
+            ints = valid_interests(g, ints)
             if len(ints) < 3:
-                print(f"   ⛔ 只解析到 {len(ints)} 个兴趣 — 跳过此 campaign\n")
+                print(f"   ⛔ 只解析到 {len(ints)} 个可投兴趣 — 跳过此 campaign\n")
                 continue
 
             trio = []
@@ -180,8 +200,9 @@ def main() -> None:
             tgt.pop("custom_audiences", None)
             tgt.pop("flexible_spec", None)
             tgt["flexible_spec"] = [{"interests": ints}]
-            if spec.get("age"):
-                tgt["age_min"], tgt["age_max"] = spec["age"]
+            if spec.get("age_min"):
+                tgt["age_min"] = spec["age_min"]
+                tgt.pop("age_max", None)
             promo = sc.get("promoted_object") or {}
 
             if not CONFIRM:
@@ -215,7 +236,17 @@ def main() -> None:
                 if label == "SG":
                     kw.update(regional_regulated_categories=REGIONAL,
                               regional_regulation_identities=REG_IDENTITIES)
-                aset = g.create_adset(acct, **kw)
+                try:
+                    aset = g.create_adset(acct, **kw)
+                except Exception as e:
+                    if "age" in str(e).lower() and "age_min" in tgt:
+                        print(f"   ⚠️ 特殊广告类别拒绝年龄限制 — 降级为不限龄重试")
+                        tgt.pop("age_min", None)
+                        tgt.pop("age_max", None)
+                        kw["targeting"] = tgt
+                        aset = g.create_adset(acct, **kw)
+                    else:
+                        raise
                 aset_id = aset["id"]
                 print(f"   ✓ adset {aset_id}")
                 time.sleep(PACE)
