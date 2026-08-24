@@ -1,0 +1,30 @@
+name: adbot · guardian (hourly revive of protected campaigns)
+
+# Owner 2026-08-24 «上保险»: the proven-seller campaigns listed in
+# scripts/guardian.py keep getting hand-paused despite healthy CPA. This
+# watchdog revives them hourly and its log records every incident time.
+# Skips campaigns tagged ADBOT_WEEKLY_OFF (Wednesday cycle owns those) and
+# never touches ad-level statuses (the CPL monitor owns those).
+
+on:
+  schedule:
+    - cron: "23 * * * *"        # hourly at :23 (off the congested :00 slot)
+  workflow_dispatch: {}          # manual run any time
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: Revive protected campaigns if paused
+        env:
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          CONFIRM: "true"
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+        run: python scripts/guardian.py
