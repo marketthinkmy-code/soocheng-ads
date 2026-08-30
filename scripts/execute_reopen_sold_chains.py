@@ -66,8 +66,16 @@ def main() -> None:
         for (camp_n, aset_n, ad_n), n_sales in triples[label].most_common():
             hits = idx.get((camp_n, aset_n, ad_n))
             if not hits:
-                print(f"  ?? 找不到链 ({n_sales}单)  «{camp_n[:34]}» › «{aset_n[:26]}» › «{ad_n[:26]}» — skip")
-                continue
+                # fallback: adset name drifted — accept a UNIQUE campaign+ad match
+                cand = [a for a in ads
+                        if N((a.get("campaign") or {}).get("name") or "") == camp_n
+                        and N(a.get("name") or "") == ad_n]
+                if len(cand) == 1:
+                    hits = cand
+                    print(f"  ~ adset名对不上，按 campaign+ad 唯一匹配 ({n_sales}单) «{ad_n[:26]}»")
+                else:
+                    print(f"  ?? 找不到链 ({n_sales}单)  «{camp_n[:34]}» › «{aset_n[:26]}» › «{ad_n[:26]}» — skip")
+                    continue
             for a in hits:
                 c = a.get("campaign") or {}
                 aset = a.get("adset") or {}
