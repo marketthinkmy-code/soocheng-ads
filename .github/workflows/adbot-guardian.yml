@@ -5,6 +5,10 @@ name: adbot · guardian (hourly revive of protected campaigns)
 # watchdog revives them hourly and its log records every incident time.
 # Skips campaigns tagged ADBOT_WEEKLY_OFF (Wednesday cycle owns those) and
 # never touches ad-level statuses (the CPL monitor owns those).
+#
+# Owner 2026-09-01 «保护成交链»: second step auto-revives every campaign→
+# adset→ad chain attributed to a Paid-Student-List sale in the rolling 14
+# days (scripts/guardian_sold_chains.py) — replaces the manual 查误关 loop.
 
 on:
   schedule:
@@ -28,3 +32,14 @@ jobs:
           META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
           META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
         run: python scripts/guardian.py
+      - name: Revive 14d sold chains if closed
+        if: always()
+        env:
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          CONFIRM: "true"
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+          GOOGLE_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_B64 }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: python scripts/guardian_sold_chains.py
