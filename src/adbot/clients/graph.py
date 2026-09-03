@@ -221,8 +221,9 @@ class GraphClient:
                              {"fields": "id,name,effective_status", "limit": 200})
 
     def find_campaigns_by_prefix(self, account_path: str, prefix: str) -> List[Dict[str, Any]]:
+        # lstrip tolerates the owner's 🌟 sold-chain marker in front of the prefix
         return [c for c in self.list_campaigns(account_path)
-                if (c.get("name") or "").startswith(prefix)]
+                if (c.get("name") or "").lstrip("🌟 ").startswith(prefix)]
 
     def list_ads_under_campaign(self, campaign_id: str) -> List[Dict[str, Any]]:
         # adset{promoted_object} rides along so the monitor can tell which conversion event
