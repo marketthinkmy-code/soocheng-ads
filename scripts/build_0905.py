@@ -47,7 +47,7 @@ AD_CANDS = {
 # scaffold: campaign-name fragment whose first ad set donates targeting+promo
 CAMPAIGNS = [
     {"name": "STOCKBLOOM | BROAD MY 25+ | 0905", "aset": "Broad MY 25+",
-     "scaffold": "AUG NEW D | 1-1-3",
+     "scaffold": "BROAD | 1-1-3 A", "broad": True,
      "ads": ["freestyle 1", "年纪大", "korea", "不用看盘", "盖电脑", "你敢吗"]},
     {"name": "STOCKBLOOM | LUXURY GOODS 30-55 | 0905", "aset": "Luxury Goods 30-55",
      "scaffold": "LUXURY GOODS | 1-1-3", "age": (30, 55),
@@ -85,7 +85,8 @@ def main() -> None:
                 if post:
                     bad = a.get("effective_status") in ("WITH_ISSUES", "DISAPPROVED")
                     act = a.get("effective_status") == "ACTIVE"
-                    best.append((0 if act else (2 if bad else 1), post, a.get("name")))
+                    clean = (a.get("name") or "").lstrip("🌟 ")   # 新广告不带星
+                    best.append((0 if act else (2 if bad else 1), post, clean))
         if not best:
             return None, None
         best.sort()
@@ -114,6 +115,8 @@ def main() -> None:
                 continue
             tgt0 = _copy.deepcopy(sc.get("targeting") or {})
             tgt0.pop("custom_audiences", None)
+            if spec.get("broad"):          # 真广投：清掉任何兴趣定向
+                tgt0.pop("flexible_spec", None)
             if spec.get("age"):
                 tgt0["age_min"], tgt0["age_max"] = spec["age"]
             promo = sc.get("promoted_object") or {}
