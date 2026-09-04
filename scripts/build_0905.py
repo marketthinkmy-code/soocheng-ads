@@ -148,6 +148,8 @@ def main() -> None:
                 camp = g.create_campaign(
                     acct, name=spec["name"], objective="OUTCOME_SALES",
                     buying_type="AUCTION",
+                    # ABO：预算在 ad set 层，且禁止 ad set 之间共享预算
+                    is_adset_budget_sharing_enabled="false",
                     special_ad_categories=s.meta.special_ad_categories,
                     special_ad_category_country=["MY"], status="ACTIVE")
                 camp_id = camp["id"]
