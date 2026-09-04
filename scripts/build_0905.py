@@ -165,12 +165,15 @@ def main() -> None:
                 tgt = _copy.deepcopy(tgt0)
                 kw = dict(name=spec["aset"], campaign_id=camp_id,
                           daily_budget=DAILY, optimization_goal="OFFSITE_CONVERSIONS",
-                          billing_event="IMPRESSIONS", promoted_object=promo,
+                          billing_event="IMPRESSIONS",
+                          bid_strategy="LOWEST_COST_WITHOUT_CAP",
+                          promoted_object=promo,
                           targeting=tgt, start_time=START, status="ACTIVE")
                 try:
                     aset = g.create_adset(acct, **kw)
                 except Exception as e:
-                    if "age" in str(e).lower() and "age_min" in tgt:
+                    low = str(e).lower()
+                    if "age" in low and "bid" not in low and "age_min" in tgt:
                         print("   ⚠️ 特殊广告类别拒绝年龄限制 — 去掉 30-55 重试")
                         tgt.pop("age_min", None)
                         tgt.pop("age_max", None)
