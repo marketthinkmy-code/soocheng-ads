@@ -76,13 +76,24 @@ def main() -> None:
             if not sc_camp:
                 print(f"  ⛔ scaffold «{spec['scaffold']}» 找不到 — 跳过\n")
                 continue
-            sc = (g._get_all(f"{sc_camp['id']}/adsets",
-                             {"fields": "id,name,targeting,promoted_object",
-                              "limit": "5"}) or [None])[0]
+            sc_all = g._get_all(f"{sc_camp['id']}/adsets",
+                                {"fields": "id,name,targeting,promoted_object",
+                                 "limit": "25"})
             time.sleep(1)
+            sc = sc_all[0]
             tgt0 = _copy.deepcopy(sc.get("targeting") or {})
             if not spec["keep_custom"]:
                 tgt0.pop("custom_audiences", None)
+            else:
+                # LAL 阶梯：把 scaffold campaign 里所有格的 custom_audiences
+                # union 去重 → 一个真正的 1-5% 受众
+                seen, merged = set(), []
+                for a in sc_all:
+                    for ca in ((a.get("targeting") or {}).get("custom_audiences") or []):
+                        if ca.get("id") and ca["id"] not in seen:
+                            seen.add(ca["id"])
+                            merged.append({"id": ca["id"]})
+                tgt0["custom_audiences"] = merged
             tgt0.pop("excluded_custom_audiences", None)
             if spec["age"]:
                 tgt0["age_min"], tgt0["age_max"] = spec["age"]
