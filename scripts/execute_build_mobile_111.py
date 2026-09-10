@@ -112,8 +112,13 @@ def main() -> None:
 
     src_aset = src.get("adset") or {}
     tgt = _copy.deepcopy(src_aset.get("targeting") or {})
-    for k in ("custom_audiences", "excluded_custom_audiences", "flexible_spec"):
+    # age_range / relaxation 是 Advantage+ ON 才合法的字段——advantage_audience=0 时
+    # 必须剥掉（run 244 教训:「targeting_automation must be enabled to use age_range」）
+    for k in ("custom_audiences", "excluded_custom_audiences", "flexible_spec",
+              "age_range", "targeting_relaxation_types"):
         tgt.pop(k, None)
+    tgt.setdefault("age_min", 25)
+    tgt.setdefault("age_max", 65)
     tgt["targeting_automation"] = {"advantage_audience": 0}   # 硬锁兴趣
     tgt["flexible_spec"] = [{"interests": chosen}]
     promo = src_aset.get("promoted_object") or {}
