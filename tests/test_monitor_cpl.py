@@ -4,9 +4,10 @@ import datetime as dt
 
 from adbot import cpa
 from adbot.monitor_cpl import (INSUFFICIENT_SPEND, MANUAL_HOLD, NAME_RESCUED, NO_RESULTS_YET,
-                               OVER_THRESHOLD, WITHIN_THRESHOLD, ZERO_RESULTS, cpl_window, decide,
-                               evaluate_account, extract_results, parse_metrics,
-                               result_action_type, _week_start_thursday)
+                               OVER_THRESHOLD, SOFT_REDUCE_PREFIX, WITHIN_THRESHOLD, ZERO_RESULTS,
+                               _label_dates, cpl_window, decide, evaluate_account, extract_results,
+                               parse_metrics, result_action_type, run, soft_reduce_action,
+                               _week_start_thursday)
 from adbot.settings import CpaCfg, KpiCfg, MetaCfg, Settings
 
 KPI = KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80, pause_zero_lead_after_spend=True)
@@ -206,3 +207,108 @@ def test_evaluate_account_name_fallback_rescues_renamed_campaign():
     assert by_name["still_over"].should_pause is True       # fallback never blocks real pauses
     assert by_name["expensive_creative"].should_pause is True  # too-expensive name match: no rescue
     assert by_name["expensive_creative"].reason == OVER_THRESHOLD  # CPL verdict stands, no CPA pause
+
+
+# ── TEMPORARY soft-reduce (owner 2026-09-10「先降 30%，再犯才关」) ──────────────────────────
+# 2026-09-10 is a Thursday (the week start); 9/11 Fri, 9/12 Sat, 9/9 the Wednesday before.
+
+def test_soft_reduce_first_breach_cuts_30pct():
+    assert soft_reduce_action([], dt.date(2026, 9, 11), 200.0, 0.30, 30.0) == ("reduce", 140.0)
+
+
+def test_soft_reduce_same_day_grace_then_later_day_pause():
+    thu = dt.date(2026, 9, 10)
+    assert soft_reduce_action([thu], thu, 140.0, 0.30, 30.0) == ("skip", None)
+    assert soft_reduce_action([thu], dt.date(2026, 9, 12), 140.0, 0.30, 30.0) == ("pause", None)
+
+
+def test_soft_reduce_last_weeks_cut_does_not_count_as_a_strike():
+    # cut last Wednesday; the new Thu-week starts fresh -> reduce again, not pause
+    assert soft_reduce_action([dt.date(2026, 9, 9)], dt.date(2026, 9, 11),
+                              100.0, 0.30, 30.0) == ("reduce", 70.0)
+
+
+def test_soft_reduce_at_floor_or_invisible_budget_escalates_to_pause():
+    assert soft_reduce_action([], dt.date(2026, 9, 11), 30.0, 0.30, 30.0) == ("pause", None)
+    assert soft_reduce_action([], dt.date(2026, 9, 11), 0.0, 0.30, 30.0) == ("pause", None)
+
+
+def test_label_dates_parses_only_our_prefix():
+    labels = [{"name": f"{SOFT_REDUCE_PREFIX}2026-09-10"}, {"name": "ADBOT_WEEKLY_OFF"},
+              {"name": f"{SOFT_REDUCE_PREFIX}garbage"}, {"id": "no-name"}]
+    assert _label_dates(labels, SOFT_REDUCE_PREFIX) == [dt.date(2026, 9, 10)]
+
+
+class _FakeGraphSoft(_FakeGraph):
+    """_FakeGraph plus the write/label surface run() touches in soft-reduce mode."""
+
+    def __init__(self, campaigns, ads_by_campaign, insights, entity_labels=None):
+        super().__init__(campaigns, ads_by_campaign, insights)
+        self.entity_labels = entity_labels or {}
+        self.budget_posts, self.paused, self.labels_set = [], [], []
+        self.created_label = None
+
+    def get_object(self, object_id, fields):
+        assert fields == "adlabels"
+        return {"adlabels": {"data": self.entity_labels.get(object_id, [])}}
+
+    def get_or_create_label(self, account_path, name):
+        self.created_label = name
+        return "LBL_NEW"
+
+    def set_ad_labels(self, entity_id, label_ids):
+        self.labels_set.append((entity_id, tuple(label_ids)))
+
+    def update_daily_budget(self, entity_id, budget_cents):
+        self.budget_posts.append((entity_id, budget_cents))
+
+    def update_status(self, entity_id, status):
+        assert status == "PAUSED"
+        self.paused.append(entity_id)
+
+
+def _soft_ad(ad_id, adset_id, adset_budget_myr):
+    return {"id": ad_id, "name": ad_id, "effective_status": "ACTIVE",
+            "created_time": "2026-01-01", "adset_id": adset_id,
+            "adset": {"promoted_object": {"custom_event_type": "COMPLETE_REGISTRATION"},
+                      "daily_budget": str(int(adset_budget_myr * 100))}}
+
+
+def test_run_soft_reduce_cuts_carrier_once_spares_ads_keeps_zero_pause_hard(monkeypatch):
+    monkeypatch.setattr("adbot.monitor_cpl.state.append_pause_log", lambda *a, **k: None)
+    today = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()  # matches run()'s MYT clock
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True,
+                                   cpl_soft_reduce=True))
+    campaigns = [{"id": "C", "name": "STOCKBLOOM | X", "effective_status": "ACTIVE"}]
+    ads = {"C": [_soft_ad("over_a", "AS1", 200), _soft_ad("over_b", "AS1", 200),  # shared carrier
+                 _soft_ad("zero", "AS2", 100),
+                 _soft_ad("graced", "AS3", 140)]}
+    insights = {"over_a": _reg_insight(100, 1), "over_b": _reg_insight(90, 1),
+                "zero": _reg_insight(100, 0), "graced": _reg_insight(200, 2)}
+    labels = {"AS3": [{"id": "L3", "name": f"{SOFT_REDUCE_PREFIX}{today}"}]}  # cut earlier today
+    graph = _FakeGraphSoft(campaigns, ads, insights, labels)
+
+    out = run(graph, settings)
+
+    assert graph.budget_posts == [("AS1", 14000)]        # ONE −30% cut for the shared carrier
+    assert graph.created_label == f"{SOFT_REDUCE_PREFIX}{today}"
+    assert ("AS1", ("LBL_NEW",)) in graph.labels_set     # the date label is the cross-run state
+    assert graph.paused == ["zero"]                      # zero-results still pauses immediately
+    assert out["reduced"] == 1 and out["paused"] == 1    # graced ad: no cut, no pause
+
+
+def test_run_soft_reduce_disabled_keeps_classic_pause(monkeypatch):
+    monkeypatch.setattr("adbot.monitor_cpl.state.append_pause_log", lambda *a, **k: None)
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True))
+    campaigns = [{"id": "C", "name": "STOCKBLOOM | X", "effective_status": "ACTIVE"}]
+    ads = {"C": [_soft_ad("over", "AS1", 200)]}
+    graph = _FakeGraphSoft(campaigns, ads, {"over": _reg_insight(100, 1)})
+
+    out = run(graph, settings)
+
+    assert graph.paused == ["over"] and graph.budget_posts == []
+    assert out["paused"] == 1 and out["reduced"] == 0

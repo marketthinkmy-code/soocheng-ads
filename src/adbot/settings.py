@@ -140,6 +140,13 @@ class KpiCfg(BaseModel):
     cpl_lookback: str = "last_3d"  # 'week_thu' = week-to-date from Thursday, or any Meta date_preset
     pause_zero_lead_after_spend: bool = True
     cpl_hold: List[str] = Field(default_factory=list)  # ad-name substrings temporarily exempt from auto-pause
+    # TEMPORARY (owner 2026-09-10「先降 30%，再犯才关」): the first over-CPL breach in a Thu-week cuts
+    # the ad's budget carrier (its ABO ad set, else its CBO campaign) by cpl_reduce_pct instead of
+    # pausing the ad; a breach on a LATER day of the same week pauses as before. Zero-result and CPA
+    # hard-stop pauses are never softened. false = classic pause-immediately.
+    cpl_soft_reduce: bool = False
+    cpl_reduce_pct: float = 0.30
+    cpl_reduce_floor_myr: float = 30.0  # never cut a carrier below this daily budget
 
 
 class CpaCfg(BaseModel):

@@ -199,6 +199,10 @@ class GraphClient:
         """status is ACTIVE or PAUSED."""
         return self._request("POST", entity_id, data={"status": status})
 
+    def update_daily_budget(self, entity_id: str, budget_cents: int) -> Dict[str, Any]:
+        """Set a campaign's or ad set's daily budget, in minor units (MYR cents)."""
+        return self._request("POST", entity_id, data={"daily_budget": str(int(budget_cents))})
+
     def update_targeting(self, adset_id: str, targeting: Dict[str, Any]) -> Dict[str, Any]:
         """Replace an ad set's targeting spec — used to apply audience exclusions / Advantage+
         to an ad set built before they were configured, without a full rebuild."""
@@ -216,9 +220,11 @@ class GraphClient:
 
     # ── reads for monitoring / scoping ─────────────────────────────────────────
     def list_campaigns(self, account_path: str) -> List[Dict[str, Any]]:
-        """Every campaign in the account — whole-account scope for the monitor + weekly OFF."""
+        """Every campaign in the account — whole-account scope for the monitor + weekly OFF.
+
+        daily_budget rides along so the monitor's soft-reduce can see a CBO campaign's budget."""
         return self._get_all(f"{account_path}/campaigns",
-                             {"fields": "id,name,effective_status", "limit": 200})
+                             {"fields": "id,name,effective_status,daily_budget", "limit": 200})
 
     def find_campaigns_by_prefix(self, account_path: str, prefix: str) -> List[Dict[str, Any]]:
         # lstrip tolerates the owner's 🌟 sold-chain marker in front of the prefix
@@ -227,9 +233,11 @@ class GraphClient:
 
     def list_ads_under_campaign(self, campaign_id: str) -> List[Dict[str, Any]]:
         # adset{promoted_object} rides along so the monitor can tell which conversion event
-        # each ad is optimized for (and never judge a non-registration ad on registration CPL).
+        # each ad is optimized for (and never judge a non-registration ad on registration CPL);
+        # adset{daily_budget} tells the soft-reduce where an ABO ad's budget sits.
         return self._get_all(f"{campaign_id}/ads",
-                            {"fields": "id,name,effective_status,created_time,adset_id,adset{promoted_object}",
+                            {"fields": "id,name,effective_status,created_time,adset_id,"
+                                       "adset{promoted_object,daily_budget}",
                              "limit": 200})
 
     def get_ad_insight(self, ad_id: str, date_preset: Optional[str] = None,
