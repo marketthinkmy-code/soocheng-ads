@@ -57,8 +57,19 @@ def main() -> None:
                         print(f"   · adset {a['id']} 已是 30-55 — skip")
                         continue
                     tgt["age_min"], tgt["age_max"] = 30, 55
-                    g.update_targeting(a["id"], tgt)
-                    print(f"   ✓ adset {a['id']} age → 30-55")
+                    for attempt in (1, 2):
+                        try:
+                            g.update_targeting(a["id"], tgt)
+                            print(f"   ✓ adset {a['id']} age → 30-55")
+                            break
+                        except Exception as e:
+                            if attempt == 1 and "age" in str(e).lower():
+                                # 类别刚清，Meta 需要时间传播 — 等 30s 再试一次
+                                print(f"   ⚠️ adset {a['id']} age 被拒（类别传播中）— 30s 后重试")
+                                time.sleep(30)
+                            else:
+                                print(f"   ❌ adset {a['id']} age 失败: {str(e)[:100]} — 跳过")
+                                break
                     time.sleep(PACE)
             chk = g.get_object(cid, "special_ad_categories")
             print(f"   验证 special={chk.get('special_ad_categories') or []}")
