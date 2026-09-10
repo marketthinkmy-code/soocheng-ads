@@ -66,7 +66,12 @@ kpi:
   cpl_threshold_myr: 60.00               # owner plan 2026-09-10「每日广告规则」: MY line moved 50->60 (act above RM60)
   cpl_min_spend_myr: 60.00               # judge once spend >= RM60 = 1.5x target CPL RM40 (owner rule:「花到1.5倍目标CPL仍0 reg: 关」)
   cpl_lookback: "week_thu"               # week-to-date from Thursday (the weekly ON/reset) — the window you review; or a Meta preset like last_3d
-  pause_zero_lead_after_spend: true      # spent >= RM80 with 0 results -> infinite CPL -> pause
+  pause_zero_lead_after_spend: true      # spent >= threshold spend with 0 results -> infinite CPL -> pause
+  cpl_soft_reduce: true                  # TEMPORARY (owner 2026-09-10「先降 30%，再犯才关」): first over-CPL breach
+                                         #   of a Thu-week cuts the ad's budget carrier instead of pausing; a breach
+                                         #   on a later day of the same week pauses. false = pause immediately (old).
+  cpl_reduce_pct: 0.30
+  cpl_reduce_floor_myr: 30.00            # never cut a carrier below RM30/day (at the floor -> pause instead)
   cpl_hold: ["你敢吗"]                    # 2026-08-07 owner: 你敢吗 sells (8/2+8/5 MY INVESTMENT) but the CPL sweep
                                          #   keeps killing it before sheet rows land — exempt from CPL auto-pause.
                                          #   CPA hard-stop still applies via reports; review 8/11.

@@ -192,9 +192,11 @@ The old hard-ban treatment is retired. The rules now:
   be scaled, and be rebuilt — rejection history alone is NEVER a reason to pause, exclude, or
   refuse it. If it sits DISAPPROVED it can't deliver anyway; resubmitting is the owner's call
   (each re-rejection adds a policy strike on a repeat-offender account — advise, don't block).
-- **Pause decisions belong to the CPL/CPA monitor only** (CPL>RM50 after RM80 spend, 0-reg
-  after RM80, CPA hard-stop RM1,200; converting ads are CPA-rescued). The monitor has NEVER
-  enforced any ban list — do not pause an ad because of its rejection history.
+- **Pause decisions belong to the CPL/CPA monitor only** (2026-09-10 起：MY 线 RM60 / SG 线
+  RM95，花满 RM60 / RM142 才判；超线**先把预算载体降 30%**（TEMP，`kpi.cpl_soft_reduce`），同一
+  周四周期内再犯才关；0-reg 花满门槛直接关；CPA hard-stop RM1,200；converting ads are
+  CPA-rescued). The monitor has NEVER enforced any ban list — do not pause an ad because of
+  its rejection history.
 - Income-claim content (「每週盈利 200-300 US」 etc.) still violates Meta policy and keeps
   failing review — for those, prefer re-cutting a clean version (forensics + compliant
   re-edit guide: `scripts/archive_ban_list.py`). This is advice about what will pass review,

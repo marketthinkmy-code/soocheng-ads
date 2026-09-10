@@ -4,6 +4,10 @@
 Registration), not a hardcoded "lead". The decision logic is a pure function (unit-tested);
 the runner reads insights via the Graph client, only ever acts on ACTIVE ads, and never
 un-pauses — re-activation is always a human (or weekly_on) decision.
+
+TEMPORARY (kpi.cpl_soft_reduce, owner 2026-09-10「先降 30%，再犯才关」): an over-CPL ad's
+FIRST breach of a Thu-week cuts its budget carrier 30% instead of pausing the ad; a breach on
+a later day of the same week pauses as before. Zero-result and CPA hard-stop pauses stay hard.
 """
 
 from __future__ import annotations
@@ -24,6 +28,12 @@ WITHIN_THRESHOLD = "within_threshold"
 NO_RESULTS_YET = "no_results_yet"
 MANUAL_HOLD = "manual_hold"  # owner asked to keep this ad running despite CPL
 NAME_RESCUED = "cpl_high_but_creative_sells"  # sales matched by ad name only (renamed campaign)
+SOFT_REDUCED = "cpl_over_soft_reduced"  # budget carrier cut instead of pausing (kpi.cpl_soft_reduce)
+
+# TEMPORARY soft-landing (owner 2026-09-10「先降 30%，再犯才关」). The "already cut" state must
+# survive across stateless monitor runs, so it lives on Meta itself: a date-stamped adlabel on
+# the budget carrier. Labels from earlier Thu-weeks are ignored — each week gets one fresh cut.
+SOFT_REDUCE_PREFIX = "ADBOT_CPL30_"
 
 def _week_start_thursday(today: dt.date) -> dt.date:
     """Most recent Thursday (the weekly ON/reset day) on or before `today`."""
@@ -75,6 +85,43 @@ def parse_metrics(insight: Optional[Dict[str, Any]], token: str) -> Tuple[float,
     return spend, extract_results(insight.get("actions"), token)
 
 
+def _label_dates(labels: Optional[List[Dict[str, Any]]], prefix: str) -> List[dt.date]:
+    """Dates of our soft-reduce labels on an entity; anything unparsable is ignored."""
+    out: List[dt.date] = []
+    for label in labels or []:
+        name = label.get("name") or ""
+        if name.startswith(prefix):
+            try:
+                out.append(dt.date.fromisoformat(name[len(prefix):]))
+            except ValueError:
+                continue
+    return out
+
+
+def soft_reduce_action(label_dates: List[dt.date], today: dt.date, carrier_budget_myr: float,
+                       pct: float, floor_myr: float) -> Tuple[str, Optional[float]]:
+    """What to do with an over-CPL ad's budget carrier: ('reduce', new_myr) | ('skip', None)
+    | ('pause', None).
+
+    First breach of the Thu-week cuts the carrier by pct (never below floor_myr). A carrier
+    already cut TODAY is left alone (the reduced budget needs the rest of the day to prove
+    itself — the monitor sweeps every ~20 min, and week-to-date CPL moves slowly). A cut on an
+    EARLIER day of the same Thu-week means this breach is the second strike: pause. No visible
+    budget, or already at the floor, also escalates to pause — there is nothing left to cut.
+    """
+    if any(d == today for d in label_dates):
+        return "skip", None
+    week_start = _week_start_thursday(today)
+    if any(week_start <= d < today for d in label_dates):
+        return "pause", None
+    if carrier_budget_myr <= 0:
+        return "pause", None
+    new_myr = max(floor_myr, round(carrier_budget_myr * (1 - pct)))
+    if new_myr >= carrier_budget_myr:
+        return "pause", None
+    return "reduce", float(new_myr)
+
+
 def decide(spend: float, results: float, kpi: KpiCfg) -> Tuple[bool, str, Optional[float]]:
     """(should_pause, reason, cpl). cpl is None when undefined, inf when results==0."""
     if spend < kpi.cpl_min_spend_myr:
@@ -101,6 +148,9 @@ class AdDecision:
     cpa: Optional[float] = None     # 60-day real-sales CPA (None when not judged)
     cpa_sales: int = 0              # 60-day matched paid sales
     age_days: Optional[int] = None  # ad age, for the conversion-window guard
+    carrier_kind: Optional[str] = None   # where this ad's budget sits: 'adset' (ABO) | 'campaign' (CBO)
+    carrier_id: Optional[str] = None
+    carrier_budget_myr: float = 0.0
 
 
 def _mkey(name: str) -> str:
@@ -193,6 +243,24 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
             insight = cpl_by_ad.get(ad["id"])   # from the single batched account_insights call
             spend, results = parse_metrics(insight, token)
 
+            # Where this ad's budget sits, for the soft-reduce: its ad set when ABO, else the
+            # CBO campaign. No visible daily budget on either level -> None (falls back to pause).
+            aset = ad.get("adset") or {}
+            try:
+                aset_budget = float(aset.get("daily_budget") or 0) / 100.0
+            except (TypeError, ValueError):
+                aset_budget = 0.0
+            try:
+                camp_budget = float(campaign.get("daily_budget") or 0) / 100.0
+            except (TypeError, ValueError):
+                camp_budget = 0.0
+            if aset_budget > 0:
+                carrier_kind, carrier_id, carrier_budget = "adset", ad.get("adset_id") or aset.get("id"), aset_budget
+            elif camp_budget > 0:
+                carrier_kind, carrier_id, carrier_budget = "campaign", campaign["id"], camp_budget
+            else:
+                carrier_kind, carrier_id, carrier_budget = None, None, 0.0
+
             held = any(h and h in name for h in settings.kpi.cpl_hold)
             if held:                                   # a hold exempts from CPL (not CPA)
                 cpl_pause, cpl_reason = False, MANUAL_HOLD
@@ -226,27 +294,92 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                         cpa_val, n_sales = fb_cpa, n_fb
 
             decisions.append(AdDecision(ad["id"], name, spend, results, cpl, should_pause, reason,
-                                        cpa=cpa_val, cpa_sales=n_sales, age_days=age))
+                                        cpa=cpa_val, cpa_sales=n_sales, age_days=age,
+                                        carrier_kind=carrier_kind, carrier_id=carrier_id,
+                                        carrier_budget_myr=carrier_budget))
     return decisions
 
 
 def run(graph, settings: Settings, *, dry_run: bool = False) -> Dict[str, Any]:
     log = get_logger()
     event = settings.meta.conversion_event
+    kpi = settings.kpi
+    today = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()  # MYT
     decisions = evaluate_account(graph, settings)
     to_pause = [d for d in decisions if d.should_pause]
+
+    # TEMPORARY soft-landing (kpi.cpl_soft_reduce): plan one action per budget carrier for the
+    # OVER_THRESHOLD pauses. Reading labels is a GET, so planning also runs in dry-run mode.
+    # A carrier we can't read falls through to the classic pause (no plan entry).
+    soft_plan: Dict[str, Dict[str, Any]] = {}   # carrier_id -> {kind, act, new, existing_label_ids}
+    if kpi.cpl_soft_reduce:
+        for d in to_pause:
+            if d.reason != OVER_THRESHOLD or not d.carrier_id or d.carrier_id in soft_plan:
+                continue
+            try:
+                raw = ((graph.get_object(d.carrier_id, "adlabels").get("adlabels") or {})
+                       .get("data") or [])
+            except Exception as exc:  # noqa: BLE001
+                log.warning("  soft-reduce: can't read labels on %s %s (%s) — classic pause",
+                            d.carrier_kind, d.carrier_id, exc)
+                continue
+            act, new_myr = soft_reduce_action(_label_dates(raw, SOFT_REDUCE_PREFIX), today,
+                                              d.carrier_budget_myr, kpi.cpl_reduce_pct,
+                                              kpi.cpl_reduce_floor_myr)
+            soft_plan[d.carrier_id] = {"kind": d.carrier_kind, "act": act, "new": new_myr,
+                                       "existing": [l["id"] for l in raw if l.get("id")]}
+
+    def _plan(d: AdDecision) -> Optional[Dict[str, Any]]:
+        return soft_plan.get(d.carrier_id) if d.reason == OVER_THRESHOLD else None
 
     for d in decisions:
         cpl_str = "∞" if d.cpl == math.inf else (f"{d.cpl:.2f}" if d.cpl is not None else "n/a")
         cpa_str = ("" if d.cpa is None else
                    f" CPA={'∞' if d.cpa == math.inf else f'{d.cpa:.0f}'}(60d {d.cpa_sales} sale,{d.age_days}d)")
-        verb = "WOULD PAUSE" if (d.should_pause and dry_run) else ("PAUSE" if d.should_pause else "keep")
+        plan = _plan(d)
+        if not d.should_pause:
+            verb = "keep"
+        elif plan and plan["act"] == "reduce":
+            verb = (f"REDUCE30 {plan['kind']} "
+                    f"RM{d.carrier_budget_myr:.0f}→RM{plan['new']:.0f}")
+        elif plan and plan["act"] == "skip":
+            verb = "GRACE (carrier cut today)"
+        elif plan and plan["act"] == "pause":
+            verb = "PAUSE (2nd strike this week)"
+        else:
+            verb = "PAUSE"
+        if dry_run and d.should_pause:
+            verb = "WOULD " + verb
         log.info("  [%s] %s  spend=%.2f %s=%.0f CPL=%s%s (%s)",
                  verb, d.name, d.spend, event.lower(), d.results, cpl_str, cpa_str, d.reason)
 
-    paused = 0
+    paused = reduced = 0
     if not dry_run:
+        soft_label_id: Optional[str] = None
+        done_reduce: set = set()
         for d in to_pause:
+            plan = _plan(d)
+            if plan and plan["act"] in ("reduce", "skip"):
+                if plan["act"] == "reduce" and d.carrier_id not in done_reduce:
+                    done_reduce.add(d.carrier_id)
+                    try:
+                        if soft_label_id is None:
+                            soft_label_id = graph.get_or_create_label(
+                                settings.meta.account_path, f"{SOFT_REDUCE_PREFIX}{today}")
+                        # Label FIRST: the label is the cross-run state. If the budget write then
+                        # fails, the next sweep sees "cut today" and skips — it can never compound
+                        # a second -30% onto the same carrier.
+                        graph.set_ad_labels(d.carrier_id, plan["existing"] + [soft_label_id])
+                        graph.update_daily_budget(d.carrier_id, int(round(plan["new"] * 100)))
+                        state.append_pause_log(d.carrier_id, plan["kind"], SOFT_REDUCED,
+                                               {"ad": d.name, "spend": d.spend, "results": d.results,
+                                                "budget_from": d.carrier_budget_myr,
+                                                "budget_to": plan["new"]})
+                        reduced += 1
+                    except Exception as exc:  # noqa: BLE001
+                        log.warning("  soft-reduce FAILED on %s %s (%s) — will retry next sweep",
+                                    plan["kind"], d.carrier_id, exc)
+                continue  # ad itself is spared this run (carrier cut, or cut earlier today)
             graph.update_status(d.ad_id, "PAUSED")
             state.append_pause_log(d.ad_id, "ad", d.reason,
                                    {"spend": d.spend, "results": d.results,
@@ -254,11 +387,17 @@ def run(graph, settings: Settings, *, dry_run: bool = False) -> Dict[str, Any]:
                                     "cpa": None if d.cpa is None or d.cpa == math.inf else round(d.cpa, 2),
                                     "cpa_sales": d.cpa_sales})
             paused += 1
+    else:
+        paused = len([d for d in to_pause if (p := _plan(d)) is None or p["act"] == "pause"])
+        reduced = len({d.carrier_id for d in to_pause
+                       if (p := _plan(d)) is not None and p["act"] == "reduce"})
 
     active_left = len([d for d in decisions if not d.should_pause])
+    soft_str = (f", cut {reduced} budget carrier(s) −{kpi.cpl_reduce_pct * 100:.0f}%"
+                if kpi.cpl_soft_reduce else "")
     summary = (f"CPL monitor ({event}): evaluated {len(decisions)} active ads, "
-               f"{'would pause' if dry_run else 'paused'} {len(to_pause) if dry_run else paused}, "
+               f"{'would pause' if dry_run else 'paused'} {paused}{soft_str}, "
                f"{active_left} remain under CPL {settings.kpi.cpl_threshold_myr:.0f} MYR")
     final_summary(log, summary)
-    return {"evaluated": len(decisions), "paused": (len(to_pause) if dry_run else paused),
+    return {"evaluated": len(decisions), "paused": paused, "reduced": reduced,
             "remaining": active_left, "dry_run": dry_run}
