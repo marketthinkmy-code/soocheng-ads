@@ -16,7 +16,7 @@ from adbot.monitor_cpl import parse_metrics, result_action_type
 from adbot.settings import REPO_ROOT, load_settings
 
 SINCE = "2026-09-05"
-UNTIL = "2026-09-07"
+UNTIL = "2026-09-09"          # 完整 4 天；今天周三 MY 全停，不读当日
 
 
 def main() -> None:
