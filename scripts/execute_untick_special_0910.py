@@ -43,12 +43,13 @@ def main() -> None:
                 print("   ▶ would set special_ad_categories=[]"
                       + ("; adsets → age 30-55" if fix_age else ""))
                 continue
-            if cur.get("special_ad_categories"):
-                g._request("POST", cid, data={"special_ad_categories": json.dumps([])})
-                print("   ✓ special_ad_categories → []")
-                time.sleep(PACE)
-            else:
-                print("   · 已经没有申报 — skip")
+            # 两个字段一起清（country 残留也会锁年龄），幂等
+            g._request("POST", cid, data={
+                "special_ad_categories": json.dumps([]),
+                "special_ad_category_country": json.dumps([]),
+            })
+            print("   ✓ special_ad_categories + country → []")
+            time.sleep(PACE)
             if fix_age:
                 for a in g._get_all(f"{cid}/adsets",
                                     {"fields": "id,name,targeting", "limit": "25"}):
