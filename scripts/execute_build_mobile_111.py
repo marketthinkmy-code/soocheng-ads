@@ -35,8 +35,8 @@ CAMP_NAME = "STOCKBLOOM | MOBILE GADGETS | 1-1-1"
 ASET_NAME = "MOBILE GADGETS | MY"
 AD_NAME = "Image：iPhone Duo 对比"
 SOURCE_CAMPAIGN = "120248787484510575"   # MY BROAD 0910 重拍 — holds the approved iPhone Duo post
-KEYWORDS = ["mobile", "gadgets", "mobile devices", "iphone",
-            "apple", "samsung", "huawei", "xiaomi"]
+KEYWORDS = ["mobile", "gadgets", "mobile device", "iphone",   # 单数：Meta 兴趣叫
+            "apple", "samsung", "huawei", "xiaomi"]           # «Mobile device (consumer electronics)»
 
 
 def pick_interest(g, kw):
