@@ -38,7 +38,7 @@ PLAN = {
     ],
     "config.sg.yaml": [
         ("camp_budget", "PURCHASE LAL 5% | 1-1-4", None, 314),
-        ("camp_budget", "PURCHASE LAL 1-5% | 1-5-3", None, 243),
+        ("camp_abo_scale", "PURCHASE LAL 1-5% | 1-5-3", None, 243),
         ("camp_budget", "RUNNING | 1-1", None, 286),
         ("adset_budget", "BROAD SG 25+ | 0905", "用我的方法", 171),
         ("camp_budget", "LUXURY WATCHES", None, 114),
@@ -81,6 +81,32 @@ def main() -> None:
                         g._request("POST", camp["id"],
                                    data={"daily_budget": str(int(amt * 100))})
                         time.sleep(PACE)
+                elif kind == "camp_abo_scale":
+                    # ABO campaign（预算在 ad set 层）：把 ACTIVE ad set 预算按比例
+                    # 放大到总额 amt，不动 campaign 层（避免 CBO 转换重置学习）
+                    asets = [x for x in g._get_all(
+                        f"{camp['id']}/adsets",
+                        {"fields": "id,name,status,daily_budget", "limit": "25"})
+                        if x.get("status") == "ACTIVE" and x.get("daily_budget")]
+                    tot = sum(float(x["daily_budget"]) for x in asets) / 100
+                    if not asets or tot <= 0:
+                        print(f"  ⛔ «{cfrag}» 无 ACTIVE ABO ad set — 跳过")
+                        continue
+                    if abs(tot - amt) < 2:
+                        print(f"  · «{cfrag}» ad set 总额已 ≈ RM{amt} — skip")
+                        continue
+                    factor = amt / tot
+                    print(f"  «{cfrag}» ABO 总额 RM{tot:.0f} → RM{amt}"
+                          f"（{len(asets)} 支 ad set 各 ×{factor:.2f}）"
+                          + ("" if CONFIRM else "  (would)"))
+                    for x in asets:
+                        new_b = max(3000, int(float(x["daily_budget"]) * factor))
+                        print(f"     adset «{(x.get('name') or '')[:36]}» "
+                              f"RM{float(x['daily_budget'])/100:.0f} → RM{new_b/100:.0f}")
+                        if CONFIRM:
+                            g._request("POST", x["id"],
+                                       data={"daily_budget": str(new_b)})
+                            time.sleep(PACE)
                 elif kind == "camp_pause":
                     if camp.get("status") == "PAUSED":
                         print(f"  · «{cfrag}» 已停 — skip")
