@@ -65,11 +65,11 @@ notion:
   enabled: false                                  # monitor doesn't read Notion
   database_id: "89582b42449682d4ab7f01c223c9969b"
 
-kpi:                                              # identical to MY — SG account is MYR, so RM values are direct
-  cpl_threshold_myr: 50.00                         # pause an SG ad above RM50 cost-per-Complete-Registration
-  cpl_min_spend_myr: 80.00                         # only judge once it has spent >= RM80 (fair chance)
+kpi:                                              # SG account is MYR, so RM values are direct
+  cpl_threshold_myr: 95.00                         # owner plan 2026-09-10「每日广告规则」: SG line at RM95
+  cpl_min_spend_myr: 142.00                        # judge once spend >= RM142 = 1.5x the SG line (owner 0-reg rule)
   cpl_lookback: "week_thu"                         # week-to-date from Thursday
-  pause_zero_lead_after_spend: true                # spent >= RM80 with 0 results -> pause
+  pause_zero_lead_after_spend: true                # spent >= threshold spend with 0 results -> pause
   cpl_hold: ["你敢吗"]                    # 2026-08-07: SG RUNNING 你敢吗 sold 8/5+8/6 but its campaign was renamed after
                                          #   launch, so UTM keys miss and the CPA rescue can't see its sales — the CPL
                                          #   sweep mis-kills a converting ad. Exempt; proper fix = name-fallback join (8/11).
