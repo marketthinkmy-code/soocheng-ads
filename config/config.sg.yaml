@@ -38,7 +38,7 @@ meta:
 
   targeting:
     countries: ["SG"]
-    age_min: 25
+    age_min: 30                          # owner 2026-09-11「以後年齡放 30 開始」
     age_max: 65
     advantage_audience: 0
     locales: [20, 21, 22]
