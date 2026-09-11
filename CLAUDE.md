@@ -36,6 +36,10 @@ Every path ends the same way — **PAUSED 建好（0 花费）→ owner 在 Ads 
    the owner reviews and activates in Ads Manager.
 
 ### ⛔ The alignment rule (why the first single-image campaigns were scrapped, 26 Jun)
+**视频同罪（2026-09-11 HOOK 1-4-4 再犯）**：owner 讯息里「链接 + HOOK 标签」的排列顺序**不可信**
+——那次 4 个链接的标签全部错位，按顺序配对 = 4 支全建反，owner 只能自己在 Ads Manager 手动改回。
+建前必须验证每个 Drive file：先 `get_file_metadata` 看文件名（如 HOOK 1-4 对应脚本 doc 顺序）；
+文件名不能定案就抓帧/问 owner 确认，**绝不按讯息顺序 best-guess**。
 A creative is an **image + its copy as ONE bound unit.** The build joins them *only* through
 the manifest's `content_id ↔ file_id` pairing — copy and image are pulled from separate
 sources and meet nowhere else. So if that pairing is guessed, the picture says one thing and
