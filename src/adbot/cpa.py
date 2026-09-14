@@ -40,6 +40,29 @@ def _hkey(s: str) -> str:
     return re.sub(r"[^a-z0-9]", "", (s or "").casefold())
 
 
+_CREATIVE_PREFIXES = ("hook：", "hook:", "重拍：", "重拍:")
+
+
+def creative_key(name: str) -> str:
+    """norm() plus stripping edition prefixes (HOOK：/ 重拍：), repeatedly.
+
+    A re-cut of a proven creative gets a prefixed ad name («HOOK：Video 12：炒过那么多»),
+    but its sales history in the sheet sits under the original name — without this the
+    name-only CPA rescue can't see those sales and the monitor kills the re-cut on CPL
+    alone (2026-09-14, HOOK 炒过那么多). Used ONLY for the rescue index, never for the
+    strict (campaign, ad) join.
+    """
+    key = norm(name)
+    changed = True
+    while changed:
+        changed = False
+        for prefix in _CREATIVE_PREFIXES:
+            if key.startswith(prefix):
+                key = key[len(prefix):].strip()
+                changed = True
+    return key
+
+
 def find_columns(header: List[str]) -> Dict[str, int]:
     """Locate date / campaign / adset / ad / amount columns by fuzzy header match."""
     keys = [_hkey(h) for h in header]
