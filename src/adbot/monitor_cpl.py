@@ -184,7 +184,8 @@ def build_cpa_context(graph, settings: Settings, today: dt.date):
                 key = (_mkey(s.campaign), s.ad)
                 sold[key] = sold.get(key, 0) + 1
                 if s.ad:
-                    sold_by_ad[s.ad] = sold_by_ad.get(s.ad, 0) + 1
+                    fb = cpa.creative_key(s.ad)   # prefix-proof rescue index (HOOK：/重拍：)
+                    sold_by_ad[fb] = sold_by_ad.get(fb, 0) + 1
         spend: Dict[str, float] = {}
         for row in graph.account_insights(
                 settings.meta.account_path, level="ad", fields="ad_id,spend",
@@ -287,7 +288,7 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                     # a pre-rename campaign UTM. A name-only match may only ever RESCUE
                     # (block a pause) — it never feeds the hard-stop path, so an
                     # attribution gap can't auto-pause an ad.
-                    n_fb = sold60_by_ad.get(cpa.norm(name), 0)
+                    n_fb = sold60_by_ad.get(cpa.creative_key(name), 0)
                     fb_cpa = cpa.cpa(sp60, n_fb) if n_fb else None
                     if fb_cpa is not None and fb_cpa != math.inf and fb_cpa <= tiers.hard_stop:
                         should_pause, reason = False, NAME_RESCUED
