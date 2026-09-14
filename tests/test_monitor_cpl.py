@@ -209,6 +209,35 @@ def test_evaluate_account_name_fallback_rescues_renamed_campaign():
     assert by_name["expensive_creative"].reason == OVER_THRESHOLD  # CPL verdict stands, no CPA pause
 
 
+def test_creative_key_strips_edition_prefixes():
+    # HOOK：/重拍： re-cuts must inherit the original creative's sales in the rescue index
+    assert cpa.creative_key("HOOK：Video 12：炒过那么多") == cpa.norm("Video 12：炒过那么多")
+    assert cpa.creative_key("重拍：Video 5：盖电脑，喂！") == cpa.norm("Video 5：盖电脑，喂！")
+    assert cpa.creative_key("🌟 HOOK：重拍：x") == cpa.norm("x")   # stacked prefixes + star
+    assert cpa.creative_key("video 8：做么你") == cpa.norm("video 8：做么你")  # no-op otherwise
+
+
+def test_name_fallback_rescues_prefixed_recut(monkeypatch):
+    # Live ad «HOOK：rescue_me» in a new campaign; sheet sales sit under «rescue_me»
+    # with an old campaign UTM. The prefix-proof rescue must still block the pause.
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True),
+                        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14,
+                                   min_spend_myr=1000))
+    campaigns = [{"id": "A", "name": "NEW HOOK CAMP", "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad("HOOK：rescue_me")]}
+    insights = {"HOOK：rescue_me": _reg_insight(300, 3)}     # CPL 100 -> would pause
+    sold_by_ad = {cpa.creative_key("rescue_me"): 2}
+    spend60 = {"HOOK：rescue_me": 800.0}                     # 800/2 = CPA 400 <= 1200
+
+    by_name = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=({}, sold_by_ad, spend60))}
+
+    assert by_name["HOOK：rescue_me"].should_pause is False
+    assert by_name["HOOK：rescue_me"].reason == NAME_RESCUED
+
+
 # ── TEMPORARY soft-reduce (owner 2026-09-10「先降 30%，再犯才关」) ──────────────────────────
 # 2026-09-10 is a Thursday (the week start); 9/11 Fri, 9/12 Sat, 9/9 the Wednesday before.
 
