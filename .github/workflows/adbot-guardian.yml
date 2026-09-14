@@ -1,19 +1,15 @@
-name: adbot · guardian (hourly revive of protected campaigns)
+name: adbot · guardian (manual only — auto-revive retired 2026-09-14)
 
-# Owner 2026-08-24 «上保险»: the proven-seller campaigns listed in
-# scripts/guardian.py keep getting hand-paused despite healthy CPA. This
-# watchdog revives them hourly and its log records every incident time.
-# Skips campaigns tagged ADBOT_WEEKLY_OFF (Wednesday cycle owns those) and
-# never touches ad-level statuses (the CPL monitor owns those).
-#
-# Owner 2026-09-01 «保护成交链»: second step auto-revives every campaign→
-# adset→ad chain attributed to a Paid-Student-List sale in the rolling 14
-# days (scripts/guardian_sold_chains.py) — replaces the manual 查误关 loop.
+# Owner 2026-09-14 «我手动关了的广告不要再开回了» — the hourly auto-revive is
+# RETIRED: owner hand-pauses are final and nothing may reopen them
+# automatically. This supersedes 2026-08-24 «上保险» (protected-campaign
+# revive) and 2026-09-01 «保护成交链» (14d sold-chain revive), both of which
+# existed to undo accidental hand-pauses back when that was the directive.
+# The workflow stays dispatchable for a ONE-OFF manual revive, to be run only
+# when the owner explicitly asks for specific chains to come back.
 
 on:
-  schedule:
-    - cron: "23 * * * *"        # hourly at :23 (off the congested :00 slot)
-  workflow_dispatch: {}          # manual run any time
+  workflow_dispatch: {}          # manual run only — the hourly schedule is retired
 
 jobs:
   guard:
