@@ -167,21 +167,24 @@ P1_V12C = """黄金炒过，外汇炒过，股票也买过。
 📍 工具怎么选、SOP 怎么套，
 免费线上分享会里一次讲明白。"""
 
+# ⚠️ 配对是 2026-09-12 owner 修正后的正确版（Drive 文件名 HOOK 1-4 对应脚本 doc 顺序）：
+#    HOOK 1 (1XCT…)=盖电脑 · HOOK 2 (1EHk…)=不选forex · HOOK 3 (1RNE…)=不用看盘 ·
+#    HOOK 4 (1miH…)=炒过那么多。原始建置按讯息顺序配错了全部 4 支（owner 手动改回）。
 VIDEOS = [
     {"name": "HOOK：Video 5：盖电脑，喂！",
-     "file": "1RNEfz2DtrGfWT3S4euyy7QP-Ie4yp_bU",
+     "file": "1XCT43R98SQS74H4BWzc-SBSlmOf_65NA",           # HOOK 1
      "cap": P1_V5 + SEP + FIXED_TAIL.format(
          bullet="🧠 为什么盯盘越久，反而越难做对决定")},
     {"name": "HOOK：Video 12：不选 forex 不选黄金",
-     "file": "1miH1QzLo5EQell0PIXktdlFqf65QTSI5",
+     "file": "1EHkz9GNZuiumJJFi5C-jqmhmm6h7HblT",           # HOOK 2
      "cap": P1_V12F + SEP + FIXED_TAIL.format(
          bullet="📈 为什么选期货：涨跌两个方向，都有机会")},
     {"name": "HOOK：Video 8：做么你 Trading 不用看盘的？",
-     "file": "1EHkz9GNZuiumJJFi5C-jqmhmm6h7HblT",
+     "file": "1RNEfz2DtrGfWT3S4euyy7QP-Ie4yp_bU",           # HOOK 3
      "cap": P1_V8 + SEP + FIXED_TAIL.format(
          bullet="📋 上班族的交易节奏：每天一分钟，什么时候看、什么时候动")},
     {"name": "HOOK：Video 12：炒过那么多，累而且不稳定",
-     "file": "1XCT43R98SQS74H4BWzc-SBSlmOf_65NA",
+     "file": "1miH1QzLo5EQell0PIXktdlFqf65QTSI5",           # HOOK 4
      "cap": P1_V12C + SEP + FIXED_TAIL.format(
          bullet="📉 黄金 vs 外汇 vs 股票 vs 期货：为什么工具决定你累不累")},
 ]
