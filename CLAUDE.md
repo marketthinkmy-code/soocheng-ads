@@ -206,6 +206,10 @@ The old hard-ban treatment is retired. The rules now:
   be scaled, and be rebuilt — rejection history alone is NEVER a reason to pause, exclude, or
   refuse it. If it sits DISAPPROVED it can't deliver anyway; resubmitting is the owner's call
   (each re-rejection adds a policy strike on a repeat-offender account — advise, don't block).
+- **Owner 手动关 = 定案（owner 2026-09-14「我手动关了的广告不要再开回了」）**：被 owner 手动
+  关掉的 campaign / ad set / ad 一律不得自动或主动开回——**包括近期有成交的链**。guardian 的
+  每小时自动复活已于 2026-09-14 退役（adbot-guardian.yml 只剩 workflow_dispatch）。唯一开回
+  路径 = owner 明确点名。报告里可以*建议*开回，执行必须等 owner 的字。
 - **Pause decisions belong to the CPL/CPA monitor only** (2026-09-10 起：MY 线 RM60 / SG 线
   RM95，花满 RM60 / RM142 才判；超线**先把预算载体降 30%**（TEMP，`kpi.cpl_soft_reduce`），同一
   周四周期内再犯才关；0-reg 花满门槛直接关；CPA hard-stop RM1,200；converting ads are
