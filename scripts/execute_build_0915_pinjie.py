@@ -134,7 +134,19 @@ def main() -> None:
         print("\n▶ would: upload 2 videos once + 每个 campaign 建 2 × [adset RM50 PAUSED + ad ACTIVE]")
         return
 
+    # 重跑省 quota：账户里已存在的同名 video 直接复用，不重新下载/上传
     uploaded = {}
+    try:
+        acct_vids = g._get_all(f"{acct}/advideos", {"fields": "id,title", "limit": "200"})
+        time.sleep(1)
+        for v in VIDEOS:
+            hit = next((x for x in acct_vids if (x.get("title") or "") == v["name"]), None)
+            if hit:
+                uploaded[v["file"]] = (hit["id"], g.get_video_thumbnail(hit["id"]))
+                print(f"   ↺ reuse video {hit['id']}  «{v['name'][:30]}»")
+                time.sleep(1)
+    except Exception as e:  # noqa: BLE001
+        print(f"   （advideos 查询失败，将直接上传：{str(e)[:80]}）")
     drive = None
     for t in targets:
         camp_id = t["camp"]["id"]
