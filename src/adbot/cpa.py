@@ -40,7 +40,7 @@ def _hkey(s: str) -> str:
     return re.sub(r"[^a-z0-9]", "", (s or "").casefold())
 
 
-_CREATIVE_PREFIXES = ("hook：", "hook:", "重拍：", "重拍:")
+_CREATIVE_PREFIXES = ("hook：", "hook:", "重拍：", "重拍:", "拼接：", "拼接:")
 
 
 def creative_key(name: str) -> str:

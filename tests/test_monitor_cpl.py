@@ -214,6 +214,7 @@ def test_creative_key_strips_edition_prefixes():
     assert cpa.creative_key("HOOK：Video 12：炒过那么多") == cpa.norm("Video 12：炒过那么多")
     assert cpa.creative_key("重拍：Video 5：盖电脑，喂！") == cpa.norm("Video 5：盖电脑，喂！")
     assert cpa.creative_key("🌟 HOOK：重拍：x") == cpa.norm("x")   # stacked prefixes + star
+    assert cpa.creative_key("拼接：Video 1：用我的方法") == cpa.norm("Video 1：用我的方法")
     assert cpa.creative_key("video 8：做么你") == cpa.norm("video 8：做么你")  # no-op otherwise
 
 
