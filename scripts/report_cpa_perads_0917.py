@@ -22,6 +22,16 @@ from adbot.commands import graph_client
 TIERS = (720.0, 960.0, 1200.0)
 MIN_SPEND = 1000.0
 
+_PUNCT = (("：", ":"), ("！", "!"), ("？", "?"), ("，", ","), ("（", "("), ("）", ")"))
+
+
+def pkey(name: str) -> str:
+    """creative_key + full/half-width punctuation unify (pool counting only)."""
+    k = cpa.creative_key(name)
+    for a, b in _PUNCT:
+        k = k.replace(a, b)
+    return " ".join(k.replace(":", ": ").split())
+
 
 def verdict(sp, n):
     if n == 0:
@@ -54,7 +64,7 @@ def main() -> None:
     for x in recent:
         k = (_mkey(x.campaign), cpa.norm(x.ad))
         strict[k] = strict.get(k, 0) + 1
-        ck = cpa.creative_key(x.ad)
+        ck = pkey(x.ad)
         by_creative[ck] = by_creative.get(ck, 0) + 1
         if ck not in last_sale or x.date > last_sale[ck]:
             last_sale[ck] = x.date
@@ -78,29 +88,53 @@ def main() -> None:
                                            fields="ad_id,spend", time_range=rng7)}
         time.sleep(1.2)
 
-        rows = []
+        rows, paused = [], []
         for a in ads:
-            if a.get("effective_status") != "ACTIVE":
-                continue
             ev = ((a.get("adset") or {}).get("promoted_object") or {}).get("custom_event_type")
             if (ev or "").upper() != "COMPLETE_REGISTRATION":
                 continue
             name = a.get("name") or a["id"]
             camp = (a.get("campaign") or {}).get("name") or "?"
-            active_creatives.add(cpa.creative_key(name))
             sp = sp60.get(a["id"], 0.0)
             n = strict.get((_mkey(camp), cpa.norm(name)), 0)
-            rows.append((sp, sp7.get(a["id"], 0.0), name, camp, n))
+            if a.get("effective_status") == "ACTIVE":
+                active_creatives.add(pkey(name))
+                rows.append((sp, sp7.get(a["id"], 0.0), name, camp, n))
+            elif sp > 0:
+                paused.append((sp, a.get("effective_status"), name, camp, n))
         rows.sort(reverse=True)
         print(f"═══ [{label}] 现在开着的（{len(rows)} 支，按 60 天花费排）═══")
         for sp, s7, name, camp, n in rows:
             c = f"RM{sp / n:.0f}" if n else "∞"
-            ck = cpa.creative_key(name)
-            pool = by_creative.get(ck, 0)
+            pool = by_creative.get(pkey(name), 0)
             extra = f" ·同素材全账户 {pool} 单" if pool > n else ""
             print(f"  {verdict(sp, n):<24} «{name[:34]}» @ «{camp[:30]}»")
             print(f"      60天 RM{sp:,.0f} / {n} 单 / CPA {c} · 近7天 RM{s7:.0f}{extra}")
         print()
+        paused.sort(reverse=True)
+        print(f"═══ [{label}] 已关但 60 天有花费（{len(paused)} 支，前 25，供「哪个需要开」参考）═══")
+        for sp, st_e, name, camp, n in paused[:25]:
+            c = f"RM{sp / n:.0f}" if n else "∞"
+            pool = by_creative.get(pkey(name), 0)
+            extra = f" ·同素材全账户 {pool} 单" if pool > n else ""
+            print(f"  ⏸️{(st_e or '?'):<16} «{name[:34]}» @ «{camp[:30]}»")
+            print(f"      60天 RM{sp:,.0f} / {n} 单 / CPA {c}{extra}")
+        print()
+
+    now_utc = dt.datetime.utcnow()
+    since = int((now_utc - dt.timedelta(hours=36)).timestamp())
+    g_my = graph_client(s_my)
+    acts = g_my._get_all(
+        f"{s_my.meta.account_path}/activities",
+        {"fields": "event_time,event_type,actor_name,application_name,object_name",
+         "since": str(since), "limit": "200"})
+    status_evts = [a for a in acts if "run_status" in (a.get("event_type") or "")]
+    print(f"═══ [MY] 近 36 小时 开/关 动作（{len(status_evts)} 条，谁把 MY 全关了？）═══")
+    for a in status_evts[:60]:
+        t = (a.get("event_time") or "")[:19]
+        who = a.get("actor_name") or a.get("application_name") or "?"
+        print(f"  {t}  {who[:22]:<22} {a.get('event_type','')[:28]:<28} «{(a.get('object_name') or '')[:36]}»")
+    print()
 
     dead = [(ck, n, last_sale.get(ck)) for ck, n in by_creative.items()
             if ck not in active_creatives]
