@@ -30,24 +30,43 @@ def main() -> None:
             {"fields": "id,name,daily_budget,effective_status,campaign_id",
              "limit": "500"})
         time.sleep(1.2)
+        live_ads = g._get_all(
+            f"{acct}/ads",
+            {"fields": "id,effective_status,adset{id},campaign{id}",
+             "limit": "500"})
+        time.sleep(1.2)
+        live_asets = {(a.get("adset") or {}).get("id") for a in live_ads
+                      if a.get("effective_status") == "ACTIVE"}
+        live_camps = {(a.get("campaign") or {}).get("id") for a in live_ads
+                      if a.get("effective_status") == "ACTIVE"}
 
         by_camp = collections.defaultdict(float)
+        phantom = collections.defaultdict(float)   # ACTIVE chain, zero live ads -> can't spend
         for c in camps.values():
             if c.get("effective_status") == "ACTIVE" and c.get("daily_budget"):
-                by_camp[c["id"]] += float(c["daily_budget"]) / 100.0   # CBO
+                amt = float(c["daily_budget"]) / 100.0                  # CBO
+                (by_camp if c["id"] in live_camps else phantom)[c["id"]] += amt
         for a in asets:
             camp = camps.get(a.get("campaign_id")) or {}
             if (a.get("effective_status") == "ACTIVE"
                     and camp.get("effective_status") == "ACTIVE"
                     and a.get("daily_budget")):
-                by_camp[camp["id"]] += float(a["daily_budget"]) / 100.0  # ABO
+                amt = float(a["daily_budget"]) / 100.0                  # ABO
+                (by_camp if a["id"] in live_asets else phantom)[camp["id"]] += amt
 
         total = sum(by_camp.values())
-        print(f"═══ [{label}] 目前每日预算（ACTIVE 才算）═══")
+        print(f"═══ [{label}] 目前每日预算（有活广告在跑的才算）═══")
         for cid, amt in sorted(by_camp.items(), key=lambda kv: -kv[1]):
             nm = (camps.get(cid, {}).get("name") or "?")[:52]
             print(f"  RM{amt:>7.0f}/day  {nm}")
-        print(f"  ── 合计 RM{total:,.0f}/day\n")
+        print(f"  ── 合计 RM{total:,.0f}/day")
+        if phantom:
+            pt = sum(phantom.values())
+            print(f"  （另有 RM{pt:,.0f}/day 挂在没活广告的链上，实际烧不了钱：）")
+            for cid, amt in sorted(phantom.items(), key=lambda kv: -kv[1]):
+                nm = (camps.get(cid, {}).get("name") or "?")[:48]
+                print(f"    · RM{amt:>6.0f}  {nm}")
+        print()
 
     print("BUDGET SCAN DONE (read-only)")
 
