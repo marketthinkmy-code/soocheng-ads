@@ -215,6 +215,12 @@ The old hard-ban treatment is retired. The rules now:
   周四周期内再犯才关；0-reg 花满门槛直接关；CPA hard-stop RM1,200；converting ads are
   CPA-rescued). The monitor has NEVER enforced any ban list — do not pause an ad because of
   its rejection history.
+- **开着的广告准入标准（owner 2026-09-20「以 30 day CPA 为标准」+「不希望开着的都是很久没
+  成交/CPA 不合格的，新广告例外」）**：每支在跑的 registration ad 必须满足其一——
+  ① 30 天 strict CPA ≤ RM960（>1,200 关；960-1,200 watch）；② 位置 ≤14 天（新广告例外，
+  判决日 = 建立日+14）；③ 本位 30 天无单但**素材 7 天内有成交**（不算「很久没成交」）。
+  盘面检查/清扫按此判（executor 模板 `scripts/execute_cpa_enforce2_0920.py`）；owner 当天
+  点名开回的位不自动关，标 CONFLICT 交 owner 定。
 - Income-claim content (「每週盈利 200-300 US」 etc.) still violates Meta policy and keeps
   failing review — for those, prefer re-cutting a clean version (forensics + compliant
   re-edit guide: `scripts/archive_ban_list.py`). This is advice about what will pass review,
