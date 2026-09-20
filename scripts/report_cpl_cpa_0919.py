@@ -27,7 +27,7 @@ def main() -> None:
     s_my = load_settings(REPO_ROOT / "config" / "config.yaml")
     s_sg = load_settings(REPO_ROOT / "config" / "config.sg.yaml")
     today = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()
-    d60 = today - dt.timedelta(days=60)
+    d60 = today - dt.timedelta(days=30)   # owner 2026-09-20:「以 30 day cpa 为标准」
     rng_w = {"since": SINCE, "until": today.isoformat()}
     rng60 = {"since": d60.isoformat(), "until": today.isoformat()}
     token = result_action_type(s_my.meta.conversion_event)
@@ -108,9 +108,9 @@ def main() -> None:
                 v = "✅ CPL 达标"
             cpa_s = ""
             if n60:
-                cpa_s = f" · 60天 {n60} 单 CPA RM{s60 / n60:.0f}"
+                cpa_s = f" · 30天 {n60} 单 CPA RM{s60 / n60:.0f}"
             elif s60 >= 1000:
-                cpa_s = f" · 60天 RM{s60:.0f} 无单"
+                cpa_s = f" · 30天 RM{s60:.0f} 无单"
             fresh_s = f" · 🎉周五起 {n_f} 单" if n_f else ""
             bud_s = f" · 预算 RM{int(bud) / 100:.0f}/天" if bud else ""
             print(f"  {v:<10} «{(a.get('name') or '')[:34]}» @ «{camp[:28]}»{state}")
