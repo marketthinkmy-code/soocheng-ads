@@ -27,6 +27,7 @@ OVER_THRESHOLD = "cpl_over_threshold"
 WITHIN_THRESHOLD = "within_threshold"
 NO_RESULTS_YET = "no_results_yet"
 MANUAL_HOLD = "manual_hold"  # owner asked to keep this ad running despite CPL
+CPA_MANUAL_HOLD = "cpa_manual_hold"  # owner-named exemption from the CPA hard-stop (cpa.hold)
 NAME_RESCUED = "cpl_high_but_creative_sells"  # sales matched by ad name only (renamed campaign)
 SOFT_REDUCED = "cpl_over_soft_reduced"  # budget carrier cut instead of pausing (kpi.cpl_soft_reduce)
 
@@ -293,6 +294,12 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                     if fb_cpa is not None and fb_cpa != math.inf and fb_cpa <= tiers.hard_stop:
                         should_pause, reason = False, NAME_RESCUED
                         cpa_val, n_sales = fb_cpa, n_fb
+                if should_pause and reason == cpa.HARD_STOP and any(
+                        h and h in name for h in settings.cpa.hold):
+                    # owner-named CPA exemption (e.g. 2026-09-21「开回 V8」observation
+                    # week): keeps the reopened ad alive although its 60d CPA sits over
+                    # the hard stop. CPL rules still apply unless it's also in cpl_hold.
+                    should_pause, reason = False, CPA_MANUAL_HOLD
 
             decisions.append(AdDecision(ad["id"], name, spend, results, cpl, should_pause, reason,
                                         cpa=cpa_val, cpa_sales=n_sales, age_days=age,

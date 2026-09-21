@@ -161,6 +161,7 @@ class CpaCfg(BaseModel):
     hard_stop_myr: float = 1200.0       # above here (with real sales) -> auto-pause
     conversion_days: int = 14           # don't judge CPA / 'no sales' until this old
     min_spend_myr: float = 1000.0       # need at least this much spend to fairly judge CPA
+    hold: List[str] = Field(default_factory=list)  # ad-name substrings exempt from the CPA hard-stop
 
 
 # ── secrets (.env / environment) ─────────────────────────────────────────────
