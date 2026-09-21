@@ -87,6 +87,10 @@ cpa:                                     # cost per real PAID acquisition (joins
   hard_stop_myr: 1200.00                 # above here (with real sales) -> auto-pause
   conversion_days: 14                    # registrations take time to convert; don't judge CPA until this old
   min_spend_myr: 1000.00                 # need >= this spend before a CPA verdict is fair
+  hold: ["做么你 trading 不用看盘"]       # owner 2026-09-21「开回 V8」: old V8 @ DAY TRADING 0905 runs a
+                                         #   1-week observation (60d CPA over hard-stop, but CPL ~33 and a
+                                         #   fresh 9/19 sale; one more sale drops CPA under 1,000). Matches
+                                         #   only the lowercase-t old V8 ads, not HOOK V8. Review 9/28.
 
 schedule:                                # informational; the real schedule lives in the Routine triggers
   timezone: "Asia/Kuala_Lumpur"          # GMT+8 (no DST)

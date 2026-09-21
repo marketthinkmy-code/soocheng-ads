@@ -3,8 +3,9 @@ import math
 import datetime as dt
 
 from adbot import cpa
-from adbot.monitor_cpl import (INSUFFICIENT_SPEND, MANUAL_HOLD, NAME_RESCUED, NO_RESULTS_YET,
-                               OVER_THRESHOLD, SOFT_REDUCE_PREFIX, WITHIN_THRESHOLD, ZERO_RESULTS,
+from adbot.monitor_cpl import (CPA_MANUAL_HOLD, INSUFFICIENT_SPEND, MANUAL_HOLD, NAME_RESCUED,
+                               NO_RESULTS_YET, OVER_THRESHOLD, SOFT_REDUCE_PREFIX,
+                               WITHIN_THRESHOLD, ZERO_RESULTS,
                                _label_dates, cpl_window, decide, evaluate_account, extract_results,
                                parse_metrics, result_action_type, run, soft_reduce_action,
                                _week_start_thursday)
@@ -342,3 +343,31 @@ def test_run_soft_reduce_disabled_keeps_classic_pause(monkeypatch):
 
     assert graph.paused == ["over"] and graph.budget_posts == []
     assert out["paused"] == 1 and out["reduced"] == 0
+
+
+def test_cpa_hold_exempts_named_ad_from_hard_stop_only():
+    # owner 2026-09-21「开回 V8」: a cpa.hold substring keeps a reopened ad alive even though
+    # its 60d CPA sits over the hard stop; an un-held sibling still hard-stops, and the hold
+    # does NOT bypass CPL rules (that stays cpl_hold's job).
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True),
+                        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14,
+                                   min_spend_myr=1000, hold=["做么你 trading 不用看盘"]))
+    campaigns = [{"id": "A", "name": "STOCKBLOOM | DAY TRADING | 0905",
+                  "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad("video 8：做么你 trading 不用看盘的？"), _ad("kill_me")]}
+    insights = {"video 8：做么你 trading 不用看盘的？": _reg_insight(100, 3),  # CPL 33 fine
+                "kill_me": _reg_insight(100, 4)}                               # CPL 25 fine
+    ck = cpa.norm("stockbloom | day trading | 0905")
+    sold = {(ck, cpa.norm("video 8：做么你 trading 不用看盘的？")): 1,
+            (ck, cpa.norm("kill_me")): 1}
+    spend60 = {"video 8：做么你 trading 不用看盘的？": 1900.0,  # CPA 1900 > 1200, held
+               "kill_me": 1900.0}                               # CPA 1900 > 1200, no hold
+    by_name = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=(sold, spend60))}
+
+    held = by_name["video 8：做么你 trading 不用看盘的？"]
+    assert held.should_pause is False and held.reason == CPA_MANUAL_HOLD
+    assert by_name["kill_me"].should_pause is True
+    assert by_name["kill_me"].reason == cpa.HARD_STOP
