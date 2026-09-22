@@ -26,7 +26,7 @@ TARGETS = [  # (ad raw name, campaign substring, campaign starts with 🌟)
     ("🌟 video 12：不选 forex 不选黄金", "LUXURY WATCH", True),
     ("🌟 video 5：盖电脑，喂！", "PURCHASE LAL", True),
     ("🌟 freestyle 1", "PURCHASE LAL", True),
-    ("重拍：Video 6：我跟你讲！", "0910 重拍", False),
+    ("重拍：Video 6：我跟你讲！", "BROAD SG 25+ | 0910", False),
     ("video 1：用我的方法", "BROAD SG 25+ | 0905", False),
 ]
 
