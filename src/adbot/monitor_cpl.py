@@ -17,7 +17,7 @@ import math
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
-from . import cpa, state
+from . import compliance, cpa, state
 from .logging import final_summary, get_logger
 from .settings import KpiCfg, Settings
 
@@ -27,6 +27,7 @@ OVER_THRESHOLD = "cpl_over_threshold"
 WITHIN_THRESHOLD = "within_threshold"
 NO_RESULTS_YET = "no_results_yet"
 MANUAL_HOLD = "manual_hold"  # owner asked to keep this ad running despite CPL
+BANNED_CREATIVE = "banned_creative"  # permanently banned master (owner 2026-09-23)
 CPA_MANUAL_HOLD = "cpa_manual_hold"  # owner-named exemption from the CPA hard-stop (cpa.hold)
 NAME_RESCUED = "cpl_high_but_creative_sells"  # sales matched by ad name only (renamed campaign)
 SOFT_REDUCED = "cpl_over_soft_reduced"  # budget carrier cut instead of pausing (kpi.cpl_soft_reduce)
@@ -300,6 +301,13 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                     # week): keeps the reopened ad alive although its 60d CPA sits over
                     # the hard stop. CPL rules still apply unless it's also in cpl_hold.
                     should_pause, reason = False, CPA_MANUAL_HOLD
+
+            if compliance.is_banned(name, settings.compliance.banned_creatives):
+                # ⛔ owner 2026-09-23, after the SECOND account ban: a creative Meta has
+                # ever rejected never runs again — whatever its CPL/CPA says. Deliberately
+                # the LAST word, so no CPA rescue, cpl_hold, cpa.hold or soft-reduce can
+                # keep a banned master delivering.
+                should_pause, reason = True, BANNED_CREATIVE
 
             decisions.append(AdDecision(ad["id"], name, spend, results, cpl, should_pause, reason,
                                         cpa=cpa_val, cpa_sales=n_sales, age_days=age,
