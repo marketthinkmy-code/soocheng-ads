@@ -3,13 +3,13 @@ import math
 import datetime as dt
 
 from adbot import cpa
-from adbot.monitor_cpl import (CPA_MANUAL_HOLD, INSUFFICIENT_SPEND, MANUAL_HOLD, NAME_RESCUED,
+from adbot.monitor_cpl import (BANNED_CREATIVE, CPA_MANUAL_HOLD, INSUFFICIENT_SPEND, MANUAL_HOLD, NAME_RESCUED,
                                NO_RESULTS_YET, OVER_THRESHOLD, SOFT_REDUCE_PREFIX,
                                WITHIN_THRESHOLD, ZERO_RESULTS,
                                _label_dates, cpl_window, decide, evaluate_account, extract_results,
                                parse_metrics, result_action_type, run, soft_reduce_action,
                                _week_start_thursday)
-from adbot.settings import CpaCfg, KpiCfg, MetaCfg, Settings
+from adbot.settings import ComplianceCfg, CpaCfg, KpiCfg, MetaCfg, Settings
 
 KPI = KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80, pause_zero_lead_after_spend=True)
 
@@ -371,3 +371,35 @@ def test_cpa_hold_exempts_named_ad_from_hard_stop_only():
     assert held.should_pause is False and held.reason == CPA_MANUAL_HOLD
     assert by_name["kill_me"].should_pause is True
     assert by_name["kill_me"].reason == cpa.HARD_STOP
+
+
+def test_banned_creative_overrides_every_rescue_and_hold():
+    # ⛔ owner 2026-09-23, after the 2nd account ban: a creative Meta has ever rejected
+    # never runs again. The ban must beat the CPL hold, the CPA rescue AND cpa.hold —
+    # it is evaluated last precisely so nothing can save it.
+    settings = Settings(
+        meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80, cpl_lookback="last_3d",
+                   pause_zero_lead_after_spend=True, cpl_hold=["freestyle 1"]),
+        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14, min_spend_myr=1000,
+                   hold=["freestyle 1"]),
+        compliance=ComplianceCfg(banned_creatives=["freestyle 1", "trading 早就不是这样了"]))
+    campaigns = [{"id": "A", "name": "[SG] STOCKBLOOM | BROAD", "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad("🌟 freestyle 1"),                              # banned, and cpl+cpa held
+                 _ad("拼接：Video 5：Trading 早就不是这样了！"),        # banned, great CPL
+                 _ad("HOOK：Video 12：不选 forex 不选黄金")]}          # clean winner -> untouched
+    insights = {"🌟 freestyle 1": _reg_insight(100, 4),               # CPL 25 — would keep
+                "拼接：Video 5：Trading 早就不是这样了！": _reg_insight(100, 5),  # CPL 20 — would keep
+                "HOOK：Video 12：不选 forex 不选黄金": _reg_insight(100, 4)}
+    ck = cpa.norm("[sg] stockbloom | broad")
+    sold = {(ck, cpa.norm("🌟 freestyle 1")): 5}                      # real sales, CPA 200 — rescued normally
+    spend60 = {"🌟 freestyle 1": 1000.0}
+
+    by_name = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=(sold, spend60))}
+
+    assert by_name["🌟 freestyle 1"].should_pause is True
+    assert by_name["🌟 freestyle 1"].reason == BANNED_CREATIVE
+    assert by_name["拼接：Video 5：Trading 早就不是这样了！"].should_pause is True
+    assert by_name["拼接：Video 5：Trading 早就不是这样了！"].reason == BANNED_CREATIVE
+    assert by_name["HOOK：Video 12：不选 forex 不选黄金"].should_pause is False
