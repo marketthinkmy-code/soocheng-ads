@@ -31,9 +31,9 @@ meta:
 
   targeting:
     countries: ["MY"]
-    age_min: 30                          # owner 2026-09-11「以後年齡放 30 開始」— all NEW ad sets start at 30
+    age_min: 25
     age_max: 65
-    advantage_audience: 1                # 1 = Broad / Advantage+ ON (age_min = floor). 0 = hard cap.
+    advantage_audience: 1                # 1 = Broad / Advantage+ ON (age 25 = floor). 0 = hard 25+ cap.
     locales: [1004]                      # ad-set Languages = Chinese (All)
     excluded_custom_audiences: []        # cleared 2026-07-13: the old audience lived on the disabled account;
                                          #   re-add a "30 days complete registration" audience once rebuilt on the new acct
@@ -87,9 +87,34 @@ cpa:                                     # cost per real PAID acquisition (joins
   hard_stop_myr: 1200.00                 # above here (with real sales) -> auto-pause
   conversion_days: 14                    # registrations take time to convert; don't judge CPA until this old
   min_spend_myr: 1000.00                 # need >= this spend before a CPA verdict is fair
+  hold: []                               # 2026-09-21 的 V8 观察豁免已作废 — 该素材 2026-09-23 进永久禁跑名单
+                                         #   (compliance.banned_creatives)，禁跑优先级高于任何 CPA 豁免。
 
 schedule:                                # informational; the real schedule lives in the Routine triggers
   timezone: "Asia/Kuala_Lumpur"          # GMT+8 (no DST)
   weekly_off: { day: "WED", time: "15:00" }   # pause ALL            -> UTC cron 0 7 * * 3
   weekly_on:  { day: "THU", time: "00:00" }   # resume what Wed paused -> UTC cron 0 16 * * 3
   monitor_interval_hours: 1
+
+compliance:                              # ⛔ 永久禁跑名单 — owner 2026-09-23，第二次封号后的硬规则
+  # 「write a rule that not to advertise these ads anymore (even tho the ads are
+  #   running well and had good cpa before)」— 被 Meta 拒审过的素材永久禁投，CPA 再好也不准。
+  # 匹配 = adbot.compliance.is_banned()：casefold + 去 🌟 + 去所有空格 + 子串。
+  # 禁的是母带：换名/换文案/换 campaign/换账户/post 复用/重新上传都算同一支。
+  # 解禁的唯一方式 = 剪辑师重剪干净版母带（算新素材，原版永不解禁）。
+  banned_creatives:
+    # ── 名单 A：2026-09-23 封号时账户内仍在的被拒广告（API 取证）──
+    - "trading 早就不是这样了"          # 拼接 V5 ×3(MY) + ×3(SG) + 原版 video 5 ×1(SG 🌟GOLF)
+    - "做么你 trading 不用看盘"          # Video 8 / HOOK：Video 8 — MY DISAPPROVED + SG ×2
+    - "freestyle 1"                      # 🌟freestyle 1 @ SG 🌟INVESTMENT 被拒（30d CPA 734，仍禁）
+    - "office 突访"                      # video 11：office 突访 @ SG TRAVEL
+    - "炒过那么多"                       # video 12 @ SG BROKERS（2026-08-07 的解禁作废）
+    - "what you do for living"           # M2Video 3 — 2025 旧 options 产品遗留，MY DISAPPROVED
+    # ── 名单 B：历史被拒（旧账号 2026-07-12 取证 + owner 报告）──
+    - "不是怕交易"                       # video 3 — 合规重建也被拒（视频本身违规）
+    - "厌倦了等待"                       # Video 4 — 合规重建也被拒
+    - "moomoo"                           # single image 5
+    - "分钟赚"                           # video 1：1 分钟赚 300 — 名字即收入承诺
+    - "就能盈利"                         # single image：每天 1 分钟就能盈利
+    - "你敢吗"                           # video 2 — 2026-07-16 被拒
+    - "freestyle 2"                      # 2026-07-16 被拒

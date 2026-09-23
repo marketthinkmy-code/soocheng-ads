@@ -197,15 +197,63 @@ pool. Feed it well:
 - Creatives that bake payout screenshots into the image stay in `creatives_held` (copy
   ready, not built) until reviewed.
 
-### 📋 送审历史 (rejection history — OWNER POLICY 2026-07-30: judge by review status + CPL/CPA only)
+### ⛔ 永久禁跑名单 (owner 2026-09-23 — 第二次封号后的硬规则)
 
-**Owner directive 2026-07-30:「禁跑的广告都不要直接关了，因为他们都过审。一切以 CPL CPA 为主。」**
-The old hard-ban treatment is retired. The rules now:
+**2026-09-23：MY 账户 MTC X SB 3.0 (act_759339046918885) 被 Meta 停用** —— API 取证
+`account_status=2 (DISABLED)` · `disable_reason=1 (ADS_INTEGRITY_POLICY 广告诚信政策违规)`，
+与 2026-07-12 旧账号 MTC X STOCKBLOOM 2 被封的代码**完全相同**（同一账号家族第二次被封）。
+SG 账户 act_893025326577600 当时仍 `account_status=1 (ACTIVE)`——**它是目前仅剩的投放资产，
+一切决策以「不触发第三次封号」为最高优先级。**
 
-- A creative's **current Meta review status** is the only gate: if it PASSES review it may run,
-  be scaled, and be rebuilt — rejection history alone is NEVER a reason to pause, exclude, or
-  refuse it. If it sits DISAPPROVED it can't deliver anyway; resubmitting is the owner's call
-  (each re-rejection adds a policy strike on a repeat-offender account — advise, don't block).
+**OWNER 硬规则（2026-09-23，正式推翻 07-30「一切以 CPL CPA 为主」）：**
+> 「list out all those rejected ads for me, and write a rule that not to advertise
+> these ads anymore (even tho the ads are running well and had good cpa before)」
+
+- **凡被 Meta 拒审过的素材 = 永久禁跑。** 不看 CPL、不看 CPA、不看历史成交——
+  **就算它以前 CPA 很漂亮、正在赚钱、是 top seller，也一律不准再投。**
+- 禁的是**素材母带本身（视频/图片）**，不是某一个 ad 名字：换文案、换 ad 名、换 campaign、
+  换受众、换账户、post 复用、重新上传——**全部视为同一支，一律禁**。
+- **禁止 resubmit / 申诉重投**被拒广告（每次重拒都给这个惯犯账号家族再加一条 strike）。
+- 想保留这个角度 → **只能让剪辑师重剪干净版母带**（删掉违规口播/字幕/成绩截图），
+  当**全新素材**走正常建案流程；重剪版与原版是两支，**原版永久禁不解**。
+- 被拒广告**留在账户里本身就是风险**：名单上的广告应 DELETE，不要只是 PAUSE（7 月取证结论）。
+- 本条**高于**本文件其它所有 CPL/CPA 规则：monitor / 清扫报告 / 开回建议里
+  **永远不得出现禁跑素材**；即使 owner 点名开回，也要先提醒「这是禁跑素材」再等他确认。
+
+#### 名单 A — 2026-09-23 封号时账户内仍在的被拒广告（API 取证）
+
+| 素材（母带） | MY | SG |
+|---|---|---|
+| **拼接：Video 5：Trading 早就不是这样了！** | ×3（BEER 0914 / BROAD 0911 / DT 30-55 0914） | ×3（LAL 0910 `DISAPPROVED` / GOLF 0914 / BROAD 0911） |
+| **Video 8：做么你 Trading 不用看盘的？**（含 `HOOK：` 版） | ×1 `DISAPPROVED`（BROAD 0911） | ×2（BROAD 0911 / GOLF 0914） |
+| **video 5：trading 早就不是这样了！**（拼接版的原版母带） | — | ×1（🌟GOLF PICKBLEBALL） |
+| **freestyle 1**（🌟 版） | — | ×1（🌟INVESTMENT） |
+| **video 11：office 突访** | — | ×1（TRAVEL） |
+| **video 12：炒过那么多，累而且不稳定** | — | ×1（BROKERS） |
+| M2Video 3: What you do for living?（2025 旧 options 产品遗留） | ×1 `DISAPPROVED` | — |
+
+#### 名单 B — 历史被拒（旧账号 2026-07-12 取证 + owner 报告，一并永久禁）
+
+video 3：不是怕交易（合规重建也被拒）· Video 4：厌倦了等待（合规重建也被拒）·
+single image 5：moomoo · video 1：1 分钟赚 300 · single image：每天 1 分钟就能盈利 ·
+Video 2（谁讲 trading 一定要~）· video 2：你敢吗？· freestyle 2
+
+⚠️ **2026-08-07 对「video 12 炒过那么多」的解禁作废**——它 09-23 在 SG BROKERS 仍是被拒状态，
+现回到永久名单。同理，未来任何「它现在过审了所以可以再跑」的论证一律不成立：
+**过审 ≠ 解禁，只有重剪干净版才能重新上场。**
+
+#### 共同违规 DNA（重剪前必须逐条清掉；逐支脚本级清单见 `scripts/archive_ban_list.py`）
+
+收益金额（「每週/每天 200-300 US」「一星期赚一千美金」——口播/字幕/道具纸板任一形式）·
+学员成绩 / TP / 提款截图 BROLL · 「用别人的资金去赚属于自己的交易回报」·
+「零本钱…交易期货」· 「proven works 公式 / copy paste 跟着做就会」
+
+机器可读名单：`config/config.yaml` 与 `config.sg.yaml` 的 `compliance.banned_creatives`；
+判定入口只有 `adbot.compliance.is_banned(name)`（子串匹配，忽略 🌟 / `HOOK：` / `重拍：` /
+`拼接：` 前缀）。**任何建案 / 开回 / scale 脚本动手前必须先过这道闸。**
+
+### 📋 运营规则（仍然有效，但全部让位于上面的禁跑名单）
+
 - **Owner 手动关 = 定案（owner 2026-09-14「我手动关了的广告不要再开回了」）**：被 owner 手动
   关掉的 campaign / ad set / ad 一律不得自动或主动开回——**包括近期有成交的链**。guardian 的
   每小时自动复活已于 2026-09-14 退役（adbot-guardian.yml 只剩 workflow_dispatch）。唯一开回
@@ -213,30 +261,14 @@ The old hard-ban treatment is retired. The rules now:
 - **Pause decisions belong to the CPL/CPA monitor only** (2026-09-10 起：MY 线 RM60 / SG 线
   RM95，花满 RM60 / RM142 才判；超线**先把预算载体降 30%**（TEMP，`kpi.cpl_soft_reduce`），同一
   周四周期内再犯才关；0-reg 花满门槛直接关；CPA hard-stop RM1,200；converting ads are
-  CPA-rescued). The monitor has NEVER enforced any ban list — do not pause an ad because of
-  its rejection history.
+  CPA-rescued；`cpa.hold` 是 owner 点名的 hard-stop 豁免).
 - **开着的广告准入标准（owner 2026-09-20「以 30 day CPA 为标准」+「不希望开着的都是很久没
   成交/CPA 不合格的，新广告例外」）**：每支在跑的 registration ad 必须满足其一——
   ① 30 天 strict CPA ≤ RM960（>1,200 关；960-1,200 watch）；② 位置 ≤14 天（新广告例外，
   判决日 = 建立日+14）；③ 本位 30 天无单但**素材 7 天内有成交**（不算「很久没成交」）。
   盘面检查/清扫按此判（executor 模板 `scripts/execute_cpa_enforce2_0920.py`）；owner 当天
   点名开回的位不自动关，标 CONFLICT 交 owner 定。
-- Income-claim content (「每週盈利 200-300 US」 etc.) still violates Meta policy and keeps
-  failing review — for those, prefer re-cutting a clean version (forensics + compliant
-  re-edit guide: `scripts/archive_ban_list.py`). This is advice about what will pass review,
-  not a run/no-run rule.
-
-History (for context, not enforcement): video 3 不是怕交易 / video 4 厌倦了等待 / moomoo /
-video 1 1分钟赚300 / 每天1分钟就能盈利 — rejected for baked-in income claims (incl. rebuilds).
-video 2 你敢吗 / freestyle 2 — rejected 2026-07-16; owner reports they later passed review.
-
-✅ **video 12：炒过那么多，累而且不稳定 — UN-BANNED 2026-08-07（owner:「跑吧。解禁」）.**
-It sold 8 单 in July and another on 8/5 via SG DAY TRADING, so the owner lifted the 07-30 禁跑.
-It is now governed like every other creative: current Meta review status + CPL/CPA only.
-History for caution, not enforcement: rejected 07-16 → TOP3 resubmission passed (SG) → fresh
-copies in BEER/DAY TRADING were rejected again 07-30 (later instances passed). When scaling it,
-PREFER reusing already-approved instances over building fresh copies — each new rejection adds a
-policy strike on this repeat-offender account family.
+  **前提：素材不在禁跑名单上——在名单上的，CPA 再好也不准开。**
 
 ---
 

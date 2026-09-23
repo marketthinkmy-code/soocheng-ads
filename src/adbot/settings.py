@@ -161,6 +161,17 @@ class CpaCfg(BaseModel):
     hard_stop_myr: float = 1200.0       # above here (with real sales) -> auto-pause
     conversion_days: int = 14           # don't judge CPA / 'no sales' until this old
     min_spend_myr: float = 1000.0       # need at least this much spend to fairly judge CPA
+    hold: List[str] = Field(default_factory=list)  # ad-name substrings exempt from the CPA hard-stop
+
+
+class ComplianceCfg(BaseModel):
+    """Permanently banned creative masters (owner 2026-09-23, after the 2nd ban).
+
+    Substrings of ad / creative names. Matching lives in ``adbot.compliance`` and
+    outranks every CPL/CPA rule: a creative Meta has ever rejected never runs again,
+    however good its CPA was. Only a re-cut clean master may return, as a new creative.
+    """
+    banned_creatives: List[str] = Field(default_factory=list)
 
 
 # ── secrets (.env / environment) ─────────────────────────────────────────────
@@ -181,6 +192,7 @@ class Settings(BaseModel):
     notion: NotionCfg = Field(default_factory=NotionCfg)
     kpi: KpiCfg = Field(default_factory=KpiCfg)
     cpa: CpaCfg = Field(default_factory=CpaCfg)
+    compliance: ComplianceCfg = Field(default_factory=ComplianceCfg)
     schedule: dict = Field(default_factory=dict)
     secrets: Secrets = Field(default_factory=Secrets)
     config_path: str = str(DEFAULT_CONFIG)
@@ -255,6 +267,7 @@ def load_settings(config_path: Optional[Path] = None) -> Settings:
         notion=NotionCfg(**(data.get("notion") or {})),
         kpi=KpiCfg(**(data.get("kpi") or {})),
         cpa=CpaCfg(**(data.get("cpa") or {})),
+        compliance=ComplianceCfg(**(data.get("compliance") or {})),
         schedule=data.get("schedule") or {},
         secrets=_load_secrets(),
         config_path=str(path),
