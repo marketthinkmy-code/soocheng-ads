@@ -1,18 +1,21 @@
 # ─────────────────────────────────────────────────────────────────────────────
 # adbot — SG monitor config for STOCK BLOOM《1 分钟短线交易盈利营》(Soo Cheng)
 #
-# MONITOR-ONLY. This file exists so the hourly CPL monitor can sweep the Singapore
-# ad account (act_893025326577600, "[SG] MTC X SB") in addition to the MY account
-# in config.yaml. It is loaded via ADBOT_CONFIG by .github/workflows/adbot-monitor-sg.yml.
+# READ-ONLY OPS (monitor + nightly report). This file exists so the hourly CPL monitor and
+# the nightly daily report can sweep the Singapore ad account (act_893025326577600,
+# "[SG] MTC X SB") in addition to the MY account in config.yaml. It is loaded via
+# ADBOT_CONFIG by .github/workflows/adbot-monitor-sg.yml and by the SG pass of
+# .github/workflows/adbot-daily-report.yml.
 #
-# Only `meta.ad_account_id`, `meta.conversion_event`, `kpi.*`, and `cpa.enabled` are
-# actually read by the monitor. The build/drive/notion/budget blocks are copied from
+# Only `meta.*` (account/label/conversion event), `kpi.*`, and `cpa.*` are actually read by
+# those two paths. The build/drive/notion/budget blocks are copied from
 # config.yaml so load_settings validates cleanly; the monitor never uses them, and
 # BUILDS must NOT use this file (SG builds go through the adbot-ops GraphClient path
 # so they can set the Singapore advertiser binding — see scripts/plan2_build.py).
 # ─────────────────────────────────────────────────────────────────────────────
 
 meta:
+  account_label: "SG"                             # shown in the nightly report header so MY/SG sections are never confused
   ad_account_id: "act_893025326577600"            # [SG] MTC X SB — currency MYR (verified), so kpi thresholds below are direct
   page_id: "1001334883061622"                     # same Soo Cheng FB Page as MY
   instagram_user_id: "17841480427751602"          # @soochenginvesting

@@ -15,6 +15,13 @@ on:
         description: "true = allow writes (CONFIRM/CONFIRM_PAUSE); false = dry-run/read-only"
         type: boolean
         default: false
+      config:
+        description: "Which ad account to run against"
+        type: choice
+        default: "config/config.yaml"
+        options:
+          - "config/config.yaml"          # MY  — act_759339046918885
+          - "config/config.sg.yaml"       # SG  — act_893025326577600
 
 jobs:
   ops:
@@ -28,7 +35,7 @@ jobs:
       - name: Run script
         env:
           ADBOT_ROOT: ${{ github.workspace }}
-          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          ADBOT_CONFIG: ${{ github.workspace }}/${{ inputs.config || 'config/config.yaml' }}
           CONFIRM: ${{ inputs.confirm }}
           CONFIRM_PAUSE: ${{ inputs.confirm }}
           SCRIPT: ${{ inputs.script }}

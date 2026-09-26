@@ -5,6 +5,7 @@
 # ─────────────────────────────────────────────────────────────────────────────
 
 meta:
+  account_label: "MY"                             # shown in the nightly report header so MY/SG sections are never confused
   ad_account_id: "act_759339046918885"            # MTC X SB 3.0; switched 2026-07-13 after MTC X STOCKBLOOM 2 (2282909119125229) was disabled
   page_id: "1001334883061622"                     # FB Page the ads run under (unchanged — same Soo Cheng page)
   instagram_user_id: "17841480427751602"                 # IG Business Account @soochenginvesting; null to omit
