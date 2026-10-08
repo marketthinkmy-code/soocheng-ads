@@ -317,6 +317,15 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
 周三下午看到 MY 广告/ad set 被关是这个周期的正常现象——不要去「修」，也不要在周三下午
 判读 MY 当日数据；scheduled 未来开跑的新建 campaign 若跨周三也会被扫、周四自动弹回。
 
+## 账户现况（2026-10-08）
+
+- **MY 3.0 `act_759339046918885` 已封（2026-09-23）**——只读取证用，不投。
+- **MY 5.0 `act_2285351942292267`「[MY] MTC X SB 5.0」**（config `config/config.my5.yaml`，pixel 2602956993413536）：
+  2026-10-08 建了 3 条 1-1-5（DAY TRADING / BUSINESS OWNER 兴趣硬锁 30+、BROAD 30+），每条 CBO RM100，
+  同样 5 支干净 post 复用 ad。**与两个被封账户、SG 同一个 BM（Soo Cheng X MTC 2 / 769016565904540）**——
+  这里任何一支被拒都是整个 BM 家族的 strike：只上从没被拒过的素材、小预算、被拒立刻 DELETE 不申诉。
+- **SG `act_893025326577600`**（`config/config.sg.yaml`）：唯一有投放历史的活账户，14/10 直播的流量来源。
+
 ## Key locations
 
 - **Approved copy bank** (the 8 ads): Notion page **"SOOCHENG-Andromeda"**
