@@ -1,5 +1,5 @@
 """The permanent ban gate (owner 2026-09-23, after the second account ban)."""
-from adbot.compliance import banned_reason, filter_banned, is_banned, norm_key
+from adbot.compliance import BAN_MARK, banned_reason, filter_banned, is_banned, is_marked, norm_key
 
 BANNED = ["trading 早就不是这样了", "做么你 trading 不用看盘", "freestyle 1",
           "office 突访", "炒过那么多", "你敢吗", "分钟赚"]
@@ -41,3 +41,19 @@ def test_banned_reason_and_filter_report_the_matched_entry():
     assert banned_reason("🌟 video 2：你敢吗？", BANNED) == "你敢吗"
     hits = filter_banned(["freestyle: korea", "🌟 freestyle 1", "video 11：office 突访"], BANNED)
     assert hits == [("🌟 freestyle 1", "freestyle 1"), ("video 11：office 突访", "office 突访")]
+
+
+def test_ban_mark_is_ignored_for_matching_and_the_list_entry_still_wins():
+    # owner 2026-10-08: banned ads are renamed «🚫 …» in Ads Manager
+    assert norm_key("🚫 freestyle 1") == "freestyle1"
+    assert norm_key("🌟 🚫 video 2：你敢吗？") == "video2：你敢吗？"
+    assert banned_reason("🚫 freestyle 1", BANNED) == "freestyle 1"
+    assert banned_reason("🚫 拼接：Video 5：Trading 早就不是这样了！", BANNED) == "trading 早就不是这样了"
+
+
+def test_ban_mark_alone_bans_even_when_the_list_lags():
+    assert is_marked("🚫 brand new cut nobody listed yet")
+    assert banned_reason("🚫 brand new cut nobody listed yet", BANNED) == BAN_MARK
+    assert is_banned("🚫 brand new cut nobody listed yet", [])
+    assert not is_marked("freestyle: korea")
+    assert not is_banned("freestyle: korea", BANNED)

@@ -21,26 +21,37 @@ from __future__ import annotations
 
 from typing import Iterable, List, Optional
 
+# Owner 2026-10-08: every ad on the ban list carries this prefix in Ads Manager, so a
+# human sees the ban before clicking anything. The mark is ALSO a ban by itself — an
+# ad someone hand-marks 🚫 never runs, whether or not the yaml list knows it yet.
+BAN_MARK = "🚫"
+
 
 def norm_key(name: str) -> str:
-    """Casefold, strip the 🌟 sold-chain marker, and remove every space.
+    """Casefold, strip the 🌟 sold-chain and 🚫 ban markers, and remove every space.
 
     Whitespace removal is what makes CJK matching reliable: Meta ad names vary
     between «1 分钟赚 300» and «1分钟赚300» for the same video.
     """
-    s = (name or "").replace("🌟", "").replace("\\", "")
+    s = (name or "").replace("🌟", "").replace(BAN_MARK, "").replace("\\", "")
     return "".join(s.split()).casefold()
+
+
+def is_marked(name: str) -> bool:
+    """True when the ad name carries the 🚫 ban mark (anywhere — «🌟 🚫 …» included)."""
+    return BAN_MARK in (name or "")
 
 
 def banned_reason(name: str, banned: Iterable[str]) -> Optional[str]:
     """The ban-list entry this ad name matches, or None when it is clean."""
     key = norm_key(name)
-    if not key:
-        return None
-    for entry in banned or ():
-        token = norm_key(entry)
-        if token and token in key:
-            return entry
+    if key:
+        for entry in banned or ():
+            token = norm_key(entry)
+            if token and token in key:
+                return entry
+    if is_marked(name):
+        return BAN_MARK          # marked in Ads Manager — banned even if the list lags
     return None
 
 

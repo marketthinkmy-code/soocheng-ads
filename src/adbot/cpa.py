@@ -29,10 +29,11 @@ def norm(s: str) -> str:
     """Normalise a UTM/name value for matching: unescape, collapse whitespace, casefold.
 
     Also strips the 🌟 marker the owner prefixes onto sold-chain campaigns/ads in Ads
-    Manager (2026-09-03 «加上 🌟 做个记录，以免误关»), so a starred live name still
-    matches the unstarred UTM names stamped in the sales sheet — and vice versa.
+    Manager (2026-09-03 «加上 🌟 做个记录，以免误关»), and the 🚫 ban mark (2026-10-08),
+    so a marked live name still matches the unmarked UTM names stamped in the sales
+    sheet — and vice versa.
     """
-    s = (s or "").replace("\\", "").replace("🌟", "")
+    s = (s or "").replace("\\", "").replace("🌟", "").replace("🚫", "")
     return " ".join(s.split()).casefold()
 
 
