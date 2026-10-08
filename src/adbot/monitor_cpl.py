@@ -27,6 +27,7 @@ OVER_THRESHOLD = "cpl_over_threshold"
 WITHIN_THRESHOLD = "within_threshold"
 NO_RESULTS_YET = "no_results_yet"
 MANUAL_HOLD = "manual_hold"  # owner asked to keep this ad running despite CPL
+CPL_SUSPENDED = "cpl_suspended"  # kpi.cpl_paused_until: no CPL judgment during a learning window
 BANNED_CREATIVE = "banned_creative"  # permanently banned master (owner 2026-09-23)
 CPA_MANUAL_HOLD = "cpa_manual_hold"  # owner-named exemption from the CPA hard-stop (cpa.hold)
 NAME_RESCUED = "cpl_high_but_creative_sells"  # sales matched by ad name only (renamed campaign)
@@ -122,6 +123,17 @@ def soft_reduce_action(label_dates: List[dt.date], today: dt.date, carrier_budge
     if new_myr >= carrier_budget_myr:
         return "pause", None
     return "reduce", float(new_myr)
+
+
+def cpl_suspended(kpi: KpiCfg, today: dt.date) -> bool:
+    """True while kpi.cpl_paused_until (ISO date, inclusive, MYT) has not passed.
+
+    Owner 2026-10-08「停到周五」: the SG account came back from 14 dark days with every
+    carrier on RM50, so the first days are pure learning-phase data. During the window
+    the monitor still pauses banned creatives and CPA hard-stops, but makes no CPL call.
+    """
+    until = cpa.parse_date(kpi.cpl_paused_until or "")
+    return until is not None and today <= until
 
 
 def decide(spend: float, results: float, kpi: KpiCfg) -> Tuple[bool, str, Optional[float]]:
@@ -231,6 +243,7 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
         account, level="ad", fields="ad_id,spend,actions",
         date_preset=cpl_preset, time_range=cpl_range)}
 
+    suspended = cpl_suspended(settings.kpi, today)
     decisions: List[AdDecision] = []
     for campaign in graph.list_campaigns(account):
         if campaign.get("effective_status") != "ACTIVE":  # paused/archived have no live ads
@@ -265,8 +278,8 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                 carrier_kind, carrier_id, carrier_budget = None, None, 0.0
 
             held = any(h and h in name for h in settings.kpi.cpl_hold)
-            if held:                                   # a hold exempts from CPL (not CPA)
-                cpl_pause, cpl_reason = False, MANUAL_HOLD
+            if suspended or held:                      # a hold exempts from CPL (not CPA)
+                cpl_pause, cpl_reason = False, (CPL_SUSPENDED if suspended else MANUAL_HOLD)
                 cpl = (spend / results) if results else (math.inf if spend else None)
             else:
                 cpl_pause, cpl_reason, cpl = decide(spend, results, settings.kpi)
@@ -321,6 +334,9 @@ def run(graph, settings: Settings, *, dry_run: bool = False) -> Dict[str, Any]:
     event = settings.meta.conversion_event
     kpi = settings.kpi
     today = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()  # MYT
+    if cpl_suspended(kpi, today):
+        log.info("CPL judgment SUSPENDED until %s inclusive (kpi.cpl_paused_until) — "
+                 "only banned creatives and CPA hard-stops can pause this run", kpi.cpl_paused_until)
     decisions = evaluate_account(graph, settings)
     to_pause = [d for d in decisions if d.should_pause]
 
@@ -411,9 +427,11 @@ def run(graph, settings: Settings, *, dry_run: bool = False) -> Dict[str, Any]:
     active_left = len([d for d in decisions if not d.should_pause])
     soft_str = (f", cut {reduced} budget carrier(s) −{kpi.cpl_reduce_pct * 100:.0f}%"
                 if kpi.cpl_soft_reduce else "")
+    susp_str = (f" [CPL judgment suspended until {kpi.cpl_paused_until}]"
+                if cpl_suspended(kpi, today) else "")
     summary = (f"CPL monitor ({event}): evaluated {len(decisions)} active ads, "
                f"{'would pause' if dry_run else 'paused'} {paused}{soft_str}, "
-               f"{active_left} remain under CPL {settings.kpi.cpl_threshold_myr:.0f} MYR")
+               f"{active_left} remain under CPL {settings.kpi.cpl_threshold_myr:.0f} MYR{susp_str}")
     final_summary(log, summary)
     return {"evaluated": len(decisions), "paused": paused, "reduced": reduced,
             "remaining": active_left, "dry_run": dry_run}
