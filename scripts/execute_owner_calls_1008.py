@@ -70,8 +70,10 @@ def main() -> None:
             time.sleep(0.8)
         print(f"\n执行 {ok} 个，失败 {fail} 个。")
         time.sleep(3)
-        for oid in {p[1] for p in todo}:
-            obj = g._request("GET", oid, params={"fields": "id,name,status,effective_status,daily_budget"})
+        for kind, oid in {(p[0], p[1]) for p in todo}:
+            # ads have no daily_budget field — asking for it is a 400 (first run tripped here)
+            fields = "id,name,status,effective_status" + (",daily_budget" if kind == "adset" else "")
+            obj = g._request("GET", oid, params={"fields": fields})
             db = obj.get("daily_budget")
             print(f"  复查 «{(obj.get('name') or '')[:40]}» status={obj.get('status')}"
                   f" eff={obj.get('effective_status')}" + (f" RM{float(db)/100:.0f}/d" if db else ""))
