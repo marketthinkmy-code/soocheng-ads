@@ -15,6 +15,7 @@
   ── 60 天 CPA 标准才达标的位（owner 2026-10-08「以 60 天的 CPA 为标准再建议一次」，INCLUDE_60D）──
   F  campaign LUXURY GOODS | 1-1-3 CBO RM120 + ad video 1：用我的方法   60d CPA 487（30d 无单）
   G  ad 🌟 Video 2：市场不考你的英文 @ 🌟 PURCHASE LAL 5%（同 C 的 CBO，不加钱） 60d CPA 244
+  H  ad 🌟 Video 1：赚美金 @ 🌟 LUXURY WATCHES — owner 点名开（60d CPA 1,106 观察带，干净）
 
 开关是常量（ops workflow 只传 CONFIRM）：改下面两行再 dispatch。
 """
@@ -46,6 +47,9 @@ if INCLUDE_60D:
     CAMPAIGNS_ON.append(("F", "120248256443280521", "[SG] STOCKBLOOM | LUXURY GOODS | 1-1-3"))
     ADS_ON.append(("F", "120248256452030521", "video 1：用我的方法 @ LUXURY GOODS 1-1-3"))
     ADS_ON.append(("G", "120248835502570521", "🌟 Video 2：市场不考你的英文 @ 🌟 PURCHASE LAL 5%"))
+# H — owner 2026-10-08 点名「🌟 Video 1：赚美金 @ 🌟LUXURY WATCHES 开」（60d CPA 1,106 观察带，
+#     clean；campaign + adset 已 ACTIVE，只需开 ad）
+ADS_ON.append(("H", "120248813752340521", "🌟 Video 1：赚美金，一定要接美国客户？ @ 🌟 LUXURY WATCHES"))
 BUMP = ("E", "120249390885590521", "Broad SG 30+ RM50 (不选 forex) -> RM100", 10000)
 
 
