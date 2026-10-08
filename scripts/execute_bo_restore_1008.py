@@ -26,7 +26,8 @@ INTERESTS = [
     ("Entrepreneurship", "business and finance"), ("Sole proprietorship", "business and finance"),
     ("Business", "business and finance"), ("Home business", "business and finance"),
 ]
-KNOWN_INTEREST_IDS = {"Start-up company": "6003325004380", "Entrepreneurship": "6003371567474"}
+KNOWN_INTEREST_IDS = {"Start-up company": "6003325004380", "Entrepreneurship": "6003371567474",
+                      "Business": "6003402305839"}   # Meta's name is «Business (business and finance)» — seen in the dry-run candidates
 BEHAVIORS = [{"id": "6002714898572", "name": "Small business owners"}]
 JOB_TITLES = ["Chief executive officer", "Owner", "Owner and Founder", "Founder", "Managing Director"]
 KNOWN_JOB_IDS = {"Chief executive officer": "103113219728224", "Owner": "110722838955052",
