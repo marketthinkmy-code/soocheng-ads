@@ -47,14 +47,15 @@ the caption says another. That "WRONG match" got 2 campaigns deleted. **Always d
 pairing by reading each image's on-image text first; never write a "best-guess" pairing into
 a manifest and ship it.**
 
-### Targeting 硬规则（owner 2026-09-11「以後年齡放 30 開始」）
-**所有新建 ad set 年龄一律从 30 开始。** Meta 机制（run 253 实测）分两种：
-- **Advantage+ audience ON（Broad 打法）**：只能给「建议下限」`age_range: [30, 65]`——硬 `age_min`
+### Targeting 硬规则（owner 2026-10-08「以后年龄放 28+」，取代 09-11 的「30 開始」）
+**所有新建 ad set 年龄一律从 28 开始。** Meta 机制（run 253 实测）分两种：
+- **Advantage+ audience ON（Broad 打法）**：只能给「建议下限」`age_range: [28, 65]`——硬 `age_min`
   锁不上（API 报错「You can add a higher minimum age as a suggestion instead」），Meta 认为高价值时
-  仍可能投给 30 以下。建 adset 时直接带 `age_range`。
-- **advantage_audience=0（硬锁受众，如兴趣组）**：设硬 `age_min: 30`，并剥掉 `age_range`
+  仍可能投给 28 以下。建 adset 时直接带 `age_range`。
+- **advantage_audience=0（硬锁受众，如兴趣组）**：设硬 `age_min: 28`，并剥掉 `age_range`
   （该字段只在 Advantage+ ON 时合法，run 244 教训）。
-build 脚本 clone scaffold targeting 时必须覆写 age——scaffold 多半还是 25 起。已在跑的旧 ad set 不回改。
+build 脚本 clone scaffold targeting 时必须覆写 age——scaffold 多半还是 25 起。已在跑的旧 ad set 不回改
+（MY 5.0 的 Day Trading / Business Owner 两组 10/8 当天由 28 起重锁；Broad 由团队手改为 25+，未回改）。
 ⚠️ 在 Ads Manager UI 给 Advantage+ 关闭的 ad set 改年龄，UI 可能顺手把 Advantage+ 打开——兴趣锁会变参考值。
 
 ### Ad naming (Meta display name)

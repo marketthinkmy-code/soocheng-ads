@@ -69,7 +69,7 @@ def clone_targeting(g, fragment: str, locales):
     t = dict(asets[0]["targeting"])
     for k in DROP_KEYS:
         t.pop(k, None)
-    t["age_min"], t["age_max"] = 30, 65                          # 硬锁 30 起（owner 2026-09-11）
+    t["age_min"], t["age_max"] = 28, 65                          # 硬锁 28 起（owner 2026-10-08「以后年龄放 28+」，取代 09-11 的 30）
     t["targeting_automation"] = {"advantage_audience": 0}        # 兴趣组 = 硬锁，不给 Meta 放宽
     if locales and not t.get("locales"):
         t["locales"] = locales
@@ -116,11 +116,11 @@ def main() -> None:
                   f"  special={cats} country={cat_country}")
         else:
             t = {"geo_locations": {"countries": s.meta.targeting.countries},
-                 "age_range": [30, 65], "targeting_automation": {"advantage_audience": 1}}
+                 "age_range": [28, 65], "targeting_automation": {"advantage_audience": 1}}
             if locales:
                 t["locales"] = locales
             cats, cat_country = list(s.meta.special_ad_categories), []
-            print(f"▶ «{camp_name}»  Broad Adv+ ON · age_range 30-65 · special={cats}")
+            print(f"▶ «{camp_name}»  Broad Adv+ ON · age_range 28-65 · special={cats}")
         print("   " + json.dumps(t, ensure_ascii=False)[:600])
         specs[camp_name] = (t, cats, cat_country)
     print()
