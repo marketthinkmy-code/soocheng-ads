@@ -1,0 +1,122 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# adbot — config for the NEW MY ad account «[MY] MTC X SB 5.0» (act_2285351942292267)
+# owner 2026-10-08「我想要开在这里」. Same BM as the two disabled MY accounts and SG
+# (Soo Cheng X MTC 2 / 769016565904540) — see CLAUDE.md ⛔ 永久禁跑名单: nothing that was
+# ever rejected is built here, small budgets, no resubmits. Everything else mirrors
+# config.yaml (page, domain, objective, UTM, compliance list).
+# ─────────────────────────────────────────────────────────────────────────────
+
+meta:
+  ad_account_id: "act_2285351942292267"           # [MY] MTC X SB 5.0 — fresh account (owner 2026-10-08); 3.0 (759339046918885) disabled 2026-09-23
+  page_id: "1001334883061622"                     # FB Page the ads run under (unchanged — same Soo Cheng page)
+  instagram_user_id: "17841480427751602"                 # IG Business Account @soochenginvesting; null to omit
+  pixel_id: "2602956993413536"                    # "STOCK BLOOM X MTC" — the pixel already attached to 5.0, still firing from the LP (2026-10-07)
+
+  objective: "OUTCOME_SALES"              # matches your live "Sales" / BROAD META ANDRO template
+  optimization_goal: "OFFSITE_CONVERSIONS"   # "Maximize number of conversions"
+  conversion_event: "COMPLETE_REGISTRATION"  # Ads Manager "Complete registration" (custom_event_type)
+  special_ad_categories: ["FINANCIAL_PRODUCTS_SERVICES"]   # declared per owner 2026-06-23 (financial vertical, MY); NOTE: forces broad targeting
+                                         #   for trading/investment ads, which forces broad targeting
+
+  lead_destination:
+    type: "WEBSITE"                      # WEBSITE (chosen) | INSTANT_FORM | MESSENGER | WHATSAPP
+    link_url: "https://soochenginvesting.com/"
+  conversion_domain: "https://soochenginvesting.com/"   # required by Meta for website-conversion ads
+  call_to_action: "LEARN_MORE"             # e.g. SIGN_UP / LEARN_MORE / GET_OFFER / SUBSCRIBE
+  url_tags: "utm_source={{adset.name}}&utm_medium={{placement}}&utm_campaign={{campaign.name}}&utm_content={{ad.name}}"
+
+  budget:
+    level: "CAMPAIGN"                    # CBO — campaign-level budget (all ads use CBO)
+    daily_amount_myr: 200                # campaign daily budget (MYR); kept under the new account's ~RM208 Meta daily limit
+    currency: "MYR"
+    adset_min_spend_myr: 50              # per-ad-set minimum daily spend (>=50) -> daily_min_spend_target
+
+  targeting:
+    countries: ["MY"]
+    age_min: 25
+    age_max: 65
+    advantage_audience: 1                # 1 = Broad / Advantage+ ON (age 25 = floor). 0 = hard 25+ cap.
+    locales: [1004]                      # ad-set Languages = Chinese (All)
+    excluded_custom_audiences: []        # cleared 2026-07-13: the old audience lived on the disabled account;
+                                         #   re-add a "30 days complete registration" audience once rebuilt on the new acct
+
+
+  build:
+    creatives_per_adset: 10              # the "10" in 1-1-10
+    activate_after_build: false          # build PAUSED for review; activate in the UI after checking the ad set / Advantage+
+
+naming:
+  prefix: "STOCKBLOOM"                   # name prefix for every entity this bot manages (scoping)
+  weekly_off_label: "ADBOT_WEEKLY_OFF"   # label marking ads paused by the Wed OFF job (resumed Thu)
+
+drive:
+  creatives_folder_id: "1j4jWK5qVxL3mGM5WrU6TloHP-tV4kzmy"   # root folder with videos / images / carousel subfolders
+  carousel_subfolder_marker: "carousel"     # a subfolder whose name contains this = one carousel set
+  script_sidecar_ext: ".txt"                # per-asset script/brief: same basename, this extension
+
+google_docs:
+  caption_log_doc_id: ""                 # existing Doc id for caption+headline log (empty -> create)
+  idea_backlog_doc_id: ""                # existing Doc id for content-idea backlog (empty -> create)
+
+notion:                                  # build pulls approved copy from here (source of truth)
+  enabled: true                          # needs NOTION_TOKEN secret + DB shared with the integration
+  database_id: "89582b42449682d4ab7f01c223c9969b"   # 🎬 Stock Bloom Content Pipeline DB
+                                         #   row Title "Video N：标题" -> content_id video_N + ad name;
+                                         #   Hook -> ad headline; page body -> caption. Status NOT filtered.
+
+kpi:
+  cpl_threshold_myr: 60.00               # owner plan 2026-09-10「每日广告规则」: MY line moved 50->60 (act above RM60)
+  cpl_min_spend_myr: 60.00               # judge once spend >= RM60 = 1.5x target CPL RM40 (owner rule:「花到1.5倍目标CPL仍0 reg: 关」)
+  cpl_lookback: "week_thu"               # week-to-date from Thursday (the weekly ON/reset) — the window you review; or a Meta preset like last_3d
+  pause_zero_lead_after_spend: true      # spent >= threshold spend with 0 results -> infinite CPL -> pause
+  cpl_soft_reduce: true                  # TEMPORARY (owner 2026-09-10「先降 30%，再犯才关」): first over-CPL breach
+                                         #   of a Thu-week cuts the ad's budget carrier instead of pausing; a breach
+                                         #   on a later day of the same week pauses. false = pause immediately (old).
+  cpl_reduce_pct: 0.30
+  cpl_reduce_floor_myr: 30.00            # never cut a carrier below RM30/day (at the floor -> pause instead)
+  cpl_hold: ["你敢吗"]                    # 2026-08-07 owner: 你敢吗 sells (8/2+8/5 MY INVESTMENT) but the CPL sweep
+                                         #   keeps killing it before sheet rows land — exempt from CPL auto-pause.
+                                         #   CPA hard-stop still applies via reports; review 8/11.
+
+cpa:                                     # cost per real PAID acquisition (joins the Paid Student List sheet)
+  enabled: true
+  spreadsheet_id: "1NMtGKVHRYFSsUw3-dacNPYDZABcYKi6VZgMR0u_oZRE"   # "STOCK BLOOM Register and OTO, Purchase list"
+  sales_tab: "Paid Student List"         # the tab to read (one paid enrolment per row, with UTM + date)
+  price_myr: 2399.00                     # default pax price; the sheet's Amount column overrides per row
+  target_myr: 720.00                     # primary target CPA
+  healthy_max_myr: 800.00                # end of the healthy range (NOT an auto-pause line)
+  max_acceptable_myr: 960.00             # above here -> pause candidate after diagnosis + conversion time
+  hard_stop_myr: 1200.00                 # above here (with real sales) -> auto-pause
+  conversion_days: 14                    # registrations take time to convert; don't judge CPA until this old
+  min_spend_myr: 1000.00                 # need >= this spend before a CPA verdict is fair
+  hold: []                               # 2026-09-21 的 V8 观察豁免已作废 — 该素材 2026-09-23 进永久禁跑名单
+                                         #   (compliance.banned_creatives)，禁跑优先级高于任何 CPA 豁免。
+
+schedule:                                # informational; the real schedule lives in the Routine triggers
+  timezone: "Asia/Kuala_Lumpur"          # GMT+8 (no DST)
+  weekly_off: { day: "WED", time: "15:00" }   # pause ALL            -> UTC cron 0 7 * * 3
+  weekly_on:  { day: "THU", time: "00:00" }   # resume what Wed paused -> UTC cron 0 16 * * 3
+  monitor_interval_hours: 1
+
+compliance:                              # ⛔ 永久禁跑名单 — owner 2026-09-23，第二次封号后的硬规则
+  # 「write a rule that not to advertise these ads anymore (even tho the ads are
+  #   running well and had good cpa before)」— 被 Meta 拒审过的素材永久禁投，CPA 再好也不准。
+  # 匹配 = adbot.compliance.is_banned()：casefold + 去 🌟 + 去所有空格 + 子串。
+  # 禁的是母带：换名/换文案/换 campaign/换账户/post 复用/重新上传都算同一支。
+  # 解禁的唯一方式 = 剪辑师重剪干净版母带（算新素材，原版永不解禁）。
+  banned_creatives:
+    # ── 名单 A：2026-09-23 封号时账户内仍在的被拒广告（API 取证）──
+    - "trading 早就不是这样了"          # 拼接 V5 ×3(MY) + ×3(SG) + 原版 video 5 ×1(SG 🌟GOLF)
+    - "做么你 trading 不用看盘"          # Video 8 / HOOK：Video 8 — MY DISAPPROVED + SG ×2
+    - "freestyle 1"                      # 🌟freestyle 1 @ SG 🌟INVESTMENT 被拒（30d CPA 734，仍禁）
+    - "office 突访"                      # video 11：office 突访 @ SG TRAVEL
+    - "炒过那么多"                       # video 12 @ SG BROKERS（2026-08-07 的解禁作废）
+    - "what you do for living"           # M2Video 3 — 2025 旧 options 产品遗留，MY DISAPPROVED
+    # ── 名单 B：历史被拒（旧账号 2026-07-12 取证 + owner 报告）──
+    - "不是怕交易"                       # video 3 — 合规重建也被拒（视频本身违规）
+    - "厌倦了等待"                       # Video 4 — 合规重建也被拒
+    - "moomoo"                           # single image 5
+    - "分钟赚"                           # video 1：1 分钟赚 300 — 名字即收入承诺
+    - "就能盈利"                         # single image：每天 1 分钟就能盈利
+    - "你敢吗"                           # video 2 — 2026-07-16 被拒
+    - "freestyle 2"                      # 2026-07-16 被拒
