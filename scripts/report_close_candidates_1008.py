@@ -18,7 +18,7 @@ from adbot.commands import graph_client
 from adbot.monitor_cpl import extract_results, result_action_type
 from adbot.settings import REPO_ROOT, load_settings
 
-REJECTED_TODAY = ["不选 forex"]      # MY 5.0 15:13 + ~16:00 SGT, twice; owner deleted MY copies
+REJECTED_TODAY = {"MY 5.0": ["不选 forex"]}   # owner 2026-10-08「MY 是 MY，不用碰到 SG」— the MY 5.0 rejection stays on MY 5.0
 
 
 def cta_of(cr: dict) -> str:
@@ -70,7 +70,7 @@ def main() -> None:
             cr = a.get("creative") or {}
             cta = cta_of(cr)
             banned = compliance.banned_reason(nm, s.compliance.banned_creatives)
-            rej = compliance.banned_reason(nm, REJECTED_TODAY)
+            rej = compliance.banned_reason(nm, REJECTED_TODAY.get(label, []))
             wa = "WHATSAPP" in cta.upper() or "wa.me" in cta
             if banned:
                 v = "⛔禁跑"

@@ -329,7 +329,9 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
 - **2026-10-08 15:13 SGT，MY 5.0 DAY TRADING 的 `Video：不选 forex 不选黄金` 被拒**（团队成员在 Ads Manager
   把它改成 WhatsApp 目的地 → 新 creative → 重审 → Not approved；通知里露出的文案「涨跌都能赚，而且不用自己的本钱」
   是收益承诺 + 零本钱，同一段文案挂在 SG 4 个在跑位上）。**owner 决定自行申诉（规则第三条的例外，他本人拍板）**；
-  该 ad 保持 PAUSED + 🚫，SG 的 不选 forex 位照跑、不进 banned_creatives——除非申诉再被拒，到时按规则全家族停。
+  申诉当天再被拒，owner 把 MY 5.0 的 3 支副本删掉。**owner 2026-10-08 裁定「MY 是 MY，不用碰到 SG」**：
+  这次被拒**不外溢到 SG**——SG 的 不选 forex 位照跑，`不选 forex` **不进** banned_creatives、不加 🚫；
+  报告 / monitor 不得再把 SG 的 不选 forex 列为「需要关」。（这是 owner 对 9/23 全家族规则的本人例外，仅此一支。）
   教训：**新账户的 ad 不要在 Ads Manager 里改 creative / 加 WhatsApp**——改一次 = 新 creative 重审一次。
 
 ## Key locations
