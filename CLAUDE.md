@@ -325,6 +325,11 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   同样 5 支干净 post 复用 ad。**与两个被封账户、SG 同一个 BM（Soo Cheng X MTC 2 / 769016565904540）**——
   这里任何一支被拒都是整个 BM 家族的 strike：只上从没被拒过的素材、小预算、被拒立刻 DELETE 不申诉。
 - **SG `act_893025326577600`**（`config/config.sg.yaml`）：唯一有投放历史的活账户，14/10 直播的流量来源。
+- **2026-10-08 15:13 SGT，MY 5.0 DAY TRADING 的 `Video：不选 forex 不选黄金` 被拒**（团队成员在 Ads Manager
+  把它改成 WhatsApp 目的地 → 新 creative → 重审 → Not approved；通知里露出的文案「涨跌都能赚，而且不用自己的本钱」
+  是收益承诺 + 零本钱，同一段文案挂在 SG 4 个在跑位上）。**owner 决定自行申诉（规则第三条的例外，他本人拍板）**；
+  该 ad 保持 PAUSED + 🚫，SG 的 不选 forex 位照跑、不进 banned_creatives——除非申诉再被拒，到时按规则全家族停。
+  教训：**新账户的 ad 不要在 Ads Manager 里改 creative / 加 WhatsApp**——改一次 = 新 creative 重审一次。
 
 ## Key locations
 

@@ -16,7 +16,8 @@ from adbot.commands import graph_client
 from adbot.settings import REPO_ROOT, load_settings
 
 CONFIRM = os.environ.get("CONFIRM", "").lower() in ("1", "true", "yes")
-REJECTED = ["不选 forex"]   # 2026-10-08 15:13 SGT MY 5.0 DAY TRADING «Video：不选 forex 不选黄金» Not approved
+REJECTED = []   # 2026-10-08 15:13 SGT MY 5.0 «Video：不选 forex 不选黄金» Not approved — owner 15:35「我自己做决定 试试看」
+                # 自行申诉；本脚本不动。若申诉再被拒 → 填 ["不选 forex"] 并等 owner 一句话。
 DELETE_MY5 = False       # owner 一句「删」后改 True
 ACCOUNTS = [("MY5", "config.my5.yaml")]   # SG 的 4 个在跑位等 owner 一句话再动（见对话）
 
