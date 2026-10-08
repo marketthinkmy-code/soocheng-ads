@@ -147,6 +147,11 @@ class KpiCfg(BaseModel):
     cpl_soft_reduce: bool = False
     cpl_reduce_pct: float = 0.30
     cpl_reduce_floor_myr: float = 30.0  # never cut a carrier below this daily budget
+    # TEMPORARY (owner 2026-10-08「停到周五」): while today (MYT) <= this ISO date the monitor makes
+    # NO CPL decision at all — no over-CPL soft-reduce, no 0-reg pause. SG restarted from a 14-day
+    # dark period with every carrier on RM50; day-1/2 learning CPL would otherwise be judged as if
+    # it were steady state. Banned-creative pauses and the CPA hard-stop stay live. Self-expiring.
+    cpl_paused_until: Optional[str] = None
 
 
 class CpaCfg(BaseModel):
