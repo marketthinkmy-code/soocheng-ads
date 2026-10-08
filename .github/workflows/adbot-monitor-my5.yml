@@ -1,7 +1,7 @@
 name: adbot · MY 5.0 CPL monitor (hourly)
 
-# Same CPL+CPA guardrail as adbot-monitor.yml, but for the Singapore ad account
-# (act_893025326577600, "[SG] MTC X SB") via ADBOT_CONFIG=config/config.my5.yaml.
+# Same CPL+CPA guardrail as adbot-monitor.yml, but for the NEW MY ad account
+# «[MY] MTC X SB 5.0» (act_2285351942292267) via ADBOT_CONFIG=config/config.my5.yaml — owner 2026-10-08「你可以介入 MY 了」.
 # Whole-account scope, registration-optimized ads only, pauses any ACTIVE SG ad over
 # the RM50 CPL ceiling; never un-pauses. CPA rescue is ON (cpa.enabled:true) — the Paid
 # Student List carries SG sales ([sg] utm_campaign), so a converting SG ad is never
@@ -34,7 +34,7 @@ jobs:
         with:
           python-version: "3.11"
       - run: pip install .
-      - name: Run SG CPL monitor
+      - name: Run MY 5.0 CPL monitor
         env:
           ADBOT_ROOT: ${{ github.workspace }}
           ADBOT_CONFIG: ${{ github.workspace }}/config/config.my5.yaml
