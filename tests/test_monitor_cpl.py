@@ -403,3 +403,44 @@ def test_banned_creative_overrides_every_rescue_and_hold():
     assert by_name["拼接：Video 5：Trading 早就不是这样了！"].should_pause is True
     assert by_name["拼接：Video 5：Trading 早就不是这样了！"].reason == BANNED_CREATIVE
     assert by_name["HOOK：Video 12：不选 forex 不选黄金"].should_pause is False
+
+
+def test_cpl_paused_until_suspends_cpl_but_not_ban_or_cpa_hard_stop():
+    # owner 2026-10-08「停到周五」: SG restarted after 14 dark days with every carrier on RM50;
+    # day-1 learning CPL must trigger neither the soft-reduce nor the 0-reg pause. The ban
+    # list and the CPA hard-stop keep working through the window, and it self-expires.
+    import datetime as _dt
+    from adbot import cpa as _cpa
+    from adbot.monitor_cpl import CPL_SUSPENDED as _SUSP, OVER_THRESHOLD as _OVER, ZERO_RESULTS as _ZERO
+    from adbot.settings import ComplianceCfg as _Comp
+    today = (_dt.datetime.utcnow() + _dt.timedelta(hours=8)).date()
+    settings = Settings(
+        meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+        kpi=KpiCfg(cpl_threshold_myr=95, cpl_min_spend_myr=142, cpl_lookback="last_3d",
+                   pause_zero_lead_after_spend=True, cpl_paused_until=today.isoformat()),
+        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14, min_spend_myr=1000),
+        compliance=_Comp(banned_creatives=["freestyle 1"]))
+    campaigns = [{"id": "A", "name": "[SG] STOCKBLOOM | BROAD", "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad("over cpl"), _ad("zero reg"), _ad("🚫 freestyle 1"), _ad("cpa dead")]}
+    insights = {"over cpl": _reg_insight(300, 1),        # CPL 300 — would soft-reduce / pause
+                "zero reg": _reg_insight(200, 0),        # 0 reg past RM142 — would pause
+                "🚫 freestyle 1": _reg_insight(100, 5),  # great CPL, banned
+                "cpa dead": _reg_insight(100, 5)}        # great CPL, CPA 1500 with a real sale
+    ck = _cpa.norm("[sg] stockbloom | broad")
+    sold = {(ck, _cpa.norm("cpa dead")): 1}
+    spend60 = {"cpa dead": 1500.0}
+
+    by_name = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=(sold, spend60))}
+    assert by_name["over cpl"].should_pause is False and by_name["over cpl"].reason == _SUSP
+    assert by_name["zero reg"].should_pause is False and by_name["zero reg"].reason == _SUSP
+    assert by_name["🚫 freestyle 1"].should_pause is True
+    assert by_name["🚫 freestyle 1"].reason == BANNED_CREATIVE
+    assert by_name["cpa dead"].should_pause is True and by_name["cpa dead"].reason == _cpa.HARD_STOP
+
+    # the window expired yesterday -> normal CPL judgment is back
+    settings.kpi.cpl_paused_until = (today - _dt.timedelta(days=1)).isoformat()
+    by_name = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=(sold, spend60))}
+    assert by_name["over cpl"].should_pause is True and by_name["over cpl"].reason == _OVER
+    assert by_name["zero reg"].should_pause is True and by_name["zero reg"].reason == _ZERO
