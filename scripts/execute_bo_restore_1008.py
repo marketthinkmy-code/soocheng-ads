@@ -17,10 +17,14 @@ from adbot.settings import REPO_ROOT, load_settings
 
 CONFIRM = os.environ.get("CONFIRM", "").lower() in ("1", "true", "yes")
 BO_ADSET = "120251329164990329"
+# (name as Ads Manager shows it, category hint from the activity log's parenthetical)
 INTERESTS = [
-    "Small business", "creative entrepreneurship", "business plan", "Small and medium enterprises",
-    "Self-employment", "business model", "Passive income", "Start-up company", "Entrepreneurship",
-    "Sole proprietorship", "Business", "Home business",
+    ("Small business", "business and finance"), ("creative entrepreneurship", "business and financial industries"),
+    ("business plan", "business activities"), ("Small and medium enterprises", "business and finance"),
+    ("Self-employment", "careers"), ("business model", "business and financial industries"),
+    ("Passive income", "business and finance"), ("Start-up company", "business and finance"),
+    ("Entrepreneurship", "business and finance"), ("Sole proprietorship", "business and finance"),
+    ("Business", "business and finance"), ("Home business", "business and finance"),
 ]
 KNOWN_INTEREST_IDS = {"Start-up company": "6003325004380", "Entrepreneurship": "6003371567474"}
 BEHAVIORS = [{"id": "6002714898572", "name": "Small business owners"}]
@@ -29,9 +33,27 @@ KNOWN_JOB_IDS = {"Chief executive officer": "103113219728224", "Owner": "1107228
                  "Founder": "849873341726582", "Managing Director": "874842615892965"}
 
 
-def resolve(g, kind, name):
-    rows = g._get_all("search", {"type": kind, "q": name, "limit": "25"})
-    exact = [r for r in rows if (r.get("name") or "").casefold() == name.casefold()]
+def resolve(g, kind, name, hint=""):
+    """Exact name match first; else name match whose category path/topic carries the hint.
+    Prints the top candidates so a miss can be judged by eye."""
+    rows = g._get_all("search", {"type": kind, "q": name, "limit": "50"})
+    key = name.casefold()
+    exact = [r for r in rows if (r.get("name") or "").casefold() == key]
+    if len(exact) == 1 or (exact and not hint):
+        return exact[0]
+    h = hint.casefold().replace("&", "and")
+    def cat(r):
+        return " ".join([str(x) for x in (r.get("path") or [])] + [str(r.get("topic") or ""),
+                        str(r.get("disambiguation_category") or "")]).casefold().replace("&", "and")
+    hinted = [r for r in exact if h and h in cat(r)]
+    if hinted:
+        return hinted[0]
+    loose = [r for r in rows if key in (r.get("name") or "").casefold() and (not h or h in cat(r))]
+    if len(loose) == 1:
+        return loose[0]
+    for r in rows[:5]:
+        print(f"      候选: {r.get('id')} «{r.get('name')}» path={r.get('path')} topic={r.get('topic')}"
+              f" disamb={r.get('disambiguation_category')} aud={r.get('audience_size_upper_bound')}")
     return exact[0] if exact else None
 
 
@@ -39,10 +61,10 @@ def main() -> None:
     s = load_settings(REPO_ROOT / "config" / "config.my5.yaml")
     g = graph_client(s)
     interests, missing = [], []
-    for nm in INTERESTS:
+    for nm, hint in INTERESTS:
         if nm in KNOWN_INTEREST_IDS:
             interests.append({"id": KNOWN_INTEREST_IDS[nm], "name": nm}); continue
-        hit = resolve(g, "adinterest", nm)
+        hit = resolve(g, "adinterest", nm, hint)
         if hit:
             interests.append({"id": hit["id"], "name": hit.get("name")})
             print(f"  interest «{nm}» → {hit['id']} (受众上限 {hit.get('audience_size_upper_bound')})")
