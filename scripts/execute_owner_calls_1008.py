@@ -13,8 +13,8 @@ from adbot.commands import graph_client
 from adbot.settings import REPO_ROOT, load_settings
 
 CONFIRM = os.environ.get("CONFIRM", "").lower() == "true"
-CLOSE_PINJIE_V1 = False
-BUMP_0911 = False
+CLOSE_PINJIE_V1 = True
+BUMP_0911 = True
 
 PINJIE_AD = "120249406487260521"
 PINJIE_ADSET = "120249406486090521"
