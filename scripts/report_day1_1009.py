@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""READ-ONLY: owner 2026-10-08「明天看完第一天 CPL 告诉我」— SG 开回后的第一天成绩单。
+"""READ-ONLY: owner 2026-10-08「明天看完第一天 CPL 告诉我」— SG 开回 + MY 5.0 开投后的第一天成绩单（两个账户）。
 
 每支在跑的 registration ad：昨天（账户时区整天）花费 / 报名 / CPL，今天到现在，载体预算，
 对照 SG 线 RM95（monitor 的 0-reg 门槛 RM142）；账户合计；近 24h monitor / 人工的开关与预算
@@ -19,7 +19,17 @@ ZERO_REG_SPEND = 142.0
 
 
 def main() -> None:
-    s = load_settings(REPO_ROOT / "config" / "config.sg.yaml")
+    for label, cfg in (("SG", "config.sg.yaml"), ("MY 5.0", "config.my5.yaml")):
+        print(f"\n################ {label} ################")
+        try:
+            one(cfg)
+        except Exception as exc:                                   # noqa: BLE001
+            print(f"  ❌ {label} 读不到：{str(exc)[:160]}")
+    print("\nDAY1 REPORT DONE (read-only)")
+
+
+def one(cfg: str) -> None:
+    s = load_settings(REPO_ROOT / "config" / cfg)
     g = graph_client(s)
     acct = s.meta.account_path
     token = result_action_type(s.meta.conversion_event)
@@ -92,7 +102,6 @@ def main() -> None:
     for x in evts[:40]:
         print(f"  {(x.get('event_time') or '')[5:16]}  {(x.get('actor_name') or '?')[:18]:<18}"
               f" {(x.get('event_type') or '')[:30]:<30} «{(x.get('object_name') or '')[:36]}»")
-    print("\nDAY1 REPORT DONE (read-only)")
 
 
 if __name__ == "__main__":
