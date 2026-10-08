@@ -10,8 +10,13 @@
   B  campaign BROAD SG 25+ | 0910 重拍     ABO        — 重拍：Video 6：我跟你讲！  30d CPA 183（唯一活 adset RM50）
   C  campaign 🌟 PURCHASE LAL 5% | 1-1-4  CBO RM70   — 🌟 video 5：盖电脑，喂！    30d CPA 654
   D  adset+ad  GOLF PICKLEBALL 30-55 | 0914 RM100     — HOOK：Video 5：盖电脑，喂！ 30d CPA 660 · CPL 83
-  E (可选, BUMP_0911=true) adset «Broad SG 30+» RM50→RM100 — HOOK：Video 12：不选 forex 不选黄金 30d CPA 240，
+  E (可选, BUMP_0911) adset «Broad SG 30+» RM50→RM100 — HOOK：Video 12：不选 forex 不选黄金 30d CPA 240，
      它旁边那个 RM100 adset 只剩被禁的 炒过那么多（已关），钱卡在空壳上。
+  ── 60 天 CPA 标准才达标的位（owner 2026-10-08「以 60 天的 CPA 为标准再建议一次」，INCLUDE_60D）──
+  F  campaign LUXURY GOODS | 1-1-3 CBO RM120 + ad video 1：用我的方法   60d CPA 487（30d 无单）
+  G  ad 🌟 Video 2：市场不考你的英文 @ 🌟 PURCHASE LAL 5%（同 C 的 CBO，不加钱） 60d CPA 244
+
+开关是常量（ops workflow 只传 CONFIRM）：改下面两行再 dispatch。
 """
 from __future__ import annotations
 
@@ -23,7 +28,8 @@ from adbot.commands import graph_client
 from adbot.settings import REPO_ROOT, load_settings
 
 CONFIRM = os.environ.get("CONFIRM", "").lower() == "true"
-BUMP_0911 = os.environ.get("BUMP_0911", "").lower() == "true"
+INCLUDE_60D = True      # owner 2026-10-08: judge by 60-day CPA -> F + G join the plan
+BUMP_0911 = False       # optional E; flip to True only on the owner's word
 
 CAMPAIGNS_ON = [
     ("A", "120249526319970521", "[SG] STOCKBLOOM | ANDRO POOL 30+ | 0922"),
@@ -36,6 +42,10 @@ ADSETS_ON = [
 ADS_ON = [
     ("D", "120249392121450521", "HOOK：Video 5：盖电脑，喂！ @ GOLF 30-55"),
 ]
+if INCLUDE_60D:
+    CAMPAIGNS_ON.append(("F", "120248256443280521", "[SG] STOCKBLOOM | LUXURY GOODS | 1-1-3"))
+    ADS_ON.append(("F", "120248256452030521", "video 1：用我的方法 @ LUXURY GOODS 1-1-3"))
+    ADS_ON.append(("G", "120248835502570521", "🌟 Video 2：市场不考你的英文 @ 🌟 PURCHASE LAL 5%"))
 BUMP = ("E", "120249390885590521", "Broad SG 30+ RM50 (不选 forex) -> RM100", 10000)
 
 
@@ -76,6 +86,8 @@ def main() -> None:
             blocked.append((tag, label, f"⛔ 底下还有 {len(bad)} 支禁跑素材 ad 层 ACTIVE：" +
                             " / ".join((a.get("name") or "")[:24] for a in bad)))
             continue
+        opening = {adid for _t, adid, _l in ADS_ON}
+        good = good or [a for a in kids if a["id"] in opening]   # opened earlier in this same run
         if not good:
             blocked.append((tag, label, "没有任何干净 ad 是 ACTIVE——开了也烧不了钱，先开 ad"))
             continue

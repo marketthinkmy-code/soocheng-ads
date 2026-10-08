@@ -252,6 +252,17 @@ Video 2（谁讲 trading 一定要~）· video 2：你敢吗？· freestyle 2
 判定入口只有 `adbot.compliance.is_banned(name)`（子串匹配，忽略 🌟 / `HOOK：` / `重拍：` /
 `拼接：` 前缀）。**任何建案 / 开回 / scale 脚本动手前必须先过这道闸。**
 
+**🚫 标记（owner 2026-10-08「禁跑名单的 ad name 前面统一加 emoji 🚫」）：**名单上的每一支 ad 在
+Ads Manager 里一律改名为 `🚫 <原名>`（SG 已由 `scripts/execute_mark_banned_sg_1008.py` 全部加上；
+以后新进名单的素材、每一个副本都要加）。`adbot.compliance` 把 🚫 当禁跑标记：**名字带 🚫 的 ad
+不论 yaml 名单有没有它，一律视为禁跑**；匹配时忽略 🚫（同 🌟），CPA join 也忽略。
+看到 🚫 = 不开、不复制、不 resubmit；只能等重剪干净版以新名字进场。
+
+**ad 层拆引信（2026-10-08 教训）：**9/23 只删了「自身状态=被拒」的 9 支，名单上其余副本仍在账户里，
+其中 17 支 ad 层 ACTIVE、只被 campaign/adset 压住——10/8 10:21 有人按 campaign 整条开回，
+`炒过那么多` 立刻上线 7 分钟。**禁跑素材必须在 ad 层 PAUSED**（`execute_ban_neutralize_sg_1008.py`），
+不能只靠上层关着；开回任何载体前先扫它底下有没有禁跑 ad 上膛。
+
 ### 📋 运营规则（仍然有效，但全部让位于上面的禁跑名单）
 
 - **Owner 手动关 = 定案（owner 2026-09-14「我手动关了的广告不要再开回了」）**：被 owner 手动
