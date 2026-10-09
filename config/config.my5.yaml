@@ -74,7 +74,7 @@ kpi:
                                          #   on a later day of the same week pauses. false = pause immediately (old).
   cpl_reduce_pct: 0.30
   cpl_reduce_floor_myr: 30.00            # never cut a carrier below RM30/day (at the floor -> pause instead)
-  cpl_paused_until: "2026-10-09"         # TEMPORARY owner 2026-10-08: 5.0 当天刚开（3 条各 RM100），学习期不做 CPL 判定；
+  cpl_paused_until: null                 # ENDED 2026-10-09 owner「今天恢复」(window = 10/8 only); was TEMPORARY owner 2026-10-08: 5.0 当天刚开（3 条各 RM100），学习期不做 CPL 判定；
                                          #   周五 10/10 自动恢复。禁跑名单 + CPA 硬线照常。
   cpl_hold: []                           # 5.0 从零开始：没有豁免（你敢吗 已在禁跑名单）
 
