@@ -73,7 +73,7 @@ kpi:                                              # SG account is MYR, so RM val
   cpl_soft_reduce: true                            # TEMPORARY (owner 2026-09-10「先降 30%，再犯才关」) — same rules as MY
   cpl_reduce_pct: 0.30
   cpl_reduce_floor_myr: 30.00
-  cpl_paused_until: "2026-10-09"                   # TEMPORARY owner 2026-10-08「停到周五」: SG 10/8 从 14 天全黑重开、
+  cpl_paused_until: null                           # ENDED 2026-10-09 owner「今天恢复」(window = 10/8 only); was TEMPORARY owner 2026-10-08「停到周五」: SG 10/8 从 14 天全黑重开、
                                                    #   全部载体 RM50，头两天是学习期数据 — 到周四为止不做任何 CPL 判定
                                                    #   （不降 30%、不关 0-reg）；周五 10/10 自动恢复。禁跑名单 + CPA 硬线照常。
   cpl_hold: ["你敢吗"]                    # 2026-08-07: SG RUNNING 你敢吗 sold 8/5+8/6 but its campaign was renamed after
