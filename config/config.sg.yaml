@@ -92,10 +92,15 @@ cpa:                                              # ON for SG: the Paid Student 
   hard_stop_myr: 1200.00
   conversion_days: 14
   min_spend_myr: 1000.00
-  hold: ["用我的方法"]                              # TEMPORARY owner 2026-10-09「照建议」: «video 1：用我的方法» @ BROAD SG 25+ 0905
+  hold: ["用我的方法", "🌟 video 12：不选 forex 不选黄金"]
+                                                   # TEMPORARY owner 2026-10-09「照建议」: «video 1：用我的方法» @ BROAD SG 25+ 0905
                                                    #   sat at 60d CPA 1,180 (1 sale), hours from the RM1,200 hard stop, while its
                                                    #   30d CPA 832 passes the owner's 9/20 standard. Keep it through the 14/10 live.
                                                    #   Name match: the LUXURY GOODS and ANDRO POOL copies are held too (owner: 留).
+                                                   #   Remove after 2026-10-15.
+                                                   # TEMPORARY owner 2026-10-10「照你建议」: «🌟 video 12：不选 forex 不选黄金» @ 🌟 LUXURY WATCHES
+                                                   #   reopened on its 30d numbers (RM278 · 8 reg · CPL 35 · 1 sale, CPA30 278) although its
+                                                   #   60d CPA (1,242, August spend) sits over the hard stop. Exact name, so only that copy.
                                                    #   Remove after 2026-10-15.
 
 schedule:
