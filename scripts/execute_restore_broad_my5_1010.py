@@ -23,9 +23,10 @@ def main() -> None:
     camp = g.get_object(CAMPAIGN_ID, "name,status,effective_status,daily_budget,adlabels")
     name = camp.get("name") or ""
     cents = int(camp.get("daily_budget") or 0)
-    labels = [l.get("name") for l in ((camp.get("adlabels") or {}).get("data") or [])
-              if isinstance(camp.get("adlabels"), dict)] or \
-             [l.get("name") for l in (camp.get("adlabels") or []) if isinstance(l, dict)]
+    raw = camp.get("adlabels") or []
+    if isinstance(raw, dict):                       # Graph returns either a bare list or {"data": [...]}
+        raw = raw.get("data") or []
+    labels = [l.get("name") for l in raw if isinstance(l, dict)]
     print(f"campaign «{name}» {camp.get('status')} / eff {camp.get('effective_status')} / CBO RM{cents / 100:.0f}")
     print(f"  labels: {labels}")
     assert "BROAD MY" in name.upper(), f"unexpected campaign: {name}"
