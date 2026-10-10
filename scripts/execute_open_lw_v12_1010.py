@@ -19,7 +19,7 @@ from adbot.commands import graph_client
 from adbot.settings import REPO_ROOT, load_settings
 
 CONFIRM = os.environ.get("CONFIRM", "").lower() == "true"
-CAMPAIGN_PREFIX = "🌟 [SG] STOCKBLOOM | LUXURY WATCHES"
+CAMPAIGN_KEY = "LUXURY WATCHES"          # name match; the 🌟 prefix made find_campaigns_by_prefix return []
 AD_NAME = "🌟 video 12：不选 forex 不选黄金"
 
 
@@ -28,8 +28,9 @@ def main() -> None:
     g = graph_client(s)
     acct = s.meta.account_path
 
-    camps = g.find_campaigns_by_prefix(acct, CAMPAIGN_PREFIX)
-    assert len(camps) == 1, f"expected exactly one campaign, got {[c.get('name') for c in camps]}"
+    allc = g._get_all(acct + "/campaigns", {"fields": "id,name,status,effective_status,daily_budget", "limit": "200"})
+    camps = [c for c in allc if CAMPAIGN_KEY in (c.get("name") or "")]
+    assert len(camps) == 1, f"expected exactly one campaign, got {[c.get('name') for c in camps]} (of {len(allc)})"
     camp = g.get_object(camps[0]["id"], "name,status,effective_status,daily_budget")
     print(f"campaign «{camp.get('name')}» {camp.get('status')} / eff {camp.get('effective_status')} / "
           f"CBO RM{float(camp.get('daily_budget') or 0) / 100:.0f}")
