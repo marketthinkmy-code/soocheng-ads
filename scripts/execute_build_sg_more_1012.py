@@ -171,7 +171,7 @@ def main() -> None:
     if CONFIRM and not rt:
         try:
             r = g._request("POST", acct + "/customaudiences", data=_encode({
-                "name": RT_AUD, "subtype": "WEBSITE", "prefill": "1", "rule": rule,
+                "name": RT_AUD, "prefill": "1", "rule": rule,
                 "description": "PageView 14d minus CompleteRegistration 14d — last-call pool for the 14/10 live"}))
             rt = {"id": r["id"], "name": RT_AUD}; print(f"   ✓ audience {r['id']} «{RT_AUD}»"); time.sleep(PACE)
         except Exception as exc:                                   # noqa: BLE001
@@ -193,8 +193,12 @@ def main() -> None:
             if not cid:
                 cid = g.create_campaign(acct, name=camp_name, objective="OUTCOME_SALES", buying_type="AUCTION",
                                         daily_budget=budget, bid_strategy="LOWEST_COST_WITHOUT_CAP",
-                                        special_ad_categories=cats, status="ACTIVE")["id"]
+                                        special_ad_categories=cats, special_ad_category_country=s.meta.targeting.countries,
+                                        status="ACTIVE")["id"]
                 print(f"   ✓ campaign {cid}"); time.sleep(PACE)
+            else:   # created earlier without the country list -> the ad set's SG geo was rejected; fix in place
+                g._request("POST", cid, data=_encode({"special_ad_category_country": s.meta.targeting.countries}))
+                print(f"   · campaign {cid} exists — special_ad_category_country → {s.meta.targeting.countries}"); time.sleep(1.0)
             sets = g._get_all(cid + "/adsets", {"fields": "id,name", "limit": "10"}); time.sleep(0.6)
             aid = next((x["id"] for x in sets if (x.get("name") or "") == aset_name), None)
             if not aid:
