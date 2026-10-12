@@ -33,11 +33,14 @@ def main() -> None:
 
     def find(key: str) -> dict:
         hits = [c for c in camps if key in (c.get("name") or "")]
+        if len(hits) > 1:                                   # e.g. several «… | 0905» chains: keep the running one
+            live = [c for c in hits if c.get("status") == "ACTIVE"]
+            hits = live or hits
         assert len(hits) == 1, f"{key}: expected 1 campaign, got {[c.get('name') for c in hits]}"
         return hits[0]
 
     # ── 1. 0905 reopen ─────────────────────────────────────────────────────────
-    c = find("| 0905")
+    c = find("BROAD SG 25+ | 0905")
     sets = g._get_all(c["id"] + "/adsets", {"fields": "id,name,status,effective_status,daily_budget", "limit": "20"})
     ads = g._get_all(c["id"] + "/ads", {"fields": "id,name,status,effective_status,adset_id", "limit": "100"})
     time.sleep(0.8)
