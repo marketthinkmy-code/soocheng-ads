@@ -28,7 +28,7 @@ WINNER_POST_FALLBACK = "1001334883061622_122123316747286543"
 CHAINS = [  # (campaign-name key, CBO cents)
     ("🌟 [SG] STOCKBLOOM | PURCHASE LAL 5%", 6500),
     ("🌟 [SG] STOCKBLOOM | GOLF PICKBLEBALL", 6500),
-    ("🌟 [SG] STOCKBLOOM | PRIORITY BANKING", 6500),
+    ("PRIORITY BANKING", 6500),                       # the 🌟-prefixed exact key matched nothing on 10/12
 ]
 LAL1_AUD = "LAL 1% | Purchase seed (SG) | 1012"
 LAL1_CAMP, LAL1_ASET, LAL1_BUDGET = "[SG] STOCKBLOOM | PURCHASE LAL 1% | 1-1-1 | 1012", "Purchase LAL 1% | SG 28+", 6500
@@ -128,6 +128,11 @@ def main() -> None:
 
     # G — 1 % purchase lookalike ----------------------------------------------------------
     lal1 = by_name.get(LAL1_AUD)
+    if not lal1:                                        # reuse an existing 1 % purchase lookalike before building one
+        ready = [a for a in lal_auds if str((a.get("lookalike_spec") or {}).get("ratio")) in ("0.01", "0.010")
+                 and "purchase" in (a.get("name") or "").lower()]
+        if ready:
+            lal1 = ready[0]; print(f"   reuse existing 1% purchase LAL «{lal1.get('name')}» (~{lal1.get('approximate_count_lower_bound')})")
     seed = None
     if not lal1:
         # seed = origin of the lookalike the 🌟 LAL 5% ad set targets
