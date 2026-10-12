@@ -178,6 +178,19 @@ def main() -> None:
             log_skip.append(f"retarget audience: {str(exc)[:160]}"); print(f"   ❌ {str(exc)[:200]}")
 
     # new campaigns G / F --------------------------------------------------------------------
+    # Singapore delivery needs the ad-set field regional_regulated_categories (Meta: SINGAPORE_UNIVERSAL);
+    # copy whatever a running SG ad set carries, fall back to the documented value.
+    rrc = ["SINGAPORE_UNIVERSAL"]
+    try:
+        src_sets = g._get_all(find("0911 HOOK")[0]["id"] + "/adsets", {"fields": "id,name,regional_regulated_categories", "limit": "5"})
+        got = next((x.get("regional_regulated_categories") for x in src_sets if x.get("regional_regulated_categories")), None)
+        if got:
+            rrc = got
+        print(f"regional_regulated_categories (from 0911 adset): {got} → using {rrc}")
+    except Exception as exc:                                   # noqa: BLE001
+        print(f"regional_regulated_categories: could not read ({str(exc)[:80]}) → using {rrc}")
+    time.sleep(0.6)
+
     def build_chain(camp_name: str, aset_name: str, budget: int, aud: dict | None, label: str):
         if not aud:
             log_skip.append(f"{label}: no audience — campaign not built"); print(f"✗ {label}: no audience, skip\n"); return
@@ -204,7 +217,7 @@ def main() -> None:
             if not aid:
                 aid = g.create_adset(acct, name=aset_name, campaign_id=cid, optimization_goal="OFFSITE_CONVERSIONS",
                                      billing_event="IMPRESSIONS", promoted_object=s.meta.promoted_object,
-                                     targeting=t, status="PAUSED")["id"]
+                                     targeting=t, regional_regulated_categories=rrc, status="PAUSED")["id"]
                 print(f"   ✓ adset {aid} (PAUSED gate)"); time.sleep(PACE)
             have = [a for a in g._get_all(cid + "/ads", {"fields": "name", "limit": "20"}) if (a.get("name") or "") == AD_NAME]
             time.sleep(0.6)
