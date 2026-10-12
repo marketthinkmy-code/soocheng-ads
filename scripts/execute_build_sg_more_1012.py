@@ -181,14 +181,17 @@ def main() -> None:
     # Singapore delivery needs the ad-set field regional_regulated_categories (Meta: SINGAPORE_UNIVERSAL);
     # copy whatever a running SG ad set carries, fall back to the documented value.
     rrc = ["SINGAPORE_UNIVERSAL"]
+    rri = {"singapore_universal_beneficiary": "1466824068581066", "singapore_universal_payer": "1466824068581066"}
     try:
-        src_sets = g._get_all(find("0911 HOOK")[0]["id"] + "/adsets", {"fields": "id,name,regional_regulated_categories", "limit": "5"})
-        got = next((x.get("regional_regulated_categories") for x in src_sets if x.get("regional_regulated_categories")), None)
-        if got:
-            rrc = got
-        print(f"regional_regulated_categories (from 0911 adset): {got} → using {rrc}")
+        src_sets = g._get_all(find("0911 HOOK")[0]["id"] + "/adsets",
+                              {"fields": "id,name,status,regional_regulated_categories,regional_regulation_identities", "limit": "5"})
+        live = [x for x in src_sets if x.get("status") == "ACTIVE"] or src_sets
+        got_c = next((x.get("regional_regulated_categories") for x in live if x.get("regional_regulated_categories")), None)
+        got_i = next((x.get("regional_regulation_identities") for x in live if x.get("regional_regulation_identities")), None)
+        rrc, rri = got_c or rrc, got_i or rri
+        print(f"Singapore regulated fields copied from the 0911 adset: {rrc} · {json.dumps(rri)}")
     except Exception as exc:                                   # noqa: BLE001
-        print(f"regional_regulated_categories: could not read ({str(exc)[:80]}) → using {rrc}")
+        print(f"regulated fields: could not read ({str(exc)[:80]}) → using {rrc} · {json.dumps(rri)}")
     time.sleep(0.6)
 
     def build_chain(camp_name: str, aset_name: str, budget: int, aud: dict | None, label: str):
@@ -203,21 +206,26 @@ def main() -> None:
             print(); return
         try:
             cid = next((c["id"] for c in camps if (c.get("name") or "") == camp_name), None)
+            if cid:
+                info = g.get_object(cid, "id,name,special_ad_categories")
+                has_sets = bool(g._get_all(cid + "/adsets", {"fields": "id", "limit": "5"}))
+                if info.get("special_ad_categories") and not has_sets:
+                    # tonight's empty scaffold carried FINANCIAL_PRODUCTS_SERVICES; the running SG chains have none ->
+                    # drop it and rebuild clean (no ad set, no ad, no spend ever)
+                    g._request("DELETE", cid); print(f"   · deleted empty scaffold campaign {cid} (special category mismatch)")
+                    cid = None; time.sleep(1.0)
             if not cid:
                 cid = g.create_campaign(acct, name=camp_name, objective="OUTCOME_SALES", buying_type="AUCTION",
                                         daily_budget=budget, bid_strategy="LOWEST_COST_WITHOUT_CAP",
-                                        special_ad_categories=cats, special_ad_category_country=s.meta.targeting.countries,
-                                        status="ACTIVE")["id"]
+                                        special_ad_categories=[], status="ACTIVE")["id"]
                 print(f"   ✓ campaign {cid}"); time.sleep(PACE)
-            else:   # created earlier without the country list -> the ad set's SG geo was rejected; fix in place
-                g._request("POST", cid, data=_encode({"special_ad_category_country": s.meta.targeting.countries}))
-                print(f"   · campaign {cid} exists — special_ad_category_country → {s.meta.targeting.countries}"); time.sleep(1.0)
             sets = g._get_all(cid + "/adsets", {"fields": "id,name", "limit": "10"}); time.sleep(0.6)
             aid = next((x["id"] for x in sets if (x.get("name") or "") == aset_name), None)
             if not aid:
                 aid = g.create_adset(acct, name=aset_name, campaign_id=cid, optimization_goal="OFFSITE_CONVERSIONS",
                                      billing_event="IMPRESSIONS", promoted_object=s.meta.promoted_object,
-                                     targeting=t, regional_regulated_categories=rrc, status="PAUSED")["id"]
+                                     targeting=t, regional_regulated_categories=rrc,
+                                     regional_regulation_identities=rri, status="PAUSED")["id"]
                 print(f"   ✓ adset {aid} (PAUSED gate)"); time.sleep(PACE)
             have = [a for a in g._get_all(cid + "/ads", {"fields": "name", "limit": "20"}) if (a.get("name") or "") == AD_NAME]
             time.sleep(0.6)
