@@ -66,6 +66,8 @@ def one(label: str, cfg: str, new_ads: dict, line: float, floor: float) -> None:
     today = now_local.date()
     yday = today - dt.timedelta(days=1)
     thu = today - dt.timedelta(days=(today.weekday() - 3) % 7)
+    if thu >= today:                      # on Thursday, show the week that just ended
+        thu -= dt.timedelta(days=7)
     wk = {"since": thu.isoformat(), "until": yday.isoformat()}
 
     def ins(level, fields, **kw):
