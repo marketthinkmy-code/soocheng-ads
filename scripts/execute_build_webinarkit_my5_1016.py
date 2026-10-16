@@ -22,7 +22,7 @@ CONFIRM = os.environ.get("CONFIRM", "").lower() in ("1", "true", "yes")
 LINK = "https://soochenginvesting.com/webinarkit-register-wed"
 PIXEL = "1338380974889410"
 CC = "1048291251556714"
-TEMPLATE_ADSET = "120251424979360329"          # team-built Webinarkit DT ad set (regional fields)
+TEMPLATE_ADSET = "120251424979360329"          # ONLY its verified-advertiser identity is copied (owner: the rest of that build is wrong)
 START = "2026-10-17T00:00:00+0800"
 DAILY = 15000
 PAGE = "1001334883061622"
@@ -34,7 +34,14 @@ CHAINS = [
     ("BROAD MY",       "BROAD MY 30+ | 1-1-5 | 1008",   "Broad | MY 28+",          True),
     ("DAY TRADING",    "DAY TRADING | 1-1-5 | 1008",    "Day Trading | MY 28+",    False),
 ]
-VIDEOS = ["Video：盖电脑，喂！", "Video：freestyle korea", "Video：年纪大的人做不了交易？", "Video：赚美金，一定要接美国客户？"]
+OLD_MY = "act_759339046918885"
+# new ad name -> (source ad name on MY 3.0, its video id; validated on MY 5.0 2026-10-16)
+SOURCES = {
+    "Video：盖电脑，喂！":              ("HOOK：Video 5：盖电脑，喂！", "1687663009590997"),
+    "Video：年纪大的人做不了交易？":     ("Video 5：年纪大的人做不了交易？", "1841446977230767"),
+    "Video：赚美金，一定要接美国客户？":  ("Video 6：马来西亚小白怎样赚美金？", "1105913068610488"),
+}
+VIDEOS = list(SOURCES)          # freestyle korea: no dark-post creative found — owner adds it in Ads Manager
 KEEP_T = ("geo_locations", "locales", "flexible_spec", "exclusions", "targeting_automation", "age_min", "age_max")
 
 
@@ -55,27 +62,24 @@ def main() -> None:
     camps = g._get_all(acct + "/campaigns", {"fields": "id,name", "limit": "200"})
     time.sleep(1)
 
-    # ── source posts → video id, caption, thumbnail ─────────────────────────────
-    src_camp = next(c for c in camps if "DAY TRADING | 1-1-5 | 1008" in c["name"] and "webinar" not in c["name"].lower())
-    ads = g._get_all(src_camp["id"] + "/ads", {"fields": "name,creative{effective_object_story_id,url_tags}", "limit": "50"})
+    # ── sources: the original MY 3.0 dark-post creatives (video_id + caption + thumbnail) ──────
+    #    (page posts can't be read without pages_read_engagement; these creatives validate on MY 5.0)
+    old = g._get_all(OLD_MY + "/ads", {"fields": "name,creative{object_story_spec,url_tags}", "limit": "500"})
     src = {}
-    url_tags = None
-    for v in VIDEOS:
-        a = next((x for x in ads if x.get("name") == v), None)
-        assert a, f"source ad «{v}» not found in {src_camp['name']}"
-        post = a["creative"]["effective_object_story_id"]
-        url_tags = url_tags or a["creative"].get("url_tags")
-        time.sleep(1)
-        p = g.get_object(post, "message,full_picture,attachments{media_type,target{id},title,description}")
-        att = ((p.get("attachments") or {}).get("data") or [{}])[0]
-        vid = (att.get("target") or {}).get("id")
-        src[v] = {"post": post, "video_id": vid, "message": p.get("message") or "", "picture": p.get("full_picture"),
-                  "title": att.get("title"), "media": att.get("media_type")}
-        print(f"  {v}: post {post} · {att.get('media_type')} video {vid} · msg {len(p.get('message') or '')} chars · "
-              f"head «{(p.get('message') or '')[:40]}» · pic {'yes' if p.get('full_picture') else 'NO'}")
-        assert vid and att.get("media_type", "").startswith("video"), f"{v}: no video on the post"
-        assert p.get("message"), f"{v}: post has no caption"
-    print(f"  url_tags: {url_tags}")
+    for v, (old_name, vid_expect) in SOURCES.items():
+        a = next((x for x in old if (x.get("name") or "").replace("🌟", "").strip() == old_name
+                  and (((x.get("creative") or {}).get("object_story_spec") or {}).get("video_data") or {}).get("video_id") == vid_expect), None)
+        assert a, f"source «{old_name}» video {vid_expect} not found on MY 3.0"
+        vd = a["creative"]["object_story_spec"]["video_data"]
+        src[v] = {"video_id": vd["video_id"], "message": vd.get("message") or "", "picture": vd.get("image_url"),
+                  "image_hash": vd.get("image_hash"), "title": vd.get("title")}
+        assert src[v]["message"], f"{v}: no caption"
+        print(f"  {v}: video {vd['video_id']} · caption {len(src[v]['message'])} chars «{src[v]['message'][:30]}»")
+    time.sleep(1)
+    my_dt = next(c for c in camps if "DAY TRADING | 1-1-5 | 1008" in c["name"] and "webinar" not in c["name"].lower())
+    cur = g._get_all(my_dt["id"] + "/ads", {"fields": "creative{url_tags}", "limit": "5"})
+    url_tags = ((cur[0].get("creative") or {}).get("url_tags")) if cur else None
+    print(f"  url_tags (from MY 5.0 DT 1008): {url_tags}")
 
     # ── targeting per chain ─────────────────────────────────────────────────────
     plan = []
@@ -104,8 +108,12 @@ def main() -> None:
     cr_ids = {}
     for v in VIDEOS:
         d = src[v]
-        vd = {"video_id": d["video_id"], "message": d["message"], "image_url": d["picture"],
+        vd = {"video_id": d["video_id"], "message": d["message"],
               "call_to_action": {"type": "LEARN_MORE", "value": {"link": LINK}}}
+        if d.get("picture"):
+            vd["image_url"] = d["picture"]
+        elif d.get("image_hash"):
+            vd["image_hash"] = d["image_hash"]
         if d.get("title"):
             vd["title"] = d["title"]
         r = g.create_adcreative(acct, name=f"{v} · webinarkit-wed", url_tags=url_tags,
