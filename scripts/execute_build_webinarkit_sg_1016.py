@@ -116,7 +116,7 @@ def main() -> None:
 
     if not cc_id:
         cc_id = g._request("POST", acct + "/customconversions", data={
-            "name": CC_NAME, "pixel_id": PIXEL, "rule": rule, "custom_event_type": "OTHER"})["id"]
+            "name": CC_NAME, "event_source_id": PIXEL, "rule": rule, "custom_event_type": "OTHER"})["id"]
         print(f"  custom conversion created {cc_id}"); time.sleep(3)
     promoted = {"pixel_id": PIXEL, "custom_event_type": "OTHER", "pixel_rule": rule, "custom_conversion_id": cc_id}
     have_cr = {c.get("name"): c["id"] for c in g._get_all(acct + "/adcreatives", {"fields": "id,name", "limit": "500"})}
