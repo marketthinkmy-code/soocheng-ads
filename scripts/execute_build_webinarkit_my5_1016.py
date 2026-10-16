@@ -105,8 +105,14 @@ def main() -> None:
         print("\nDRY RUN — CONFIRM=true 才会写。\nBUILD DONE (dry-run)"); return
 
     # ── creatives (one per video, shared across chains) ─────────────────────────
+    cc = g.get_object(CC, "rule")
+    promoted = {"pixel_id": PIXEL, "custom_event_type": "OTHER", "pixel_rule": cc["rule"], "custom_conversion_id": CC}
+    have_cr = {c.get("name"): c["id"] for c in g._get_all(acct + "/adcreatives", {"fields": "id,name", "limit": "200"})}
+    have_c = {c["name"]: c["id"] for c in g._get_all(acct + "/campaigns", {"fields": "id,name", "limit": "200"})}
     cr_ids = {}
     for v in VIDEOS:
+        if f"{v} · webinarkit-wed" in have_cr:                     # rerun after a partial build
+            cr_ids[v] = have_cr[f"{v} · webinarkit-wed"]; print(f"  creative {v} = {cr_ids[v]} (exists)"); continue
         d = src[v]
         vd = {"video_id": d["video_id"], "message": d["message"],
               "call_to_action": {"type": "LEARN_MORE", "value": {"link": LINK}}}
@@ -123,12 +129,18 @@ def main() -> None:
     built = []
     for label, aset_name, t in plan:
         cname = f"(Webinarkit) STOCKBLOOM | {label} | 1-1-4 | 1017"
-        c = g.create_campaign(acct, name=cname, objective="OUTCOME_SALES", status="PAUSED", special_ad_categories=[],
+        if cname in have_c:
+            c = {"id": have_c[cname]}
+            if g._get_all(c["id"] + "/adsets", {"fields": "id", "limit": "5"}):
+                print(f"  = {cname} already built — skip"); continue
+            print(f"  reuse empty campaign {cname} {c['id']}")
+        else:
+          c = g.create_campaign(acct, name=cname, objective="OUTCOME_SALES", status="PAUSED", special_ad_categories=[],
                               daily_budget=DAILY, bid_strategy="LOWEST_COST_WITHOUT_CAP", buying_type="AUCTION")
         time.sleep(2)
         a = g.create_adset(acct, name=aset_name, campaign_id=c["id"], status="ACTIVE", optimization_goal="OFFSITE_CONVERSIONS",
                            billing_event="IMPRESSIONS", start_time=START, targeting=t,
-                           promoted_object={"pixel_id": PIXEL, "custom_event_type": "OTHER", "custom_conversion_id": CC},
+                           promoted_object=promoted,
                            attribution_spec=[{"event_type": "CLICK_THROUGH", "window_days": 7}],
                            regional_regulated_categories=rrc, regional_regulation_identities=rri)
         time.sleep(2)
