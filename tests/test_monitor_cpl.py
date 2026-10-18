@@ -444,3 +444,43 @@ def test_cpl_paused_until_suspends_cpl_but_not_ban_or_cpa_hard_stop():
         _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=(sold, spend60))}
     assert by_name["over cpl"].should_pause is True and by_name["over cpl"].reason == _OVER
     assert by_name["zero reg"].should_pause is True and by_name["zero reg"].reason == _ZERO
+
+
+def test_custom_conversion_ads_are_judged_on_their_own_results():
+    # owner 2026-10-16: Webinarkit ad sets optimize a custom conversion (custom_event_type OTHER).
+    # Listed ids are judged on offsite_conversion.custom.<id>; unlisted custom conversions stay out.
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION", custom_conversions=["111"]),
+                        kpi=KpiCfg(cpl_threshold_myr=60, cpl_min_spend_myr=60,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True))
+    campaigns = [{"id": "A", "name": "(Webinarkit) STOCKBLOOM | X", "effective_status": "ACTIVE"}]
+
+    def cc_ad(ad_id, cc):
+        return {"id": ad_id, "name": ad_id, "effective_status": "ACTIVE", "created_time": "2026-01-01",
+                "adset": {"promoted_object": {"custom_event_type": "OTHER", "custom_conversion_id": cc}}}
+
+    ads = {"A": [cc_ad("good", "111"), cc_ad("zero", "111"), cc_ad("other cc", "999")]}
+    insights = {"good": {"spend": "100", "actions": [{"action_type": "offsite_conversion.custom.111", "value": "4"}]},
+                "zero": {"spend": "100", "actions": [{"action_type": "offsite_conversion.fb_pixel_complete_registration", "value": "4"}]},
+                "other cc": {"spend": "100", "actions": []}}
+    by_name = {d.name: d for d in evaluate_account(_FakeGraph(campaigns, ads, insights), settings)}
+    assert set(by_name) == {"good", "zero"}
+    assert by_name["good"].should_pause is False          # CPL 25 on its custom conversion
+    assert by_name["zero"].should_pause is True           # 0 custom-conversion results past RM60
+
+
+def test_zero_reg_rm80_rule_runs_during_cpl_pause():
+    # owner 2026-10-18「今天开始，花满 RM80 还 0 报名就关」 while the over-line rules wait for 10/21.
+    import datetime as _dt
+    from adbot.monitor_cpl import CPL_SUSPENDED as _SUSP, ZERO_RESULTS as _ZERO, INSUFFICIENT_SPEND as _INS
+    today = (_dt.datetime.utcnow() + _dt.timedelta(hours=8)).date()
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=95, cpl_min_spend_myr=142, cpl_lookback="last_3d",
+                                   pause_zero_lead_after_spend=True, cpl_paused_until=today.isoformat(),
+                                   zero_lead_spend_myr=80, zero_lead_during_pause=True))
+    campaigns = [{"id": "A", "name": "X", "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad("zero 84"), _ad("zero 70"), _ad("over line")]}
+    insights = {"zero 84": _reg_insight(84, 0), "zero 70": _reg_insight(70, 0), "over line": _reg_insight(300, 1)}
+    by = {d.name: d for d in evaluate_account(_FakeGraph(campaigns, ads, insights), settings)}
+    assert by["zero 84"].should_pause is True and by["zero 84"].reason == _ZERO
+    assert by["zero 70"].should_pause is False and by["zero 70"].reason == _INS
+    assert by["over line"].should_pause is False and by["over line"].reason == _SUSP
