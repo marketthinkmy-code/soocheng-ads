@@ -83,6 +83,10 @@ class MetaCfg(BaseModel):
     objective: str = "OUTCOME_LEADS"
     optimization_goal: str = "OFFSITE_CONVERSIONS"
     conversion_event: str = "LEAD"
+    # Custom conversions the monitor also judges (owner 2026-10-16 Webinarkit rebuild): an ad set whose
+    # promoted_object.custom_conversion_id is listed here is evaluated on
+    # offsite_conversion.custom.<id> instead of the standard conversion_event.
+    custom_conversions: List[str] = Field(default_factory=list)
     special_ad_categories: List[str] = Field(default_factory=list)
     lead_destination: LeadDestination = Field(default_factory=LeadDestination)
     conversion_domain: str = ""
@@ -152,6 +156,11 @@ class KpiCfg(BaseModel):
     # dark period with every carrier on RM50; day-1/2 learning CPL would otherwise be judged as if
     # it were steady state. Banned-creative pauses and the CPA hard-stop stay live. Self-expiring.
     cpl_paused_until: Optional[str] = None
+    # owner 2026-10-18「今天开始，花满 RM80 还 0 报名就关」: spend floor for the 0-registration pause
+    # (None = use cpl_min_spend_myr), and whether that 0-reg pause keeps working while
+    # cpl_paused_until suspends the rest of the CPL rules (over-line soft-reduce / pause).
+    zero_lead_spend_myr: Optional[float] = None
+    zero_lead_during_pause: bool = False
 
 
 class CpaCfg(BaseModel):

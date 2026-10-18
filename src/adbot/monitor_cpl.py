@@ -138,12 +138,15 @@ def cpl_suspended(kpi: KpiCfg, today: dt.date) -> bool:
 
 def decide(spend: float, results: float, kpi: KpiCfg) -> Tuple[bool, str, Optional[float]]:
     """(should_pause, reason, cpl). cpl is None when undefined, inf when results==0."""
-    if spend < kpi.cpl_min_spend_myr:
-        return False, INSUFFICIENT_SPEND, None
     if results <= 0:
+        zero_floor = kpi.zero_lead_spend_myr if kpi.zero_lead_spend_myr is not None else kpi.cpl_min_spend_myr
+        if spend < zero_floor:
+            return False, INSUFFICIENT_SPEND, None
         if kpi.pause_zero_lead_after_spend:
             return True, ZERO_RESULTS, math.inf
         return False, NO_RESULTS_YET, math.inf
+    if spend < kpi.cpl_min_spend_myr:
+        return False, INSUFFICIENT_SPEND, None
     cpl = spend / results
     if cpl > kpi.cpl_threshold_myr:
         return True, OVER_THRESHOLD, cpl
@@ -253,11 +256,16 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
             if ad.get("effective_status") != "ACTIVE":
                 continue
             promoted = (ad.get("adset") or {}).get("promoted_object") or {}
-            if (promoted.get("custom_event_type") or "").upper() != want_event:
+            cc_id = str(promoted.get("custom_conversion_id") or "")
+            if cc_id and cc_id in {str(c) for c in (settings.meta.custom_conversions or [])}:
+                ad_token = f"offsite_conversion.custom.{cc_id}"   # Webinarkit custom conversion
+            elif (promoted.get("custom_event_type") or "").upper() == want_event:
+                ad_token = token
+            else:
                 continue  # not optimized for our event — not ours to judge or pause
             name = ad.get("name", ad["id"])
             insight = cpl_by_ad.get(ad["id"])   # from the single batched account_insights call
-            spend, results = parse_metrics(insight, token)
+            spend, results = parse_metrics(insight, ad_token)
 
             # Where this ad's budget sits, for the soft-reduce: its ad set when ABO, else the
             # CBO campaign. No visible daily budget on either level -> None (falls back to pause).
@@ -278,7 +286,9 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                 carrier_kind, carrier_id, carrier_budget = None, None, 0.0
 
             held = any(h and h in name for h in settings.kpi.cpl_hold)
-            if suspended or held:                      # a hold exempts from CPL (not CPA)
+            if suspended and not held and results <= 0 and settings.kpi.zero_lead_during_pause:
+                cpl_pause, cpl_reason, cpl = decide(spend, results, settings.kpi)   # 0-reg rule stays live
+            elif suspended or held:                    # a hold exempts from CPL (not CPA)
                 cpl_pause, cpl_reason = False, (CPL_SUSPENDED if suspended else MANUAL_HOLD)
                 cpl = (spend / results) if results else (math.inf if spend else None)
             else:
