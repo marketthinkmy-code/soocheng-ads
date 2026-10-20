@@ -19,13 +19,13 @@ from adbot.commands import graph_client
 from adbot.settings import REPO_ROOT, load_settings
 
 CONFIRM = os.environ.get("CONFIRM", "").lower() in ("1", "true", "yes")
-NAME = "(Webinarkit) [SG] STOCKBLOOM | WINNERS | 1-3-5 | 1020"
+NAME = "(Webinarkit) [SG] STOCKBLOOM | WINNERS | 1-3-4 | 1020"
 SRC_SET = "120249918195680521"          # SG LUXURY GOODS Webinarkit ad set (headline creatives, promoted object, regional)
 LINK = "https://soochenginvesting.com/webinarkit-register-wed"
 HEADLINE = "🚨 教你如何在 1️⃣ 分钟内，判读市场节奏"
 PAGE, IG = "1001334883061622", "17841480427751602"
 G, M, O = "Video：盖电脑，喂！", "Video：用我的方法", "Video：我只有一个目的"
-SETS = [("TRAVEL", "Travel | SG 28+", [G]), ("GOLF", "Golf | SG 28+", [O, G]), ("INVESTMENT", "Investment | SG 28+", [M, G])]
+SETS = [("TRAVEL", "Travel | SG 28+", [G]), ("GOLF", "Golf | SG 28+", [G])          # 我只有一个目的 has no dark post anywhere — owner adds it by hand, ("INVESTMENT", "Investment | SG 28+", [M, G])]
 DAILY = 5000
 
 
@@ -34,7 +34,7 @@ def main() -> None:
     g = graph_client(s)
     acct = s.meta.account_path
     print(f"SG WINNERS build — {'APPLY' if CONFIRM else 'DRY-RUN'}")
-    assert not compliance.filter_banned([G, M, O, "video 2: 我只有一个目的"], s.compliance.banned_creatives), "banned"
+    assert not compliance.filter_banned([G, M], s.compliance.banned_creatives), "banned"
     src = g.get_object(SRC_SET, "promoted_object,regional_regulated_categories,regional_regulation_identities")
     cr = {}
     for a in g._get_all(SRC_SET + "/ads", {"fields": "name,creative{id,url_tags,object_story_spec}", "limit": "20"}):
@@ -45,28 +45,6 @@ def main() -> None:
                 url_tags = a["creative"].get("url_tags")
     assert G in cr and M in cr, f"headline creatives not found: {cr}"
     # 我只有一个目的: dark-post video + caption from the SG account
-    srcs = []
-    for src_acct in (acct, "act_759339046918885"):           # SG first, then the read-only MY 3.0 account
-        ads = g._get_all(src_acct + "/ads", {"fields": "name,created_time,creative{object_story_spec}", "limit": "500"})
-        srcs = sorted([a for a in ads if "我只有一个目的" in (a.get("name") or "") and "🚫" not in a["name"] and
-                       (((a.get("creative") or {}).get("object_story_spec") or {}).get("video_data") or {}).get("video_id")],
-                      key=lambda a: a.get("created_time") or "", reverse=True)
-        if srcs:
-            print(f"  我只有一个目的 found on {src_acct}")
-            break
-        time.sleep(1)
-    assert srcs, "no 我只有一个目的 dark-post creative with video_data on SG or MY 3.0"
-    vd0 = srcs[0]["creative"]["object_story_spec"]["video_data"]
-    test_vd = {"video_id": vd0["video_id"], "message": vd0["message"], "call_to_action": {"type": "LEARN_MORE", "value": {"link": LINK}}}
-    if vd0.get("image_url"):
-        test_vd["image_url"] = vd0["image_url"]
-    elif vd0.get("image_hash"):
-        test_vd["image_hash"] = vd0["image_hash"]
-    import json as _json
-    r = g._request("POST", acct + "/adcreatives", data={"name": "validate", "execution_options": _json.dumps(["validate_only"]),
-                                                       "object_story_spec": _json.dumps({"page_id": PAGE, "video_data": test_vd})})
-    print(f"  validate_only on SG: {r}")
-    print(f"  我只有一个目的 source «{srcs[0]['name']}» video {vd0['video_id']} · caption {len(vd0.get('message') or '')} chars «{(vd0.get('message') or '')[:30]}»")
     print(f"  creatives: {cr} · url_tags {url_tags}")
     # targeting per family
     camps = g._get_all(acct + "/campaigns", {"fields": "id,name,created_time", "limit": "300"})
@@ -92,15 +70,6 @@ def main() -> None:
         plan.append((aset_name, t, ads_))
     if not CONFIRM:
         print("\nDRY RUN — CONFIRM=true 才会写。\nWINNERS DONE (dry-run)"); return
-    vd = {"video_id": vd0["video_id"], "message": vd0["message"], "title": HEADLINE,
-          "call_to_action": {"type": "LEARN_MORE", "value": {"link": LINK}}}
-    if vd0.get("image_url"):
-        vd["image_url"] = vd0["image_url"]
-    elif vd0.get("image_hash"):
-        vd["image_hash"] = vd0["image_hash"]
-    cr[O] = g.create_adcreative(acct, name=f"{O} · webinarkit-wed · headline", url_tags=url_tags,
-                                object_story_spec={"page_id": PAGE, "instagram_user_id": IG, "video_data": vd})["id"]
-    print(f"  creative {O} → {cr[O]}"); time.sleep(2)
     c = g.create_campaign(acct, name=NAME, objective="OUTCOME_SALES", status="PAUSED", special_ad_categories=[],
                           buying_type="AUCTION", is_adset_budget_sharing_enabled=False)
     time.sleep(2)
