@@ -25,7 +25,8 @@ LINK = "https://soochenginvesting.com/webinarkit-register-wed"
 HEADLINE = "🚨 教你如何在 1️⃣ 分钟内，判读市场节奏"
 PAGE, IG = "1001334883061622", "17841480427751602"
 G, M, O = "Video：盖电脑，喂！", "Video：用我的方法", "Video：我只有一个目的"
-SETS = [("TRAVEL", "Travel | SG 28+", [G]), ("GOLF", "Golf | SG 28+", [G])          # 我只有一个目的 has no dark post anywhere — owner adds it by hand, ("INVESTMENT", "Investment | SG 28+", [M, G])]
+# GOLF starts with 盖电脑 only: 我只有一个目的 has no dark post anywhere — owner adds it by hand
+SETS = [("TRAVEL", "Travel | SG 28+", [G]), ("GOLF", "Golf | SG 28+", [G]), ("INVESTMENT", "Investment | SG 28+", [M, G])]
 DAILY = 5000
 
 
