@@ -45,12 +45,27 @@ def main() -> None:
                 url_tags = a["creative"].get("url_tags")
     assert G in cr and M in cr, f"headline creatives not found: {cr}"
     # 我只有一个目的: dark-post video + caption from the SG account
-    ads = g._get_all(acct + "/ads", {"fields": "name,created_time,creative{object_story_spec}", "limit": "500"})
-    srcs = sorted([a for a in ads if "我只有一个目的" in (a.get("name") or "") and "🚫" not in a["name"] and
-                   (((a.get("creative") or {}).get("object_story_spec") or {}).get("video_data") or {}).get("video_id")],
-                  key=lambda a: a.get("created_time") or "", reverse=True)
-    assert srcs, "no 我只有一个目的 dark-post creative with video_data on SG"
+    srcs = []
+    for src_acct in (acct, "act_759339046918885"):           # SG first, then the read-only MY 3.0 account
+        ads = g._get_all(src_acct + "/ads", {"fields": "name,created_time,creative{object_story_spec}", "limit": "500"})
+        srcs = sorted([a for a in ads if "我只有一个目的" in (a.get("name") or "") and "🚫" not in a["name"] and
+                       (((a.get("creative") or {}).get("object_story_spec") or {}).get("video_data") or {}).get("video_id")],
+                      key=lambda a: a.get("created_time") or "", reverse=True)
+        if srcs:
+            print(f"  我只有一个目的 found on {src_acct}")
+            break
+        time.sleep(1)
+    assert srcs, "no 我只有一个目的 dark-post creative with video_data on SG or MY 3.0"
     vd0 = srcs[0]["creative"]["object_story_spec"]["video_data"]
+    test_vd = {"video_id": vd0["video_id"], "message": vd0["message"], "call_to_action": {"type": "LEARN_MORE", "value": {"link": LINK}}}
+    if vd0.get("image_url"):
+        test_vd["image_url"] = vd0["image_url"]
+    elif vd0.get("image_hash"):
+        test_vd["image_hash"] = vd0["image_hash"]
+    import json as _json
+    r = g._request("POST", acct + "/adcreatives", data={"name": "validate", "execution_options": _json.dumps(["validate_only"]),
+                                                       "object_story_spec": _json.dumps({"page_id": PAGE, "video_data": test_vd})})
+    print(f"  validate_only on SG: {r}")
     print(f"  我只有一个目的 source «{srcs[0]['name']}» video {vd0['video_id']} · caption {len(vd0.get('message') or '')} chars «{(vd0.get('message') or '')[:30]}»")
     print(f"  creatives: {cr} · url_tags {url_tags}")
     # targeting per family
