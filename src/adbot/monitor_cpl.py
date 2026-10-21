@@ -359,8 +359,9 @@ def run(graph, settings: Settings, *, dry_run: bool = False) -> Dict[str, Any]:
             if d.reason != OVER_THRESHOLD or not d.carrier_id or d.carrier_id in soft_plan:
                 continue
             try:
-                raw = ((graph.get_object(d.carrier_id, "adlabels").get("adlabels") or {})
-                       .get("data") or [])
+                raw = graph.get_object(d.carrier_id, "adlabels").get("adlabels") or []
+                if isinstance(raw, dict):   # Graph returns adlabels as a bare list; tolerate {"data": [...]}
+                    raw = raw.get("data") or []
             except Exception as exc:  # noqa: BLE001
                 log.warning("  soft-reduce: can't read labels on %s %s (%s) — classic pause",
                             d.carrier_kind, d.carrier_id, exc)

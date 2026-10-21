@@ -273,15 +273,17 @@ def test_label_dates_parses_only_our_prefix():
 class _FakeGraphSoft(_FakeGraph):
     """_FakeGraph plus the write/label surface run() touches in soft-reduce mode."""
 
-    def __init__(self, campaigns, ads_by_campaign, insights, entity_labels=None):
+    def __init__(self, campaigns, ads_by_campaign, insights, entity_labels=None, bare_list=False):
         super().__init__(campaigns, ads_by_campaign, insights)
         self.entity_labels = entity_labels or {}
+        self.bare_list = bare_list
         self.budget_posts, self.paused, self.labels_set = [], [], []
         self.created_label = None
 
     def get_object(self, object_id, fields):
         assert fields == "adlabels"
-        return {"adlabels": {"data": self.entity_labels.get(object_id, [])}}
+        labels = self.entity_labels.get(object_id, [])
+        return {"adlabels": labels if self.bare_list else {"data": labels}}
 
     def get_or_create_label(self, account_path, name):
         self.created_label = name
@@ -328,6 +330,25 @@ def test_run_soft_reduce_cuts_carrier_once_spares_ads_keeps_zero_pause_hard(monk
     assert ("AS1", ("LBL_NEW",)) in graph.labels_set     # the date label is the cross-run state
     assert graph.paused == ["zero"]                      # zero-results still pauses immediately
     assert out["reduced"] == 1 and out["paused"] == 1    # graced ad: no cut, no pause
+
+
+def test_run_soft_reduce_reads_bare_list_adlabels(monkeypatch):
+    # Live Graph returns campaign.adlabels as a bare list — must still reduce, not fall back to pause.
+    monkeypatch.setattr("adbot.monitor_cpl.state.append_pause_log", lambda *a, **k: None)
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True,
+                                   cpl_soft_reduce=True))
+    campaigns = [{"id": "C", "name": "STOCKBLOOM | X", "effective_status": "ACTIVE"}]
+    ads = {"C": [_soft_ad("over", "AS1", 200)]}
+    graph = _FakeGraphSoft(campaigns, ads, {"over": _reg_insight(100, 1)},
+                           {"AS1": [{"id": "L0", "name": "ADBOT_WEEKLY_OFF"}]}, bare_list=True)
+
+    out = run(graph, settings)
+
+    assert graph.budget_posts == [("AS1", 14000)] and graph.paused == []
+    assert ("AS1", ("L0", "LBL_NEW")) in graph.labels_set
+    assert out["reduced"] == 1 and out["paused"] == 0
 
 
 def test_run_soft_reduce_disabled_keeps_classic_pause(monkeypatch):
