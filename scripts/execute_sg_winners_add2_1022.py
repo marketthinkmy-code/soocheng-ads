@@ -3,7 +3,7 @@
 WINNERS campaign (owner activates):
   «LAL 5% · 盖电脑 | SG 28+»     — targeting/promoted/regional copied from the SG LAL 5% Webinarkit ad set, 盖电脑 creative from it
   «Investment · 我跟你讲 | SG 28+» — copied from WINNERS Investment (用我的方法) ad set, 我跟你讲 creative from BROAD SG
-Only already-approved SG creatives (Webinarkit link + url_tags). Ban gate. Idempotent by name. Campaign name → 1-7-7.
+Only already-approved SG creatives (Webinarkit link + url_tags). Ban gate. Idempotent by name. Campaign name → 1-8-8 (+不选 forex per owner).
 CONFIRM=true writes."""
 from __future__ import annotations
 
@@ -22,6 +22,8 @@ F = ("name,targeting,promoted_object,optimization_goal,billing_event,attribution
 PLAN = [  # (new ad set name, targeting source ad set, creative name, creative source ad set)
     ("LAL 5% · 盖电脑 | SG 28+", "120249918199040521", "Video：盖电脑，喂！", "120249918199040521"),
     ("Investment · 我跟你讲 | SG 28+", "120249964897130521", "Video：我跟你讲！", "120249918193310521"),
+    # owner 2026-10-22「不选 forex 也一起吧，他在 SG 没有被拒」— same approved SG creative as the live LAL 5% ad
+    ("Investment · 不选 forex | SG 28+", "120249964897130521", "Video：不选 forex 不选黄金", "120249918199040521"),
 ]
 
 
@@ -55,7 +57,7 @@ def main() -> None:
         time.sleep(2)
     if CONFIRM and made:
         c = g.get_object(CAMP, "name")
-        g._request("POST", CAMP, data={"name": re.sub(r"\| 1-\d+-\d+ \|", "| 1-7-7 |", c["name"])}); time.sleep(1)
+        g._request("POST", CAMP, data={"name": re.sub(r"\| 1-\d+-\d+ \|", "| 1-8-8 |", c["name"])}); time.sleep(1)
         print(f"  ✅ «{g.get_object(CAMP, 'name')['name']}» · sets: " + ", ".join(
             f"{x['name']} {x['status']} RM{int(x.get('daily_budget') or 0) // 100}"
             for x in g._get_all(CAMP + "/adsets", {"fields": "name,status,daily_budget", "limit": "20"})))
