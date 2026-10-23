@@ -84,6 +84,7 @@ kpi:                                              # SG account is MYR, so RM val
                                          #   sweep mis-kills a converting ad. Exempt; proper fix = name-fallback join (8/11).
   hold_ad_until:                                   # owner 2026-10-23「全部照建议」: reopened after the 10/22 SG
     "120249964899250521": "2026-10-25"            #   registration outage — WINNERS Investment · 用我的方法
+    "120249918200750521": "2026-10-25"            #   …and LAL 5% · 不选 forex (owner 10/23「开」)
 
 cpa:                                              # ON for SG: the Paid Student List DOES carry SG sales (utm_campaign
   enabled: true                                    #   prefixed "[sg] ..."), so the CPA gate can RESCUE a converting SG
