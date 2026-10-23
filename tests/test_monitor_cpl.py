@@ -351,6 +351,41 @@ def test_run_soft_reduce_reads_bare_list_adlabels(monkeypatch):
     assert out["reduced"] == 1 and out["paused"] == 0
 
 
+def test_run_soft_reduce_spares_carrier_whose_total_cpl_is_under_line(monkeypatch):
+    # One over-line ad inside a carrier that is under the line overall: pause that ad, keep the budget.
+    monkeypatch.setattr("adbot.monitor_cpl.state.append_pause_log", lambda *a, **k: None)
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True,
+                                   cpl_soft_reduce=True))
+    campaigns = [{"id": "C", "name": "STOCKBLOOM | X", "effective_status": "ACTIVE"}]
+    ads = {"C": [_soft_ad("bad", "AS1", 200), _soft_ad("good", "AS1", 200)]}
+    insights = {"bad": _reg_insight(100, 1), "good": _reg_insight(100, 9)}     # carrier CPL 20
+    graph = _FakeGraphSoft(campaigns, ads, insights)
+
+    out = run(graph, settings)
+
+    assert graph.budget_posts == [] and graph.paused == ["bad"]
+    assert out["reduced"] == 0 and out["paused"] == 1
+
+
+def test_hold_ad_until_exempts_that_ad_through_the_date(monkeypatch):
+    monkeypatch.setattr("adbot.monitor_cpl.state.append_pause_log", lambda *a, **k: None)
+    today = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True,
+                                   hold_ad_until={"held": today.isoformat(),
+                                                  "expired": (today - dt.timedelta(days=1)).isoformat()}))
+    campaigns = [{"id": "C", "name": "STOCKBLOOM | X", "effective_status": "ACTIVE"}]
+    ads = {"C": [_soft_ad("held", "AS1", 200), _soft_ad("expired", "AS2", 200)]}
+    graph = _FakeGraphSoft(campaigns, ads, {"held": _reg_insight(100, 0), "expired": _reg_insight(100, 0)})
+
+    run(graph, settings)
+
+    assert graph.paused == ["expired"]
+
+
 def test_run_soft_reduce_disabled_keeps_classic_pause(monkeypatch):
     monkeypatch.setattr("adbot.monitor_cpl.state.append_pause_log", lambda *a, **k: None)
     settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
