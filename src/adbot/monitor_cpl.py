@@ -286,6 +286,9 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                 carrier_kind, carrier_id, carrier_budget = None, None, 0.0
 
             held = any(h and h in name for h in settings.kpi.cpl_hold)
+            hold_to = (settings.kpi.hold_ad_until or {}).get(str(ad["id"]))
+            if hold_to and today.isoformat() <= str(hold_to):
+                held = True                            # owner-named per-ad hold, until the date
             if suspended and not held and results <= 0 and settings.kpi.zero_lead_during_pause:
                 cpl_pause, cpl_reason, cpl = decide(spend, results, settings.kpi)   # 0-reg rule stays live
             elif suspended or held:                    # a hold exempts from CPL (not CPA)
@@ -354,9 +357,22 @@ def run(graph, settings: Settings, *, dry_run: bool = False) -> Dict[str, Any]:
     # OVER_THRESHOLD pauses. Reading labels is a GET, so planning also runs in dry-run mode.
     # A carrier we can't read falls through to the classic pause (no plan entry).
     soft_plan: Dict[str, Dict[str, Any]] = {}   # carrier_id -> {kind, act, new, existing_label_ids}
+    # Carrier-level CPL (owner 2026-10-23「全部照建议」): one over-line ad must not cut a carrier whose
+    # ads TOGETHER sit under the line — that twice cut the best CBO (BUSINESS OWNER). Such an ad is
+    # paused on its own (no plan entry → classic pause); the budget is left alone.
+    carrier_tot: Dict[str, List[float]] = {}
+    for d in decisions:
+        if d.carrier_id:
+            t = carrier_tot.setdefault(d.carrier_id, [0.0, 0.0])
+            t[0] += d.spend
+            t[1] += d.results
+    carrier_ok = {cid for cid, (sp, rg) in carrier_tot.items()
+                  if rg > 0 and sp / rg <= kpi.cpl_threshold_myr}
     if kpi.cpl_soft_reduce:
         for d in to_pause:
             if d.reason != OVER_THRESHOLD or not d.carrier_id or d.carrier_id in soft_plan:
+                continue
+            if d.carrier_id in carrier_ok:
                 continue
             try:
                 raw = graph.get_object(d.carrier_id, "adlabels").get("adlabels") or []
@@ -389,6 +405,9 @@ def run(graph, settings: Settings, *, dry_run: bool = False) -> Dict[str, Any]:
             verb = "GRACE (carrier cut today)"
         elif plan and plan["act"] == "pause":
             verb = "PAUSE (2nd strike this week)"
+        elif d.reason == OVER_THRESHOLD and d.carrier_id in carrier_ok:
+            sp, rg = carrier_tot[d.carrier_id]
+            verb = f"PAUSE (carrier CPL {sp / rg:.0f} ok — budget kept)"
         else:
             verb = "PAUSE"
         if dry_run and d.should_pause:
