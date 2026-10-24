@@ -36,27 +36,12 @@ Every path ends the same way — **PAUSED 建好（0 花费）→ owner 在 Ads 
    the owner reviews and activates in Ads Manager.
 
 ### ⛔ The alignment rule (why the first single-image campaigns were scrapped, 26 Jun)
-**视频同罪（2026-09-11 HOOK 1-4-4 再犯）**：owner 讯息里「链接 + HOOK 标签」的排列顺序**不可信**
-——那次 4 个链接的标签全部错位，按顺序配对 = 4 支全建反，owner 只能自己在 Ads Manager 手动改回。
-建前必须验证每个 Drive file：先 `get_file_metadata` 看文件名（如 HOOK 1-4 对应脚本 doc 顺序）；
-文件名不能定案就抓帧/问 owner 确认，**绝不按讯息顺序 best-guess**。
 A creative is an **image + its copy as ONE bound unit.** The build joins them *only* through
 the manifest's `content_id ↔ file_id` pairing — copy and image are pulled from separate
 sources and meet nowhere else. So if that pairing is guessed, the picture says one thing and
 the caption says another. That "WRONG match" got 2 campaigns deleted. **Always derive the
 pairing by reading each image's on-image text first; never write a "best-guess" pairing into
 a manifest and ship it.**
-
-### Targeting 硬规则（owner 2026-10-08「以后年龄放 28+」，取代 09-11 的「30 開始」）
-**所有新建 ad set 年龄一律从 28 开始。** Meta 机制（run 253 实测）分两种：
-- **Advantage+ audience ON（Broad 打法）**：只能给「建议下限」`age_range: [28, 65]`——硬 `age_min`
-  锁不上（API 报错「You can add a higher minimum age as a suggestion instead」），Meta 认为高价值时
-  仍可能投给 28 以下。建 adset 时直接带 `age_range`。
-- **advantage_audience=0（硬锁受众，如兴趣组）**：设硬 `age_min: 28`，并剥掉 `age_range`
-  （该字段只在 Advantage+ ON 时合法，run 244 教训）。
-build 脚本 clone scaffold targeting 时必须覆写 age——scaffold 多半还是 25 起。已在跑的旧 ad set 不回改
-（MY 5.0 的 Day Trading / Business Owner 两组 10/8 当天由 28 起重锁；Broad 由团队手改为 25+，未回改）。
-⚠️ 在 Ads Manager UI 给 Advantage+ 关闭的 ad set 改年龄，UI 可能顺手把 Advantage+ 打开——兴趣锁会变参考值。
 
 ### Ad naming (Meta display name)
 Ads on Meta are named **`Image：<descriptor>`** (or `Video：<descriptor>`) — **no running
@@ -135,43 +120,6 @@ idea-group, warm emoji leading lines. Part 1 is emoji-light; Part 2 is emoji-ric
 - Soo Cheng — **首席投资分析师、资深银行专业投资顾问、超过 12 年实盘经验**
 - **已帮助超过 10,000 名学员入门交易**
 
-### 视频脚本写作规则（owner feedback 复盘，2026-09-08 起累积——写/改脚本前必读）
-
-1. **诊断句禁用「正确的废话」。**「你缺一套 SOP / 你没有系统」这类人人点头的话零信息量
-   （owner 09-08 V2 comment:「对一般人来说确实很废话」）。诊断必须**反常识**——把矛头指向
-   观众引以为豪的努力行为：「你不赚钱，正是因为你看太多盘了。」SOP 只作为**解法**出现，
-   永远不作为指控。
-2. **痛点用具体行为画面，不用抽象标签。**「今天看新闻进场、明天听朋友出场」>「你靠感觉交易」。
-   点名 2-3 个他这星期真的做过的动作。
-3. **痛点讲完立刻上「高手对照组」**（owner 原话句式）：「其实真正赚钱的高手反过来——
-   有一套稳定的 SOP，然后不看那么多盘。」
-4. 结构硬规则（数据背书）：前 3 秒直呼观众（「我跟你讲」voice）· 前 10 秒自我筛选句
-   （写给「有资金/在交易但不稳」的人，绝不写「脱贫」）· freestyle 给 talk-track/beats 不给逐字稿
-   （freestyle 手机直拍 > 精修，Korea/Freestyle 1 证明）· 45-90 秒 · 收免费分享会 CTA。
-5. 反筛选 hook 合规写法：讲**方法的前提**（「这套方法需要一笔亏得起的闲置资金」），
-   禁止直指观众个人财务状况（「你连 1 万都没有」= Meta personal-attributes 拒审风险）。
-6. 交付格式照团队 doc 惯例：【Scene N：机位/动作】+ 台词 + 剪辑注 + 每支 3 个 A/B hook；
-   学员成绩 POP UP 只可出现「资金审核通过/资金授权」画面，任何金额不可入镜（口播同理）。
-7. **用词黑名单（owner 09-08:「这边要你们 100% 注意」）：投资/交易语境禁用「玩」字**——
-   玩法、新玩法、这样玩、玩交易、怎么玩、上场玩，一律不可出现（很儿戏、很飘）。
-   替换词：做法 / 方法 / 操作方式 / 规则。贬义对照也别用（「别人当玩」→「别人靠感觉」）。
-8. **Prop Firm 承诺用词黑名单（owner 09-08，winning ads 重拍的起因）：**
-   「一天就可以 Pass」「很快 pass」「考试一点都不难/很简单」「容易到睡不着」「保证通过」
-   一律禁用（飘 + 拒审风险）。Prop Firm 本身**保留**（下半段模板、offer signals、分享会照教）。
-   合规讲法：「资金审核考的不是预测，是纪律」「照 SOP 去准备，把风控和执行练稳再去考」
-   「有规则、有评估，不是零风险」「怎么准备，分享会里讲清楚」。加分反差句：
-   「谁跟你讲很快就能过的，你要小心」——把旧承诺反过来打，变成信任感。
-9. **CTA 禁句（owner 已多次强调，09-08 再次点名）：不要特地讲「填名字电话 / 填个名字和电话」。**
-   CTA 直接写：「点下面报名，Zoom link 会直接发给你」，或更短「点下方，免费报名」。
-10. **Prop Firm 口播三件套（owner 09-08 V12 comment）：**
-   a) 「资金授权 / 通过资金审核」是书面词，**口播不用**——口播讲「funded account / 机构给你一笔
-      资金操盘」（文案下半段的书面合规写法不变，仅口播换词）。
-   b) **必须讲出 end result**——通过考试不是终点，重点是「用别人的资金去交易」。用已过审句式：
-      「赚了，利润是你的；亏了，不伤你自己的本金」+「考试只是门票」。
-   c) **讲资金规模**：「最高 5 万美金的 funded account」——资金规模可讲（不是收益数字）；
-      但**不可**由此口播「所以盈利也不小」这类预期收益暗示（仍是拒审红线），
-      让「5 万美金 vs 自己的小资金」的对比自己说话。
-
 ---
 
 ## Andromeda feeding (how to structure delivery, not just words)
@@ -198,95 +146,34 @@ pool. Feed it well:
 - Creatives that bake payout screenshots into the image stay in `creatives_held` (copy
   ready, not built) until reviewed.
 
-### ⛔ 永久禁跑名单 (owner 2026-09-23 — 第二次封号后的硬规则)
+### 📋 送审历史 (rejection history — OWNER POLICY 2026-07-30: judge by review status + CPL/CPA only)
 
-**2026-09-23：MY 账户 MTC X SB 3.0 (act_759339046918885) 被 Meta 停用** —— API 取证
-`account_status=2 (DISABLED)` · `disable_reason=1 (ADS_INTEGRITY_POLICY 广告诚信政策违规)`，
-与 2026-07-12 旧账号 MTC X STOCKBLOOM 2 被封的代码**完全相同**（同一账号家族第二次被封）。
-SG 账户 act_893025326577600 当时仍 `account_status=1 (ACTIVE)`——**它是目前仅剩的投放资产，
-一切决策以「不触发第三次封号」为最高优先级。**
+**Owner directive 2026-07-30:「禁跑的广告都不要直接关了，因为他们都过审。一切以 CPL CPA 为主。」**
+The old hard-ban treatment is retired. The rules now:
 
-**OWNER 硬规则（2026-09-23，正式推翻 07-30「一切以 CPL CPA 为主」）：**
-> 「list out all those rejected ads for me, and write a rule that not to advertise
-> these ads anymore (even tho the ads are running well and had good cpa before)」
+- A creative's **current Meta review status** is the only gate: if it PASSES review it may run,
+  be scaled, and be rebuilt — rejection history alone is NEVER a reason to pause, exclude, or
+  refuse it. If it sits DISAPPROVED it can't deliver anyway; resubmitting is the owner's call
+  (each re-rejection adds a policy strike on a repeat-offender account — advise, don't block).
+- **Pause decisions belong to the CPL/CPA monitor only** (CPL>RM50 after RM80 spend, 0-reg
+  after RM80, CPA hard-stop RM1,200; converting ads are CPA-rescued). The monitor has NEVER
+  enforced any ban list — do not pause an ad because of its rejection history.
+- Income-claim content (「每週盈利 200-300 US」 etc.) still violates Meta policy and keeps
+  failing review — for those, prefer re-cutting a clean version (forensics + compliant
+  re-edit guide: `scripts/archive_ban_list.py`). This is advice about what will pass review,
+  not a run/no-run rule.
 
-- **凡被 Meta 拒审过的素材 = 永久禁跑。** 不看 CPL、不看 CPA、不看历史成交——
-  **就算它以前 CPA 很漂亮、正在赚钱、是 top seller，也一律不准再投。**
-- 禁的是**素材母带本身（视频/图片）**，不是某一个 ad 名字：换文案、换 ad 名、换 campaign、
-  换受众、换账户、post 复用、重新上传——**全部视为同一支，一律禁**。
-- **禁止 resubmit / 申诉重投**被拒广告（每次重拒都给这个惯犯账号家族再加一条 strike）。
-- 想保留这个角度 → **只能让剪辑师重剪干净版母带**（删掉违规口播/字幕/成绩截图），
-  当**全新素材**走正常建案流程；重剪版与原版是两支，**原版永久禁不解**。
-- 被拒广告**留在账户里本身就是风险**：名单上的广告应 DELETE，不要只是 PAUSE（7 月取证结论）。
-- 本条**高于**本文件其它所有 CPL/CPA 规则：monitor / 清扫报告 / 开回建议里
-  **永远不得出现禁跑素材**；即使 owner 点名开回，也要先提醒「这是禁跑素材」再等他确认。
+History (for context, not enforcement): video 3 不是怕交易 / video 4 厌倦了等待 / moomoo /
+video 1 1分钟赚300 / 每天1分钟就能盈利 — rejected for baked-in income claims (incl. rebuilds).
+video 2 你敢吗 / freestyle 2 — rejected 2026-07-16; owner reports they later passed review.
 
-#### 名单 A — 2026-09-23 封号时账户内仍在的被拒广告（API 取证）
-
-| 素材（母带） | MY | SG |
-|---|---|---|
-| **拼接：Video 5：Trading 早就不是这样了！** | ×3（BEER 0914 / BROAD 0911 / DT 30-55 0914） | ×3（LAL 0910 `DISAPPROVED` / GOLF 0914 / BROAD 0911） |
-| **Video 8：做么你 Trading 不用看盘的？**（含 `HOOK：` 版） | ×1 `DISAPPROVED`（BROAD 0911） | ×2（BROAD 0911 / GOLF 0914） |
-| **video 5：trading 早就不是这样了！**（拼接版的原版母带） | — | ×1（🌟GOLF PICKBLEBALL） |
-| **freestyle 1**（🌟 版） | — | ×1（🌟INVESTMENT） |
-| **video 11：office 突访** | — | ×1（TRAVEL） |
-| **video 12：炒过那么多，累而且不稳定** | — | ×1（BROKERS） |
-| M2Video 3: What you do for living?（2025 旧 options 产品遗留） | ×1 `DISAPPROVED` | — |
-
-#### 名单 B — 历史被拒（旧账号 2026-07-12 取证 + owner 报告，一并永久禁）
-
-video 3：不是怕交易（合规重建也被拒）· Video 4：厌倦了等待（合规重建也被拒）·
-single image 5：moomoo · video 1：1 分钟赚 300 · single image：每天 1 分钟就能盈利 ·
-Video 2（谁讲 trading 一定要~）· video 2：你敢吗？· freestyle 2
-
-⚠️ **2026-08-07 对「video 12 炒过那么多」的解禁作废**——它 09-23 在 SG BROKERS 仍是被拒状态，
-现回到永久名单。同理，未来任何「它现在过审了所以可以再跑」的论证一律不成立：
-**过审 ≠ 解禁，只有重剪干净版才能重新上场。**
-
-#### 共同违规 DNA（重剪前必须逐条清掉；逐支脚本级清单见 `scripts/archive_ban_list.py`）
-
-收益金额（「每週/每天 200-300 US」「一星期赚一千美金」——口播/字幕/道具纸板任一形式）·
-学员成绩 / TP / 提款截图 BROLL · 「用别人的资金去赚属于自己的交易回报」·
-「零本钱…交易期货」· 「proven works 公式 / copy paste 跟着做就会」
-
-机器可读名单：`config/config.yaml` 与 `config.sg.yaml` 的 `compliance.banned_creatives`；
-判定入口只有 `adbot.compliance.is_banned(name)`（子串匹配，忽略 🌟 / `HOOK：` / `重拍：` /
-`拼接：` 前缀）。**任何建案 / 开回 / scale 脚本动手前必须先过这道闸。**
-
-**🚫 标记（owner 2026-10-08「禁跑名单的 ad name 前面统一加 emoji 🚫」）：**名单上的每一支 ad 在
-Ads Manager 里一律改名为 `🚫 <原名>`（SG 已由 `scripts/execute_mark_banned_sg_1008.py` 全部加上；
-以后新进名单的素材、每一个副本都要加）。`adbot.compliance` 把 🚫 当禁跑标记：**名字带 🚫 的 ad
-不论 yaml 名单有没有它，一律视为禁跑**；匹配时忽略 🚫（同 🌟），CPA join 也忽略。
-看到 🚫 = 不开、不复制、不 resubmit；只能等重剪干净版以新名字进场。
-
-**ad 层拆引信（2026-10-08 教训）：**9/23 只删了「自身状态=被拒」的 9 支，名单上其余副本仍在账户里，
-其中 17 支 ad 层 ACTIVE、只被 campaign/adset 压住——10/8 10:21 有人按 campaign 整条开回，
-`炒过那么多` 立刻上线 7 分钟。**禁跑素材必须在 ad 层 PAUSED**（`execute_ban_neutralize_sg_1008.py`），
-不能只靠上层关着；开回任何载体前先扫它底下有没有禁跑 ad 上膛。
-
-### 📋 运营规则（仍然有效，但全部让位于上面的禁跑名单）
-
-- **Owner 手动关 = 定案（owner 2026-09-14「我手动关了的广告不要再开回了」）**：被 owner 手动
-  关掉的 campaign / ad set / ad 一律不得自动或主动开回——**包括近期有成交的链**。guardian 的
-  每小时自动复活已于 2026-09-14 退役（adbot-guardian.yml 只剩 workflow_dispatch）。唯一开回
-  路径 = owner 明确点名。报告里可以*建议*开回，执行必须等 owner 的字。
-- **Pause decisions belong to the CPL/CPA monitor only** (2026-09-10 起：MY 线 RM60 / SG 线
-  RM95，花满 RM60 / RM142 才判；超线**先把预算载体降 30%**（TEMP，`kpi.cpl_soft_reduce`），同一
-  周四周期内再犯才关；0-reg 花满门槛直接关；CPA hard-stop RM1,200；converting ads are
-  CPA-rescued；`cpa.hold` 是 owner 点名的 hard-stop 豁免).
-- **开着的广告准入标准（owner 2026-09-20「以 30 day CPA 为标准」+「不希望开着的都是很久没
-  成交/CPA 不合格的，新广告例外」）**：每支在跑的 registration ad 必须满足其一——
-  ① 30 天 strict CPA ≤ RM960（>1,200 关；960-1,200 watch）；② 位置 ≤14 天（新广告例外，
-  判决日 = 建立日+14）；③ 本位 30 天无单但**素材 7 天内有成交**（不算「很久没成交」）。
-  盘面检查/清扫按此判（executor 模板 `scripts/execute_cpa_enforce2_0920.py`）；owner 当天
-  点名开回的位不自动关，标 CONFLICT 交 owner 定。
-  **前提：素材不在禁跑名单上——在名单上的，CPA 再好也不准开。**
-- 🛑 **2026-09-23 起暂停「按 CPA 清扫在跑的广告」（owner:「现在跑着的，没被禁的，就不要关它」）**：
-  MY 被封后 SG 是唯一投放资产，量本来就稀缺——**当前在跑且不在禁跑名单上的广告一律不关**，
-  上面那套 30 天 CPA 准入标准只用来判断「要不要*开*新的位」和写报告，**不再作为关闭理由**。
-  要关任何一支干净的在跑广告，必须 owner 明确点名。禁跑名单仍照常自动关（那是硬规则）。
-  仍然自动生效的只剩 monitor 的基本护栏（CPL 超线先降 30%、0-reg 花满、CPA hard-stop
-  RM1,200）——owner 若要连这些也停，改 `kpi` / `cpa` 配置即可。
+✅ **video 12：炒过那么多，累而且不稳定 — UN-BANNED 2026-08-07（owner:「跑吧。解禁」）.**
+It sold 8 单 in July and another on 8/5 via SG DAY TRADING, so the owner lifted the 07-30 禁跑.
+It is now governed like every other creative: current Meta review status + CPL/CPA only.
+History for caution, not enforcement: rejected 07-16 → TOP3 resubmission passed (SG) → fresh
+copies in BEER/DAY TRADING were rejected again 07-30 (later instances passed). When scaling it,
+PREFER reusing already-approved instances over building fresh copies — each new rejection adds a
+policy strike on this repeat-offender account family.
 
 ---
 
@@ -310,29 +197,6 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   purchases/ROAS, not CPL.
 
 ---
-
-## 每周排程（owner 2026-08-19 确认「留着」）
-
-**MY 账户每周三 15:00 MYT 全停（adbot-weekly-off）→ 周四 00:00 MYT 自动恢复（adbot-weekly-on，
-按 ADBOT_WEEKLY_OFF 标签精确复原，含 ad set / campaign 层）。SG 不在此周期内。**
-周三下午看到 MY 广告/ad set 被关是这个周期的正常现象——不要去「修」，也不要在周三下午
-判读 MY 当日数据；scheduled 未来开跑的新建 campaign 若跨周三也会被扫、周四自动弹回。
-
-## 账户现况（2026-10-08）
-
-- **MY 3.0 `act_759339046918885` 已封（2026-09-23）**——只读取证用，不投。
-- **MY 5.0 `act_2285351942292267`「[MY] MTC X SB 5.0」**（config `config/config.my5.yaml`，pixel 2602956993413536）：
-  2026-10-08 建了 3 条 1-1-5（DAY TRADING / BUSINESS OWNER 兴趣硬锁 30+、BROAD 30+），每条 CBO RM100，
-  同样 5 支干净 post 复用 ad。**与两个被封账户、SG 同一个 BM（Soo Cheng X MTC 2 / 769016565904540）**——
-  这里任何一支被拒都是整个 BM 家族的 strike：只上从没被拒过的素材、小预算、被拒立刻 DELETE 不申诉。
-- **SG `act_893025326577600`**（`config/config.sg.yaml`）：唯一有投放历史的活账户，14/10 直播的流量来源。
-- **2026-10-08 15:13 SGT，MY 5.0 DAY TRADING 的 `Video：不选 forex 不选黄金` 被拒**（团队成员在 Ads Manager
-  把它改成 WhatsApp 目的地 → 新 creative → 重审 → Not approved；通知里露出的文案「涨跌都能赚，而且不用自己的本钱」
-  是收益承诺 + 零本钱，同一段文案挂在 SG 4 个在跑位上）。**owner 决定自行申诉（规则第三条的例外，他本人拍板）**；
-  申诉当天再被拒，owner 把 MY 5.0 的 3 支副本删掉。**owner 2026-10-08 裁定「MY 是 MY，不用碰到 SG」**：
-  这次被拒**不外溢到 SG**——SG 的 不选 forex 位照跑，`不选 forex` **不进** banned_creatives、不加 🚫；
-  报告 / monitor 不得再把 SG 的 不选 forex 列为「需要关」。（这是 owner 对 9/23 全家族规则的本人例外，仅此一支。）
-  教训：**新账户的 ad 不要在 Ads Manager 里改 creative / 加 WhatsApp**——改一次 = 新 creative 重审一次。
 
 ## Key locations
 
