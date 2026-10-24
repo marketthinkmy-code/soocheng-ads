@@ -128,3 +128,5 @@ compliance:                              # ⛔ 永久禁跑名单 — owner 2026
     - "就能盈利"                         # single image：每天 1 分钟就能盈利
     - "你敢吗"                           # video 2 — 2026-07-16 被拒
     - "freestyle 2"                      # 2026-07-16 被拒
+    # ── 2026-10-24：MY 5.0 WINNERS MY «Broad · 赚美金» 被拒（ad 120251533797560329）→ owner「全部照建议」──
+    - "赚美金，一定要接美国客户"          # Video 1 — MY 5.0 第二支被拒（第一支 不选 forex 10/8）；全部副本 🚫 + ad 层 PAUSED
