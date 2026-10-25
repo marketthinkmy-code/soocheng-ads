@@ -80,6 +80,9 @@ kpi:
   zero_lead_during_pause: true                    #   …and that 0-reg rule runs even while the rest of CPL judgment waits for 10/21
                                          #   周五 10/10 自动恢复。禁跑名单 + CPA 硬线照常。
   cpl_hold: ["赚美金，一定要接美国客户"]   # owner 2026-10-25 test: 赚美金 exempt from CPL auto-pause on MY 5.0 (CPA hard-stop still applies)
+  hold_ad_until:                         # owner 2026-10-25「先不关」— reopened after the 09:01 UTC monitor pause
+    "120251454697800329": "2026-10-27"    #   LUXURY MY · 年纪大
+    "120251500770280329": "2026-10-27"    #   TRAVEL MY · 年纪大
 
 cpa:                                     # cost per real PAID acquisition (joins the Paid Student List sheet)
   enabled: true
