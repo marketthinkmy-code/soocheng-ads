@@ -85,6 +85,7 @@ kpi:                                              # SG account is MYR, so RM val
   hold_ad_until:                                   # owner 2026-10-23「全部照建议」: reopened after the 10/22 SG
     "120249964899250521": "2026-10-25"            #   registration outage — WINNERS Investment · 用我的方法
     "120249918200750521": "2026-10-25"            #   …and LAL 5% · 不选 forex (owner 10/23「开」)
+    "120249918196390521": "2026-10-27"            # owner 10/25「先不关」: LUXURY GOODS · 盖电脑 (wrongly paused 09:01 UTC)
 
 cpa:                                              # ON for SG: the Paid Student List DOES carry SG sales (utm_campaign
   enabled: true                                    #   prefixed "[sg] ..."), so the CPA gate can RESCUE a converting SG
