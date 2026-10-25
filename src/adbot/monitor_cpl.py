@@ -170,6 +170,7 @@ class AdDecision:
     carrier_kind: Optional[str] = None   # where this ad's budget sits: 'adset' (ABO) | 'campaign' (CBO)
     carrier_id: Optional[str] = None
     carrier_budget_myr: float = 0.0
+    where: str = ""                      # «campaign › ad set» — every log line names the exact position
 
 
 def _mkey(name: str) -> str:
@@ -327,7 +328,8 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
             decisions.append(AdDecision(ad["id"], name, spend, results, cpl, should_pause, reason,
                                         cpa=cpa_val, cpa_sales=n_sales, age_days=age,
                                         carrier_kind=carrier_kind, carrier_id=carrier_id,
-                                        carrier_budget_myr=carrier_budget))
+                                        carrier_budget_myr=carrier_budget,
+                                        where=f"{campaign.get('name', '')} › {aset.get('name', '')}"))
     return decisions
 
 
@@ -401,8 +403,8 @@ def run(graph, settings: Settings, *, dry_run: bool = False) -> Dict[str, Any]:
             verb = "PAUSE"
         if dry_run and d.should_pause:
             verb = "WOULD " + verb
-        log.info("  [%s] %s  spend=%.2f %s=%.0f CPL=%s%s (%s)",
-                 verb, d.name, d.spend, event.lower(), d.results, cpl_str, cpa_str, d.reason)
+        log.info("  [%s] %s  @ %s · ad %s  spend=%.2f %s=%.0f CPL=%s%s (%s)",
+                 verb, d.name, d.where, d.ad_id, d.spend, event.lower(), d.results, cpl_str, cpa_str, d.reason)
 
     paused = reduced = 0
     if not dry_run:
