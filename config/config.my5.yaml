@@ -68,7 +68,7 @@ notion:                                  # build pulls approved copy from here (
 kpi:
   cpl_threshold_myr: 60.00               # owner plan 2026-09-10「每日广告规则」: MY line moved 50->60 (act above RM60)
   cpl_min_spend_myr: 60.00               # judge once spend >= RM60 = 1.5x target CPL RM40 (owner rule:「花到1.5倍目标CPL仍0 reg: 关」)
-  cpl_lookback: "rolling_7d"   # owner 2026-10-25「紧密看」: last 7 days incl. today, no Thursday reset
+  cpl_lookback: "week_thu"   # owner 2026-10-25「改回规则！！我看的是星期四到现在」— Thursday-to-today
   pause_zero_lead_after_spend: true      # spent >= threshold spend with 0 results -> infinite CPL -> pause
   cpl_soft_reduce: false   # owner 2026-10-25: over-line ads are paused directly (no -30% carrier cut / grace day)
                                          #   of a Thu-week cuts the ad's budget carrier instead of pausing; a breach
