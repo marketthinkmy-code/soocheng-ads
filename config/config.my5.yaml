@@ -79,7 +79,7 @@ kpi:
   zero_lead_spend_myr: 80.00                       # owner 2026-10-18「今天开始，花满 RM80 还 0 报名就关」(per ad, Thu-week spend)
   zero_lead_during_pause: true                    #   …and that 0-reg rule runs even while the rest of CPL judgment waits for 10/21
                                          #   周五 10/10 自动恢复。禁跑名单 + CPA 硬线照常。
-  cpl_hold: []                           # 5.0 从零开始：没有豁免（你敢吗 已在禁跑名单）
+  cpl_hold: ["赚美金，一定要接美国客户"]   # owner 2026-10-25 test: 赚美金 exempt from CPL auto-pause on MY 5.0 (CPA hard-stop still applies)
 
 cpa:                                     # cost per real PAID acquisition (joins the Paid Student List sheet)
   enabled: true
@@ -124,4 +124,5 @@ compliance:                              # ⛔ 永久禁跑名单 — owner 2026
     - "你敢吗"                           # video 2 — 2026-07-16 被拒
     - "freestyle 2"                      # 2026-07-16 被拒
     # ── 2026-10-24：MY 5.0 WINNERS MY «Broad · 赚美金» 被拒（ad 120251533797560329）→ owner「全部照建议」──
-    - "赚美金，一定要接美国客户"          # Video 1 — MY 5.0 第二支被拒（第一支 不选 forex 10/8）；全部副本 🚫 + ad 层 PAUSED
+    # - "赚美金，一定要接美国客户"        # ⏸ owner 2026-10-25「先让我试试看，帮我 hold 不要自动关掉它」— MY 5.0 ONLY test exception
+    #                                     #   (SG + MY 3.0 keep the ban). Re-enable after the test / 10/29 review.
