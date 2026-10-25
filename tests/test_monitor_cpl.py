@@ -165,7 +165,7 @@ def test_evaluate_account_cpa_rescues_and_hard_stops():
     insights = {"rescue_me": _reg_insight(300, 3),   # CPL 100 > 40 -> CPL would pause
                 "kill_me": _reg_insight(100, 4)}      # CPL 25 -> CPL keeps
     ck = cpa.norm("mtc - news")
-    sold = {(ck, cpa.norm("rescue_me")): 10, (ck, cpa.norm("kill_me")): 2}
+    sold = {(ck, "", cpa.norm("rescue_me")): 10, (ck, "", cpa.norm("kill_me")): 2}
     spend60 = {"rescue_me": 7000.0, "kill_me": 4000.0}  # CPA 700 (rescue) / 2000 (hard stop)
 
     by_name = {d.name: d for d in evaluate_account(
@@ -202,10 +202,10 @@ def test_evaluate_account_name_fallback_rescues_renamed_campaign():
         _FakeGraph(campaigns, ads, insights), settings,
         cpa_ctx=(sold, sold_by_ad, spend60))}
 
-    assert by_name["rescue_me"].should_pause is False
-    assert by_name["rescue_me"].reason == NAME_RESCUED
-    assert by_name["rescue_me"].cpa_sales == 3
-    assert by_name["still_over"].should_pause is True       # fallback never blocks real pauses
+    # owner 2026-10-25: name-only rescue retired — sales on another campaign's copy protect nothing
+    assert by_name["rescue_me"].should_pause is True
+    assert by_name["rescue_me"].reason == OVER_THRESHOLD
+    assert by_name["still_over"].should_pause is True
     assert by_name["expensive_creative"].should_pause is True  # too-expensive name match: no rescue
     assert by_name["expensive_creative"].reason == OVER_THRESHOLD  # CPL verdict stands, no CPA pause
 
@@ -236,8 +236,7 @@ def test_name_fallback_rescues_prefixed_recut(monkeypatch):
     by_name = {d.name: d for d in evaluate_account(
         _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=({}, sold_by_ad, spend60))}
 
-    assert by_name["HOOK：rescue_me"].should_pause is False
-    assert by_name["HOOK：rescue_me"].reason == NAME_RESCUED
+    assert by_name["HOOK：rescue_me"].should_pause is True     # no cross-copy rescue (owner 10/25)
 
 
 # ── TEMPORARY soft-reduce (owner 2026-09-10「先降 30%，再犯才关」) ──────────────────────────
@@ -386,6 +385,33 @@ def test_hold_ad_until_exempts_that_ad_through_the_date(monkeypatch):
     assert graph.paused == ["expired"]
 
 
+def test_strict_rescue_needs_same_campaign_adset_and_ad():
+    # owner 2026-10-25: only the exact (campaign, ad set, ad) that sold is protected.
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True),
+                        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14, min_spend_myr=1000))
+    campaigns = [{"id": "A", "name": "CAMP", "effective_status": "ACTIVE"}]
+    sold_ad = _ad("winner"); sold_ad["adset"]["name"] = "Set A"
+    copy_ad = _ad("winner_copy"); copy_ad["name"] = "winner"; copy_ad["adset"]["name"] = "Set B"
+    ads = {"A": [sold_ad, copy_ad]}
+    insights = {"winner": _reg_insight(300, 3), "winner_copy": _reg_insight(300, 3)}   # both CPL 100 > 40
+    ck = cpa.norm("camp")
+    sold = {(ck, cpa.norm("set a"), cpa.norm("winner")): 2}
+    spend60 = {"winner": 800.0, "winner_copy": 800.0}
+
+    ds = evaluate_account(_FakeGraph(campaigns, ads, insights), settings, cpa_ctx=(sold, {}, spend60))
+    by_id = {d.ad_id: d for d in ds}
+
+    assert by_id["winner"].should_pause is False and by_id["winner"].reason == cpa.CPL_RESCUED
+    assert by_id["winner_copy"].should_pause is True          # same creative, other ad set: not protected
+
+
+def test_rolling_7d_window_has_no_thursday_reset():
+    s = Settings(kpi=KpiCfg(cpl_lookback="rolling_7d"))
+    assert cpl_window(s, dt.date(2026, 10, 25)) == (None, {"since": "2026-10-19", "until": "2026-10-25"})
+
+
 def test_run_soft_reduce_disabled_keeps_classic_pause(monkeypatch):
     monkeypatch.setattr("adbot.monitor_cpl.state.append_pause_log", lambda *a, **k: None)
     settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
@@ -416,8 +442,8 @@ def test_cpa_hold_exempts_named_ad_from_hard_stop_only():
     insights = {"video 8：做么你 trading 不用看盘的？": _reg_insight(100, 3),  # CPL 33 fine
                 "kill_me": _reg_insight(100, 4)}                               # CPL 25 fine
     ck = cpa.norm("stockbloom | day trading | 0905")
-    sold = {(ck, cpa.norm("video 8：做么你 trading 不用看盘的？")): 1,
-            (ck, cpa.norm("kill_me")): 1}
+    sold = {(ck, "", cpa.norm("video 8：做么你 trading 不用看盘的？")): 1,
+            (ck, "", cpa.norm("kill_me")): 1}
     spend60 = {"video 8：做么你 trading 不用看盘的？": 1900.0,  # CPA 1900 > 1200, held
                "kill_me": 1900.0}                               # CPA 1900 > 1200, no hold
     by_name = {d.name: d for d in evaluate_account(
@@ -448,7 +474,7 @@ def test_banned_creative_overrides_every_rescue_and_hold():
                 "拼接：Video 5：Trading 早就不是这样了！": _reg_insight(100, 5),  # CPL 20 — would keep
                 "HOOK：Video 12：不选 forex 不选黄金": _reg_insight(100, 4)}
     ck = cpa.norm("[sg] stockbloom | broad")
-    sold = {(ck, cpa.norm("🌟 freestyle 1")): 5}                      # real sales, CPA 200 — rescued normally
+    sold = {(ck, "", cpa.norm("🌟 freestyle 1")): 5}                      # real sales, CPA 200 — rescued normally
     spend60 = {"🌟 freestyle 1": 1000.0}
 
     by_name = {d.name: d for d in evaluate_account(
@@ -483,7 +509,7 @@ def test_cpl_paused_until_suspends_cpl_but_not_ban_or_cpa_hard_stop():
                 "🚫 freestyle 1": _reg_insight(100, 5),  # great CPL, banned
                 "cpa dead": _reg_insight(100, 5)}        # great CPL, CPA 1500 with a real sale
     ck = _cpa.norm("[sg] stockbloom | broad")
-    sold = {(ck, _cpa.norm("cpa dead")): 1}
+    sold = {(ck, "", _cpa.norm("cpa dead")): 1}
     spend60 = {"cpa dead": 1500.0}
 
     by_name = {d.name: d for d in evaluate_account(

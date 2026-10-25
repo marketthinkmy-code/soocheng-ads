@@ -237,7 +237,7 @@ class GraphClient:
         # adset{daily_budget} tells the soft-reduce where an ABO ad's budget sits.
         return self._get_all(f"{campaign_id}/ads",
                             {"fields": "id,name,effective_status,created_time,adset_id,"
-                                       "adset{promoted_object,daily_budget}",
+                                       "adset{name,promoted_object,daily_budget}",
                              "limit": 200})
 
     def get_ad_insight(self, ad_id: str, date_preset: Optional[str] = None,
