@@ -246,6 +246,9 @@ Video 2（谁讲 trading 一定要~）· video 2：你敢吗？· freestyle 2
 #### 名单 C — 2026-10-24 MY 5.0 被拒（owner「全部照建议」）
 
 **Video 1：赚美金，一定要接美国客户？** —— MY 5.0 WINNERS MY «Broad · 赚美金» 被拒（ad 120251533797560329，Meta 未给原因），MY 5.0 继「不选 forex」后第二支。按 9/23 规则全家族永久禁：被拒那支 DELETE，MY + SG 所有副本 ad 层 PAUSED 并加 🚫（yaml `banned_creatives` 已加，PR #80）。「赚美金 = 求人？」是另一支母带，不受影响（同角度，审核要盯）。
+⏸ **owner 2026-10-25 本人例外（同 10/8 不选 forex 的申诉先例）：「先让我试试看，帮我 hold 不要自动关掉它」**——
+仅 MY 5.0：`config.my5.yaml` 暂时从 banned_creatives 拿掉、加入 `kpi.cpl_hold`（PR #81）；SG / MY 3.0 仍禁。
+带 🚫 的副本仍被标记拦住。owner 自己跑、被拒后是否 request review 由他本人决定（我们不代为申诉）。10/29 复盘时决定恢复禁跑与否。
 
 #### 共同违规 DNA（重剪前必须逐条清掉；逐支脚本级清单见 `scripts/archive_ban_list.py`）
 
