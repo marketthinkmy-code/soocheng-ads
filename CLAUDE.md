@@ -281,6 +281,11 @@ Ads Manager 里一律改名为 `🚫 <原名>`（SG 已由 `scripts/execute_mark
   RM95，花满 RM60 / RM142 才判；超线**先把预算载体降 30%**（TEMP，`kpi.cpl_soft_reduce`），同一
   周四周期内再犯才关；0-reg 花满门槛直接关；CPA hard-stop RM1,200；converting ads are
   CPA-rescued；`cpa.hold` 是 owner 点名的 hard-stop 豁免).
+- **2026-10-25 收紧（owner「紧密看」，PR #82，取代上一条里的软降与周四归零）**：MY + SG 都改为
+  `cpl_lookback: rolling_7d`（最近 7 天含今天，不再周四归零）· `cpl_soft_reduce: false`（超线直接关该 ad，
+  不再先降 30%）· SG `cpl_min_spend_myr` 142 → **80**（owner：「我不是设定了 80 吗」）。
+  **成交保护只认原位**（owner：「一定要是那个 campaign、那个 ad set 的那个 ad 曾经成交过，才要保护，而不是
+  所有副本都保护」）——按素材名跨副本保护已取消。保护期（hold_ad_until）只在 owner 亲自点名时设。
 - **开着的广告准入标准（owner 2026-09-20「以 30 day CPA 为标准」+「不希望开着的都是很久没
   成交/CPA 不合格的，新广告例外」）**：每支在跑的 registration ad 必须满足其一——
   ① 30 天 strict CPA ≤ RM960（>1,200 关；960-1,200 watch）；② 位置 ≤14 天（新广告例外，
