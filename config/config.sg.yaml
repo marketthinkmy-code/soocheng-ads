@@ -68,10 +68,10 @@ notion:
 
 kpi:                                              # SG account is MYR, so RM values are direct
   cpl_threshold_myr: 95.00                         # owner plan 2026-09-10「每日广告规则」: SG line at RM95
-  cpl_min_spend_myr: 142.00                        # judge once spend >= RM142 = 1.5x the SG line (owner 0-reg rule)
-  cpl_lookback: "week_thu"                         # week-to-date from Thursday
+  cpl_min_spend_myr: 80.00   # owner 2026-10-25「我不是设定了 80 吗？」— judge CPL from RM80 (was 142)
+  cpl_lookback: "rolling_7d"   # owner 2026-10-25「紧密看」: last 7 days incl. today, no Thursday reset
   pause_zero_lead_after_spend: true                # spent >= threshold spend with 0 results -> pause
-  cpl_soft_reduce: true                            # TEMPORARY (owner 2026-09-10「先降 30%，再犯才关」) — same rules as MY
+  cpl_soft_reduce: false   # owner 2026-10-25: over-line ads are paused directly (no -30% carrier cut / grace day)
   cpl_reduce_pct: 0.30
   cpl_reduce_floor_myr: 30.00
   cpl_paused_until: "2026-10-20"                   # TEMPORARY owner 2026-10-18「可以」: Webinarkit chains launched 17 Oct on a NEW conversion — learning phase, no over-line CPL cuts through 10/20; resumes Wed 10/21. The RM80 0-reg rule below, ban gate and CPA hard-stop stay live.

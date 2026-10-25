@@ -50,6 +50,8 @@ def cpl_window(settings: Settings, today: dt.date):
     actually reviews (matches the weekly OFF/ON cycle). Anything else is a Meta date_preset.
     """
     lookback = settings.kpi.cpl_lookback
+    if lookback == "rolling_7d":   # owner 2026-10-25: no Thursday reset — always the last 7 days incl. today
+        return None, {"since": (today - dt.timedelta(days=6)).isoformat(), "until": today.isoformat()}
     if lookback == "week_thu":
         return None, {"since": _week_start_thursday(today).isoformat(), "until": today.isoformat()}
     return lookback, None
@@ -179,12 +181,13 @@ def _mkey(name: str) -> str:
 
 
 def build_cpa_context(graph, settings: Settings, today: dt.date):
-    """(60-day sales by (campaign,ad), 60-day sales by ad name, 60-day spend by ad_id).
+    """(60-day sales by (campaign, ad set, ad), {} , 60-day spend by ad_id).
 
-    The ad-name-only index exists because campaigns get renamed in Ads Manager after the
-    UTM was stamped, so the strict (campaign, ad) join silently loses those sales (the
-    你敢吗 case, 2026-08). Returns empty dicts when CPA is disabled or any source is
-    unavailable, so a Sheets/Meta hiccup degrades the monitor to CPL-only, not a crash.
+    Owner 2026-10-25: a sale protects ONLY the exact ad that made it — same campaign, same ad
+    set, same ad. The old ad-name-only rescue index (every copy of a sold creative protected,
+    the 你敢吗 case 2026-08) is retired, so its slot is always {}. Returns empty dicts when CPA
+    is disabled or any source is unavailable, so a Sheets/Meta hiccup degrades the monitor to
+    CPL-only, not a crash.
     """
     if not settings.cpa.enabled:
         return {}, {}, {}
@@ -194,15 +197,12 @@ def build_cpa_context(graph, settings: Settings, today: dt.date):
             settings.cpa.spreadsheet_id, settings.cpa.sales_tab)
         sales, _cols, _hdr = cpa.parse_sales(values, settings.cpa.price_myr)
         cutoff = today - dt.timedelta(days=60)
-        sold: Dict[Tuple[str, str], int] = {}
+        sold: Dict[Tuple[str, str, str], int] = {}
         sold_by_ad: Dict[str, int] = {}
         for s in sales:
             if s.date and s.date > cutoff:
-                key = (_mkey(s.campaign), s.ad)
+                key = (_mkey(s.campaign), _mkey(s.adset), s.ad)
                 sold[key] = sold.get(key, 0) + 1
-                if s.ad:
-                    fb = cpa.creative_key(s.ad)   # prefix-proof rescue index (HOOK：/重拍：)
-                    sold_by_ad[fb] = sold_by_ad.get(fb, 0) + 1
         spend: Dict[str, float] = {}
         for row in graph.account_insights(
                 settings.meta.account_path, level="ad", fields="ad_id,spend",
@@ -301,7 +301,7 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
             n_sales, age = 0, None
             should_pause, reason = cpl_pause, cpl_reason
             if use_cpa:
-                n_sales = sold60.get((camp_key, cpa.norm(name)), 0)
+                n_sales = sold60.get((camp_key, _mkey(aset.get("name", "")), cpa.norm(name)), 0)
                 sp60 = spend60.get(ad["id"], 0.0)
                 cpa_val = cpa.cpa(sp60, n_sales)
                 created = cpa.parse_date((ad.get("created_time") or "")[:10])
@@ -310,17 +310,6 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                     cpl_pause=cpl_pause, cpl_reason=cpl_reason, cpa_value=cpa_val,
                     cpa_sales=n_sales, cpa_spend=sp60, age_days=age, tiers=tiers,
                     conversion_days=settings.cpa.conversion_days, min_spend=settings.cpa.min_spend_myr)
-                if should_pause and n_sales == 0 and sold60_by_ad:
-                    # Rename-proof rescue: when the strict (campaign, ad) join finds
-                    # nothing, real sales may still exist under the creative's name with
-                    # a pre-rename campaign UTM. A name-only match may only ever RESCUE
-                    # (block a pause) — it never feeds the hard-stop path, so an
-                    # attribution gap can't auto-pause an ad.
-                    n_fb = sold60_by_ad.get(cpa.creative_key(name), 0)
-                    fb_cpa = cpa.cpa(sp60, n_fb) if n_fb else None
-                    if fb_cpa is not None and fb_cpa != math.inf and fb_cpa <= tiers.hard_stop:
-                        should_pause, reason = False, NAME_RESCUED
-                        cpa_val, n_sales = fb_cpa, n_fb
                 if should_pause and reason == cpa.HARD_STOP and any(
                         h and h in name for h in settings.cpa.hold):
                     # owner-named CPA exemption (e.g. 2026-09-21「开回 V8」observation
