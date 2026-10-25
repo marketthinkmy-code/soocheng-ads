@@ -9,6 +9,16 @@ lead)** → RM2,399 course. The ad objective is always *registration for the fre
 
 ---
 
+## ⛔ 死忌（owner 2026-10-25「错的地方不可以再犯，这是死忌」）
+
+1. **报告里提到任何一支 ad，必须写「campaign › ad set · ad ID」，而且只能来自当次 API / monitor 数据——绝不凭记忆或推测。**
+   查不到位置就说「查不到」，不猜。（10/25 把 LUXURY GOODS 的盖电脑说成 WINNERS 的盖电脑。）
+   monitor 日志已带位置与 ad ID（PR #84），引用时照抄。
+2. **会关广告 / 改预算 / 开广告的动作，只在 owner 明确说了之后才执行；之前一律 dry-run。**
+   owner 中途打断，立刻查那个动作有没有已经执行，并第一时间如实告诉他、按他的意思复原。
+   （10/25 关闭指令在 owner 说「先不关」时已送出，3 支被误关。）
+3. **owner 说的看数范围就是判断范围**——他看「星期四到现在」，monitor 与报告都用同一个范围，不自行换窗口。
+
 ## "上广告" workflow (when the owner says to put up an ad)
 
 Every path ends the same way — **PAUSED 建好（0 花费）→ owner 在 Ads Manager 审 → owner 激活.**
