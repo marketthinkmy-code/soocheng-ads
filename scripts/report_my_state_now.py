@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
-"""READ-ONLY: MY 5.0 right now — every live campaign › ad set (budget) › ad (id) with Thursday-to-today and today
-spend · registrations. Positions come straight from the API (死忌 #1)."""
+"""READ-ONLY: MY 5.0 right now, light on API calls (3): live ads grouped campaign › ad set › ad (id), with today and
+Thursday-to-today spend · registrations; per-campaign today totals. Positions straight from the API (死忌 #1)."""
 from __future__ import annotations
 
 import datetime as dt
 import json
+import time
+from collections import defaultdict
 
 from adbot.commands import graph_client
 from adbot.monitor_cpl import _week_start_thursday, extract_results
@@ -24,29 +26,25 @@ def ins(since):
                              "time_range": json.dumps({"since": since.isoformat(), "until": TODAY.isoformat()})})}
 
 
-wk, td = ins(THU), ins(TODAY)
-total = 0
-for c in g._get_all(acct + "/campaigns", {"fields": "name,effective_status,daily_budget", "limit": "200"}):
-    if c["effective_status"] != "ACTIVE":
-        continue
-    cb = int(c.get("daily_budget") or 0) // 100
-    total += cb
-    ct = [v for k, v in td.items() if k in {x["id"] for x in g._get_all(c["id"] + "/ads", {"fields": "id", "limit": "100"})}]
-    csp, crg = sum(v[0] for v in ct), sum(v[1] for v in ct)
-    print(f"\n«{c['name']}» {'CBO RM' + str(cb) if cb else 'ABO'} · campaign {c['id']} · 今天 RM{csp:.0f}/{crg:.0f}" + (f"={csp / crg:.0f}" if crg else ""))
-    for a in g._get_all(c["id"] + "/adsets", {"fields": "name,effective_status,daily_budget", "limit": "50"}):
-        if a["effective_status"] != "ACTIVE":
-            continue
-        ab = int(a.get("daily_budget") or 0) // 100
-        total += ab
-        print(f"  › {a['name']}" + (f" RM{ab}" if ab else "") + f" · adset {a['id']}")
-        for ad in g._get_all(a["id"] + "/ads", {"fields": "name,effective_status", "limit": "50"}):
-            if ad["effective_status"] != "ACTIVE":
-                continue
-            ws, wr = wk.get(ad["id"], (0.0, 0.0))
-            ts, tr = td.get(ad["id"], (0.0, 0.0))
-            print(f"      · {ad['name']} · ad {ad['id']} · 周四起 RM{ws:.0f}/{wr:.0f}" + (f"={ws / wr:.0f}" if wr else "")
-                  + f" · 今天 RM{ts:.0f}/{tr:.0f}")
+td = ins(TODAY); time.sleep(2)
+wk = ins(THU); time.sleep(2)
+ads = g._get_all(acct + "/ads", {"fields": "name,effective_status,campaign{name},adset{name}", "limit": "500"})
+tree = defaultdict(lambda: defaultdict(list))
+camp_today = defaultdict(lambda: [0.0, 0.0])
+for a in ads:
+    c = a["campaign"]["name"]
+    if a["id"] in td:
+        camp_today[c][0] += td[a["id"]][0]; camp_today[c][1] += td[a["id"]][1]
+    if a.get("effective_status") == "ACTIVE":
+        tree[c][a["adset"]["name"]].append(a)
+for c in sorted(tree, key=lambda c: -camp_today[c][0]):
+    sp, rg = camp_today[c]
+    print(f"\n«{c}» 今天 RM{sp:.0f}/{rg:.0f}" + (f"={sp / rg:.0f}" if rg else ""))
+    for st, lst in tree[c].items():
+        print(f"  › {st}")
+        for a in sorted(lst, key=lambda a: -td.get(a["id"], (0, 0))[0]):
+            ts, tr = td.get(a["id"], (0.0, 0.0)); ws, wr = wk.get(a["id"], (0.0, 0.0))
+            print(f"      · {a['name']} · ad {a['id']} · 今天 RM{ts:.0f}/{tr:.0f} · 周四起 RM{ws:.0f}/{wr:.0f}" + (f"={ws / wr:.0f}" if wr else ""))
 tsp, trg = sum(v[0] for v in td.values()), sum(v[1] for v in td.values())
 print(f"\nMY 今天合计 RM{tsp:.0f} · 报名 {trg:.0f} · CPL {tsp / trg if trg else 0:.0f}")
-print(f"MY 在跑日预算合计 ≈ RM{total}\nMY STATE DONE (read-only)")
+print("MY STATE DONE (read-only)")
