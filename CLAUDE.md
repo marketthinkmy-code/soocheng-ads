@@ -356,6 +356,16 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   报告 / monitor 不得再把 SG 的 不选 forex 列为「需要关」。（这是 owner 对 9/23 全家族规则的本人例外，仅此一支。）
   教训：**新账户的 ad 不要在 Ads Manager 里改 creative / 加 WhatsApp**——改一次 = 新 creative 重审一次。
 
+## UTM 追踪（2026-10-29 诊断 + 修好）
+
+10/21、10/28 两场的 Register 表 UTM **不是本次报名的来源**，而是客户系统里该联系人的「第一次来源」
+（webinar_oct28：回头客 57/68 带旧 campaign UTM、其中 50 个与其首次报名完全相同；新客 93/100 空白；
+(Webinarkit) campaign UTM = 0）——所以「成交对不回 Webinarkit 广告」是追踪假象，不是广告没带单。
+**修法（10/29 上线并验证）**：GHL 报名页 tracking code 把网址 utm_campaign / utm_source / utm_content /
+utm_medium 写进 Webinarkit 隐藏栏位 Custom Field 2 / 3 / 4 / 5；写 Register 表的自动化改读这 4 个栏位。
+⚠️ 以后**每换一个报名页都要贴同一段 tracking code**（`webinarkit-register-wed` 现跳转 `1-page-187152-527570-516624`）。
+10/28 及以前的 Register UTM 不可用于成交归因。
+
 ## Key locations
 
 - **Approved copy bank** (the 8 ads): Notion page **"SOOCHENG-Andromeda"**
