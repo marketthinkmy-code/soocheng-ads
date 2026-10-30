@@ -8,7 +8,7 @@
 Why (Paid Student List, +65 phones): Broad SG = #1 source of SG students (22), TRAVEL SG = #2 (18, 盖电脑 ×8).
 Every creative must link straight to https://soochenginvesting.com/webinarkit-register-wed (asserted). 年纪大 never had a
 Webinarkit SG creative → its MY 5.0 Webinarkit video is copied into the SG ad account (file_url) and a new creative is made
-with the same approved caption + SG url_tags. korea: an existing SG creative that links to -wed, else copied from MY the same way.
+with the same approved caption + SG url_tags, named exactly like the ad (e.g. «freestyle: korea»). korea: an existing SG creative that links to -wed, else copied from MY the same way.
 Ban gate. Idempotent by name. CONFIRM=true writes; dry-run prints the full plan."""
 from __future__ import annotations
 
@@ -120,11 +120,14 @@ def main() -> None:
     if not CONFIRM:
         print("\nDRY RUN — CONFIRM=true 才会写。\nBUILD DONE (dry-run)"); return
 
-    have_cr = {c.get("name"): c["id"] for c in g._get_all(acct + "/adcreatives", {"fields": "id,name", "limit": "1000"})}
+    all_cr = g._get_all(acct + "/adcreatives", {"fields": "id,name,object_story_spec", "limit": "2000"})
     for n, d in need_copy.items():
-        nm = f"{n} · webinarkit-wed · SG"
-        if nm in have_cr:
-            cr[n] = have_cr[nm]; continue
+        nm = n                       # owner 10/30「素材名字请保持 freestyle: korea」— creative named exactly like the ad
+        # rerun-safe: reuse only a same-named creative that is already this exact -wed video build (never an old post-reuse one)
+        same = [c for c in all_cr if c.get("name") == nm and link_of(c) == LINK
+                and ((c.get("object_story_spec") or {}).get("video_data") or {}).get("message") == d["message"]]
+        if same:
+            cr[n] = same[0]["id"]; print(f"  = {n}: 已有 -wed 素材 {cr[n]}"); continue
         vid = g._request("POST", acct + "/advideos", data={"file_url": d["source"], "name": n})["id"]
         g._wait_video_ready(vid, 5, 900)
         thumb = g.get_video_thumbnail(vid)
