@@ -2,7 +2,7 @@
 """owner 2026-10-30 — two NEW SG campaigns, created PAUSED (owner reviews + activates in Ads Manager). ALL LANG stays (owner「都留着」).
   A «(Webinarkit) [SG] STOCKBLOOM | BROAD SG | 1-1-5 | 1030» CBO RM100 — «Broad | SG 28+»: SG, locales from the SG Broad ad set,
      Advantage+ ON, age_range [28,65] suggestion. Ads: freestyle: korea · 不选 forex 不选黄金 · 年纪大的人做不了交易？ · 用我的方法 · 我跟你讲！
-  B «(Webinarkit) [SG] STOCKBLOOM | TRAVEL SG | 1-1-2 | 1030» CBO RM40 (separate campaign, owner「另外开 campaign，不要参在一起」) —
+  B «(Webinarkit) [SG] STOCKBLOOM | TRAVEL SG | 1-1-2 | 1030» CBO RM50 (owner 10/30 RM40→50; separate campaign, owner「另外开 campaign，不要参在一起」) —
      «Travel | SG 28+»: interests cloned from the 10/17 Webinarkit TRAVEL ad set, age 28-65 hard, Advantage+ off.
      Ads: 盖电脑，喂！ · 年纪大的人做不了交易？
 Why (Paid Student List, +65 phones): Broad SG = #1 source of SG students (22), TRAVEL SG = #2 (18, 盖电脑 ×8).
@@ -30,7 +30,7 @@ KOREA = "freestyle: korea"
 MY_SRC = {OLD: "2167823877450518"}            # MY 5.0 Webinarkit creative (DAY TRADING, ACTIVE) — video + caption + link -wed
 BUILDS = [("(Webinarkit) [SG] STOCKBLOOM | BROAD SG | 1-1-5 | 1030", "Broad | SG 28+", "broad", 10000,
            [KOREA, "Video：不选 forex 不选黄金", OLD, "Video：用我的方法", "Video：我跟你讲！"]),
-          ("(Webinarkit) [SG] STOCKBLOOM | TRAVEL SG | 1-1-2 | 1030", "Travel | SG 28+", "travel", 4000,
+          ("(Webinarkit) [SG] STOCKBLOOM | TRAVEL SG | 1-1-2 | 1030", "Travel | SG 28+", "travel", 5000,
            ["Video：盖电脑，喂！", OLD])]
 
 
@@ -104,7 +104,15 @@ def main() -> None:
     print(f"\n  Broad 受众: geo {broad_t['geo_locations'].get('countries')} · locales {broad_t.get('locales')} · Advantage+ 开 · age_range {broad_t['age_range']}")
     print(f"  Travel 受众（复制自 «{TRAVEL_CAMP}» › {ts['name']}，campaign {tc['id']} 现 {tc['effective_status']}）: "
           f"geo {travel_t['geo_locations'].get('countries')} · locales {travel_t.get('locales')} · age 28-65 硬锁 · Advantage+ 关 · 兴趣 {len(ints)}: {ints}")
-    print(f"  转化: {dt['promoted_object']} · regional {dt.get('regional_regulated_categories')}")
+    po = dt["promoted_object"]
+    cc = g.get_object(po["custom_conversion_id"], "name,rule,custom_event_type,is_archived,pixel{id,name},last_fired_time")
+    px = g.get_object(po["pixel_id"], "name,last_fired_time")
+    print(f"  转化（owner「check 好 pixel 都是 webinarkit 的」）: pixel {po['pixel_id']} «{px.get('name')}» 最后触发 {px.get('last_fired_time')} · "
+          f"custom conversion {po['custom_conversion_id']} «{cc.get('name')}» · 归档 {cc.get('is_archived')} · 最后触发 {cc.get('last_fired_time')}\n"
+          f"      规则 {cc.get('rule')}")
+    assert "webinarkit" in (cc.get("name") or "").lower() and "webinarkit-thankyou" in (cc.get("rule") or ""), "conversion is not the Webinarkit one"
+    assert (cc.get("pixel") or {}).get("id") in (None, po["pixel_id"]) and not cc.get("is_archived"), "conversion pixel mismatch / archived"
+    print(f"      ✅ Webinarkit 报名转化 · regional {dt.get('regional_regulated_categories')}")
 
     tmap = {"broad": broad_t, "travel": travel_t}
     for cname, sname, mode, cents, ads in BUILDS:
