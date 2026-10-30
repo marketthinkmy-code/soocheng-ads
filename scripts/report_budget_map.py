@@ -12,7 +12,8 @@ from adbot.commands import graph_client
 from adbot.monitor_cpl import extract_results
 from adbot.settings import REPO_ROOT, load_settings
 
-WIN = json.dumps({"since": "2026-10-22", "until": "2026-10-28"})
+import datetime as dt
+WIN = json.dumps({"since": "2026-10-29", "until": (dt.datetime.utcnow() + dt.timedelta(hours=8)).date().isoformat()})
 ACCTS = (("MY 5.0", "config.my5.yaml", "1048291251556714"), ("SG", "config.sg.yaml", "1614065190214320"))
 
 for label, cfg, cc in ACCTS:
@@ -42,13 +43,13 @@ for label, cfg, cc in ACCTS:
             r = perf_c.get(cid, {})
             sp, rg = float(r.get("spend") or 0), extract_results(r.get("actions"), tok)
             total += cb
-            print(f"  CBO RM{cb:<4} «{c['name']}» · campaign {cid} · 上周 RM{sp:.0f}/{rg:.0f}" + (f"={sp / rg:.0f}" if rg else "") + f" · {sum(live_ads[a['id']] for a in live_sets)} ads")
+            print(f"  CBO RM{cb:<4} «{c['name']}» · campaign {cid} · 本周(10/29起) RM{sp:.0f}/{rg:.0f}" + (f"={sp / rg:.0f}" if rg else "") + f" · {sum(live_ads[a['id']] for a in live_sets)} ads")
         else:
             for a in live_sets:
                 ab = int(a.get("daily_budget") or 0) // 100
                 r = perf_s.get(a["id"], {})
                 sp, rg = float(r.get("spend") or 0), extract_results(r.get("actions"), tok)
                 total += ab
-                print(f"  ABO RM{ab:<4} «{c['name']}» › {a['name']} · adset {a['id']} · 上周 RM{sp:.0f}/{rg:.0f}" + (f"={sp / rg:.0f}" if rg else "") + f" · {live_ads[a['id']]} ads")
+                print(f"  ABO RM{ab:<4} «{c['name']}» › {a['name']} · adset {a['id']} · 本周(10/29起) RM{sp:.0f}/{rg:.0f}" + (f"={sp / rg:.0f}" if rg else "") + f" · {live_ads[a['id']]} ads")
     print(f"  {label} 在跑日预算合计 RM{total}")
 print("\nBUDGET MAP DONE (read-only)")
