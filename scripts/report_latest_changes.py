@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """READ-ONLY: owner「你看看我现在的最新调整」— (1) every human change (status / budget) on MY 5.0 + SG in the last
-6 hours from the activity log, with campaign › ad set · id read back from the API; (2) what is live right now per
+HOURS hours from the activity log, with campaign › ad set · id read back from the API; (2) what is live right now per
 account: campaign › ad set (budget) › ad · id, with Thursday-to-today spend · registrations."""
 from __future__ import annotations
 
@@ -14,7 +14,8 @@ from adbot.settings import REPO_ROOT, load_settings
 NOW = dt.datetime.utcnow()
 TODAY = (NOW + dt.timedelta(hours=8)).date()
 THU = _week_start_thursday(TODAY)
-SINCE = int((NOW - dt.timedelta(hours=6)).replace(tzinfo=dt.timezone.utc).timestamp())
+HOURS = 30
+SINCE = int((NOW - dt.timedelta(hours=HOURS)).replace(tzinfo=dt.timezone.utc).timestamp())
 ACCTS = (("MY 5.0", "config.my5.yaml", "1048291251556714"), ("SG", "config.sg.yaml", "1614065190214320"))
 
 for label, cfg, cc in ACCTS:
@@ -27,7 +28,7 @@ for label, cfg, cc in ACCTS:
                                              "since": str(SINCE), "limit": "500"})
     keep = [a for a in acts if a.get("actor_name") not in ("STOCKBLOOM-ADS", "Meta", None)
             and any(k in (a.get("event_type") or "") for k in ("run_status", "budget"))]
-    print(f"① 最近 6 小时人工改动（{len(keep)} 条，时间为 UTC）:")
+    print(f"① 最近 {HOURS} 小时人工改动（{len(keep)} 条，时间为 UTC）:")
     seen = set()
     for a in sorted(keep, key=lambda x: x["event_time"]):
         try:
