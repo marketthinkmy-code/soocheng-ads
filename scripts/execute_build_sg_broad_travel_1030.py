@@ -77,13 +77,15 @@ def main() -> None:
         MY_SRC[KOREA] = mk[0]["creative"]["id"]
         print(f"    → SG 没有干净的 -wed 版本，从 MY creative {MY_SRC[KOREA]}（ad {mk[0]['id']}）复制")
     for n, mcid in MY_SRC.items():
-        c = gm.get_object(mcid, "object_story_spec")
+        c = gm.get_object(mcid, "object_story_spec,body")
         vd = c["object_story_spec"]["video_data"]
+        msg = vd.get("message") or c.get("body") or ""      # korea keeps its caption in `body` (single approved text; no AI text variants)
+        assert len(msg) > 100, f"MY {n} creative {mcid} has no caption"
         assert link_of(c) == LINK, f"MY {n} creative {mcid} links to {link_of(c)}"
         src = gm.get_object(vd["video_id"], "source,length")
         assert src.get("source"), f"MY video {vd['video_id']} source unreadable"
-        need_copy[n] = {"video_id": vd["video_id"], "message": vd.get("message") or "", "source": src["source"]}
-        print(f"  {n}: 从 MY creative {mcid} 复制 · video {vd['video_id']} {src.get('length')}s · 文案 {len(vd.get('message') or '')} 字 «{(vd.get('message') or '')[:30]}…» · → {LINK} ✅")
+        need_copy[n] = {"video_id": vd["video_id"], "message": msg, "source": src["source"]}
+        print(f"  {n}: 从 MY creative {mcid} 复制 · video {vd['video_id']} {src.get('length')}s · 文案 {len(msg)} 字 «{msg[:30]}…» · → {LINK} ✅")
 
     # ── targeting ──
     dt = g.get_object(DT_SET, "promoted_object,optimization_goal,billing_event,attribution_spec,regional_regulated_categories,regional_regulation_identities")
