@@ -52,7 +52,10 @@ for n, v in names.most_common(15):
 print("\n10/29 → 今天 花费 / Meta 报名:")
 for label, cfg, cc in (("MY 5.0", "config.my5.yaml", "1048291251556714"), ("SG", "config.sg.yaml", "1614065190214320")):
     st = load_settings(REPO_ROOT / "config" / cfg)
-    for since, until in (("2026-10-29", "2026-10-29"), ("2026-10-30", "2026-10-30")):
+    import datetime as dt
+    today = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()
+    days = [(dt.date(2026, 10, 29) + dt.timedelta(days=i)).isoformat() for i in range((today - dt.date(2026, 10, 29)).days + 1)]
+    for since, until in ((d, d) for d in days):
         r = graph_client(st)._get_all(st.meta.account_path + "/insights", {"fields": "spend,actions", "time_range": json.dumps({"since": since, "until": until})})
         r = r[0] if r else {}
         sp, rg = float(r.get("spend") or 0), extract_results(r.get("actions"), f"offsite_conversion.custom.{cc}")
