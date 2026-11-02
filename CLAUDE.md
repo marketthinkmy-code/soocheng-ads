@@ -351,6 +351,9 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   同样 5 支干净 post 复用 ad。**与两个被封账户、SG 同一个 BM（Soo Cheng X MTC 2 / 769016565904540）**——
   这里任何一支被拒都是整个 BM 家族的 strike：只上从没被拒过的素材、小预算、被拒立刻 DELETE 不申诉。
 - **SG `act_893025326577600`**（`config/config.sg.yaml`）：唯一有投放历史的活账户，14/10 直播的流量来源。
+  **SG 目标线（owner 2026-11-02「照这个计划走」）**：SG 贵在 CPM（10/29–11/2 RM240 vs MY 122），CTR / 报名页转化与 MY 相同；
+  但 SG 报名转成交 6.0% vs MY 3.7%（9/1 起，按电话国码）→ **SG CPL ≤80 ≈ MY CPL 48 的每学员成本**，所以 SG 判「好」用 ≤80，
+  monitor 关停线仍是 95。直播后按每学员成本判（≤RM1,500 加码 / >RM2,000 砍）；SG 不再试「不锁语言 ALL LANG」（10/26 测试 0 报名）。
 - **2026-10-08 15:13 SGT，MY 5.0 DAY TRADING 的 `Video：不选 forex 不选黄金` 被拒**（团队成员在 Ads Manager
   把它改成 WhatsApp 目的地 → 新 creative → 重审 → Not approved；通知里露出的文案「涨跌都能赚，而且不用自己的本钱」
   是收益承诺 + 零本钱，同一段文案挂在 SG 4 个在跑位上）。**owner 决定自行申诉（规则第三条的例外，他本人拍板）**；
