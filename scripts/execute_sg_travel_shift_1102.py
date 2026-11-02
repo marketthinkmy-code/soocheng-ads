@@ -1,0 +1,22 @@
+# -*- coding: utf-8 -*-
+"""owner 2026-11-02「SG 预算从 BROAD SG 挪给 TRAVEL SG，SG 合计 RM230 不变」—
+  BROAD SG 120250144810670521 RM100→85 · TRAVEL SG 120250144814410521 RM50→65. Names asserted first. CONFIRM=true writes."""
+from __future__ import annotations
+
+import os
+import time
+
+from adbot.commands import graph_client
+from adbot.settings import REPO_ROOT, load_settings
+
+CONFIRM = os.environ.get("CONFIRM", "").lower() in ("1", "true", "yes")
+PLAN = [("120250144810670521", "BROAD SG | 1-1-5 | 1030", 8500), ("120250144814410521", "TRAVEL SG | 1-1-2 | 1030", 6500)]
+g = graph_client(load_settings(REPO_ROOT / "config" / "config.sg.yaml"))
+for oid, must, cents in PLAN:
+    o = g.get_object(oid, "name,daily_budget")
+    assert must in o["name"] and "(Webinarkit) [SG]" in o["name"], f"{oid} is «{o['name']}»"
+    print(f"  «{o['name']}» · campaign {oid} · RM{int(o.get('daily_budget') or 0) // 100} → RM{cents // 100}")
+    if CONFIRM and int(o.get("daily_budget") or 0) != cents:
+        g.update_daily_budget(oid, cents); time.sleep(1)
+        print(f"    ✅ RM{int(g.get_object(oid, 'daily_budget')['daily_budget']) // 100}")
+print("SG TRAVEL SHIFT DONE" + ("" if CONFIRM else " (dry-run)"))
