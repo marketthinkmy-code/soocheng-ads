@@ -259,6 +259,9 @@ Video 2（谁讲 trading 一定要~）· video 2：你敢吗？· freestyle 2
 ⏸ **owner 2026-10-25 本人例外（同 10/8 不选 forex 的申诉先例）：「先让我试试看，帮我 hold 不要自动关掉它」**——
 仅 MY 5.0：`config.my5.yaml` 暂时从 banned_creatives 拿掉、加入 `kpi.cpl_hold`（PR #81）；SG / MY 3.0 仍禁。
 带 🚫 的副本仍被标记拦住。owner 自己跑、被拒后是否 request review 由他本人决定（我们不代为申诉）。10/29 复盘时决定恢复禁跑与否。
+⛔ **2026-11-02 例外结束**：LUXURY MY «Luxury | MY 28+» · ad 120251454699130329 在 10/30 被拒，owner 本人 request review 后**仍被拒**
+→ owner「做」：该 ad DELETE；MY 5.0 其余 10 支副本 ad 层 PAUSED + 🚫（`execute_zmj_ban_1102.py`）；`config.my5.yaml` 恢复
+banned_creatives、清空 cpl_hold（PR #86）。**赚美金 MY + SG 全面永久禁跑，不再有例外。**
 
 #### 共同违规 DNA（重剪前必须逐条清掉；逐支脚本级清单见 `scripts/archive_ban_list.py`）
 
