@@ -343,6 +343,14 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
 周三下午看到 MY 广告/ad set 被关是这个周期的正常现象——不要去「修」，也不要在周三下午
 判读 MY 当日数据；scheduled 未来开跑的新建 campaign 若跨周三也会被扫、周四自动弹回。
 
+## Monitor 触发（2026-11-03 起）
+
+GitHub 自带的 `schedule` 实测只有 3–10 小时跑一次（cron 写 20 分钟，被 GitHub 节流），所以 owner 11/3 选方案 A：
+**cron-job.org 每 20 分钟各 POST 一次 `workflow_dispatch`**（「adbot monitor MY」→ `adbot-monitor-my5.yml`、
+「adbot monitor SG」→ `adbot-monitor-sg.yml`，body `{"ref":"main"}`，dry_run 默认 false = 正式执行），GitHub schedule 留作备份。
+用 owner 的 fine-grained token（只开 soocheng-ads · Actions read/write）—— **2026-12-03 到期，到期前要换**（11/30 已排提醒）。
+验证：两条 workflow 的 run list 里应每 20 分钟出现一次 `workflow_dispatch`。
+
 ## 账户现况（2026-10-08）
 
 - **MY 3.0 `act_759339046918885` 已封（2026-09-23）**——只读取证用，不投。
