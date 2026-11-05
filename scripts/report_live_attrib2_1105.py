@@ -51,7 +51,11 @@ hits = defaultdict(int)
 for i, p in enumerate(paid, 1):
     rows = idx.get(em(p.get("Email"))) or idx.get(tel(p.get("Phone Number"))) or []
     nov4 = [r for r in rows if "nov4" in (r.get("Source") or "").lower()]
-    r = (nov4 or rows or [{}])[-1]
+    utm_nov4 = [r for r in nov4 if (r.get("UTM Campaign") or "").strip()]
+    # a person can have several nov4 rows (the ad-form registration + a no-UTM re-registration via the join/reminder link);
+    # prefer the row that carries a UTM, then any nov4 row, then their latest row
+    r = (utm_nov4 or nov4 or rows or [{}])[-1]
+    print(f"     (此人 nov4 报名行 {len(nov4)} 行，其中带 UTM {len(utm_nov4)} 行)")
     c, a_s, a = (r.get("UTM Campaign") or "").strip(), (r.get("UTM Ads Set") or "").strip(), (r.get("UTM Ads Name") or "").strip()
     k = (_mkey(c), _mkey(a_s), cpa.norm(a))
     tag = "✅ 原位" if k in pos else ("— 报名 UTM 空白" if not c else "✗ 旧 UTM/对不上")
