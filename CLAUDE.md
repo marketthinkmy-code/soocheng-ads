@@ -263,6 +263,14 @@ Video 2（谁讲 trading 一定要~）· video 2：你敢吗？· freestyle 2
 → owner「做」：该 ad DELETE；MY 5.0 其余 10 支副本 ad 层 PAUSED + 🚫（`execute_zmj_ban_1102.py`）；`config.my5.yaml` 恢复
 banned_creatives、清空 cpl_hold（PR #86）。**赚美金 MY + SG 全面永久禁跑，不再有例外。**
 
+#### 2026-11-05 SG 旧广告批量被拒（owner 选「C」= 本人例外）
+
+11/05 04:16 Meta 重审 SG 旧 campaign（全已 PAUSED），6 支被拒（Meta 未给原因）：ANDRO POOL 30+ 0922 的 freestyle: korea /
+HOOK：Video 5 盖电脑 / HOOK：Video 12 不选 forex / video 2 我只有一个目的；🌟 PURCHASE LAL 5% 1-1-4 的 🌟 video 5 盖电脑；
+BROAD SG 25+ 0905 的 video 1 用我的方法。**owner 选「C」：只 DELETE 这 6 支（`execute_sg_delete_rejected_1105.py`），
+在跑的同母带 / 同文案副本照跑**（含与被拒同文案的 MY korea ×2、MY 盖电脑 ×3、SG TRAVEL 盖电脑）——这是 owner 对 9/23「母带永久禁」
+的本人例外（同 10/8 不选 forex 先例），**不进 banned_creatives、不加 🚫**。这些副本若再被拒，立刻报告 owner、建议 DELETE。
+
 #### 共同违规 DNA（重剪前必须逐条清掉；逐支脚本级清单见 `scripts/archive_ban_list.py`）
 
 收益金额（「每週/每天 200-300 US」「一星期赚一千美金」——口播/字幕/道具纸板任一形式）·
