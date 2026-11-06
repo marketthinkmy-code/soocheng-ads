@@ -22,6 +22,7 @@ from .logging import final_summary, get_logger
 from .settings import KpiCfg, Settings
 
 INSUFFICIENT_SPEND = "insufficient_spend"
+VETERAN_WAIT = "veteran_wait"          # proven ad below its higher veteran spend floor
 ZERO_RESULTS = "zero_results_over_min_spend"
 OVER_THRESHOLD = "cpl_over_threshold"
 WITHIN_THRESHOLD = "within_threshold"
@@ -247,6 +248,14 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
         account, level="ad", fields="ad_id,spend,actions",
         date_preset=cpl_preset, time_range=cpl_range)}
 
+    # Veterans (owner 2026-11-06): one more account-level call for since-launch spend/results.
+    kpi = settings.kpi
+    life_by_ad = {}
+    if kpi.veteran_min_regs > 0:
+        life_by_ad = {r.get("ad_id"): r for r in graph.account_insights(
+            account, level="ad", fields="ad_id,spend,actions", date_preset=None,
+            time_range={"since": kpi.veteran_since, "until": today.isoformat()})}
+
     suspended = cpl_suspended(settings.kpi, today)
     decisions: List[AdDecision] = []
     for campaign in graph.list_campaigns(account):
@@ -286,18 +295,30 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
             else:
                 carrier_kind, carrier_id, carrier_budget = None, None, 0.0
 
+            kpi_ad, veteran = kpi, False
+            if life_by_ad:
+                lsp, lrg = parse_metrics(life_by_ad.get(ad["id"]), ad_token)
+                if lrg >= kpi.veteran_min_regs and lsp / lrg <= kpi.veteran_max_cpl_myr:
+                    veteran = True
+                    floor = kpi.veteran_min_spend_myr
+                    zero = kpi.zero_lead_spend_myr if kpi.zero_lead_spend_myr is not None else kpi.cpl_min_spend_myr
+                    kpi_ad = kpi.model_copy(update={"cpl_min_spend_myr": max(kpi.cpl_min_spend_myr, floor),
+                                                    "zero_lead_spend_myr": max(zero, floor)})
+
             held = any(h and h in name for h in settings.kpi.cpl_hold)
             hold_to = (settings.kpi.hold_ad_until or {}).get(str(ad["id"]))
             if hold_to and today.isoformat() <= str(hold_to):
                 held = True                            # owner-named per-ad hold, until the date
             if suspended and not held and results <= 0 and settings.kpi.zero_lead_during_pause:
-                cpl_pause, cpl_reason, cpl = decide(spend, results, settings.kpi)   # 0-reg rule stays live
+                cpl_pause, cpl_reason, cpl = decide(spend, results, kpi_ad)   # 0-reg rule stays live
             elif suspended or held:                    # a hold exempts from CPL (not CPA)
                 cpl_pause, cpl_reason = False, (CPL_SUSPENDED if suspended else MANUAL_HOLD)
                 cpl = (spend / results) if results else (math.inf if spend else None)
             else:
-                cpl_pause, cpl_reason, cpl = decide(spend, results, settings.kpi)
+                cpl_pause, cpl_reason, cpl = decide(spend, results, kpi_ad)
 
+            if veteran and cpl_reason == INSUFFICIENT_SPEND:
+                cpl_reason = VETERAN_WAIT
             cpa_val: Optional[float] = None
             n_sales, age = 0, None
             should_pause, reason = cpl_pause, cpl_reason

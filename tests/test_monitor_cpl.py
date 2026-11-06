@@ -566,3 +566,39 @@ def test_zero_reg_rm80_rule_runs_during_cpl_pause():
     assert by["zero 84"].should_pause is True and by["zero 84"].reason == _ZERO
     assert by["zero 70"].should_pause is False and by["zero 70"].reason == _INS
     assert by["over line"].should_pause is False and by["over line"].reason == _SUSP
+
+
+class _FakeGraphLife(_FakeGraph):
+    """Week-window insights vs since-launch insights (a time_range starting at veteran_since)."""
+
+    def __init__(self, campaigns, ads_by_campaign, week, life):
+        super().__init__(campaigns, ads_by_campaign, week)
+        self._life = life
+
+    def account_insights(self, account_path, *, level, fields, date_preset=None, time_range=None):
+        if time_range and time_range.get("since") == "2026-10-16":
+            return [{"ad_id": aid, **row} for aid, row in self._life.items()]
+        return super().account_insights(account_path, level=level, fields=fields,
+                                        date_preset=date_preset, time_range=time_range)
+
+
+def test_veteran_gets_higher_spend_floor_others_unchanged():
+    # owner 2026-11-06「1」: since-launch ≥10 regs at CPL ≤40 → judged only after RM150 this week.
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=60, cpl_min_spend_myr=60, zero_lead_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True,
+                                   veteran_min_regs=10, veteran_max_cpl_myr=40,
+                                   veteran_min_spend_myr=150, veteran_since="2026-10-16"))
+    campaigns = [{"id": "A", "name": "CAMP", "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad("vet_zero"), _ad("vet_cpl"), _ad("vet_over_floor"), _ad("rookie_zero"), _ad("weak_history")]}
+    week = {"vet_zero": _reg_insight(81, 0), "vet_cpl": _reg_insight(120, 1), "vet_over_floor": _reg_insight(160, 0),
+            "rookie_zero": _reg_insight(81, 0), "weak_history": _reg_insight(81, 0)}
+    life = {"vet_zero": _reg_insight(786, 28), "vet_cpl": _reg_insight(354, 17), "vet_over_floor": _reg_insight(786, 28),
+            "rookie_zero": _reg_insight(156, 7), "weak_history": _reg_insight(585, 12)}   # 7 regs / CPL 49: not veterans
+
+    by = {d.ad_id: d for d in evaluate_account(_FakeGraphLife(campaigns, ads, week, life), settings)}
+
+    assert not by["vet_zero"].should_pause and by["vet_zero"].reason == "veteran_wait"
+    assert not by["vet_cpl"].should_pause and by["vet_cpl"].reason == "veteran_wait"
+    assert by["vet_over_floor"].should_pause                       # past RM150 with 0 regs: judged as usual
+    assert by["rookie_zero"].should_pause and by["weak_history"].should_pause
