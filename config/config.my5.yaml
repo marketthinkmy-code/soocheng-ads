@@ -77,6 +77,10 @@ kpi:
   cpl_reduce_floor_myr: 30.00            # never cut a carrier below RM30/day (at the floor -> pause instead)
   cpl_paused_until: "2026-10-20"                   # TEMPORARY owner 2026-10-18「可以」: Webinarkit chains launched 17 Oct on a NEW conversion — learning phase, no over-line CPL cuts through 10/20; resumes Wed 10/21. The RM80 0-reg rule below, ban gate and CPA hard-stop stay live.
   zero_lead_spend_myr: 80.00                       # owner 2026-10-18「今天开始，花满 RM80 还 0 报名就关」(per ad, Thu-week spend)
+  veteran_min_regs: 10                           # owner 2026-11-06「1」: proven ads (since 10/16 ≥10 报名 at CPL ≤40)
+  veteran_max_cpl_myr: 40.0                      #   are judged only after RM150 Thu-week spend (0-reg and CPL alike)
+  veteran_min_spend_myr: 150.0
+  veteran_since: "2026-10-16"
   zero_lead_during_pause: true                    #   …and that 0-reg rule runs even while the rest of CPL judgment waits for 10/21
                                          #   周五 10/10 自动恢复。禁跑名单 + CPA 硬线照常。
   cpl_hold: []                          # 2026-11-02: 赚美金 test exception ended (review rejected again) — back on banned_creatives
