@@ -307,6 +307,9 @@ Ads Manager 里一律改名为 `🚫 <原名>`（SG 已由 `scripts/execute_mark
   不再先降 30%）· SG `cpl_min_spend_myr` 142 → **80**（owner：「我不是设定了 80 吗」）。
   **成交保护只认原位**（owner：「一定要是那个 campaign、那个 ad set 的那个 ad 曾经成交过，才要保护，而不是
   所有副本都保护」）——按素材名跨副本保护已取消。保护期（hold_ad_until）只在 owner 亲自点名时设。
+- **老将门槛（owner 2026-11-06「1」，PR #87）**：10/16 起 ≥10 报名且 CPL ≤40 的 ad = 老将，周四窗口内要花满 **RM150**
+  才判 CPL / 0 报名（其他 ad 照旧 RM60 / RM80）。起因：周四归零 + 周四到周日最贵，monitor 在 RM60–81 就关掉了
+  DAY TRADING 的 korea（28 报名 CPL 28）、年纪大（17 报名 CPL 21）。日志 reason = `veteran_wait`。禁跑 / CPA 硬线不受影响。
 - **开着的广告准入标准（owner 2026-09-20「以 30 day CPA 为标准」+「不希望开着的都是很久没
   成交/CPA 不合格的，新广告例外」）**：每支在跑的 registration ad 必须满足其一——
   ① 30 天 strict CPA ≤ RM960（>1,200 关；960-1,200 watch）；② 位置 ≤14 天（新广告例外，
