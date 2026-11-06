@@ -164,6 +164,14 @@ class KpiCfg(BaseModel):
     # cpl_paused_until suspends the rest of the CPL rules (over-line soft-reduce / pause).
     zero_lead_spend_myr: Optional[float] = None
     zero_lead_during_pause: bool = False
+    # owner 2026-11-06「1」: proven ads ("veterans") get a higher spend floor before the CPL / 0-reg rules
+    # judge them in the Thu-week window — Thu–Sun is the dearest stretch of the weekly cycle and a few
+    # dozen ringgit of spend is noise. Veteran = since `veteran_since`, >= veteran_min_regs registrations
+    # at a CPL <= veteran_max_cpl_myr. 0 = off. Banned-creative and CPA hard-stop rules are unchanged.
+    veteran_min_regs: int = 0
+    veteran_max_cpl_myr: float = 40.0
+    veteran_min_spend_myr: float = 150.0
+    veteran_since: str = "2026-10-16"
 
 
 class CpaCfg(BaseModel):
