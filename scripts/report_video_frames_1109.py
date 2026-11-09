@@ -13,7 +13,7 @@ from pathlib import Path
 from adbot.clients.drive import DriveClient
 from adbot.settings import REPO_ROOT, load_settings
 
-FILES = ["1kJGdGtqgOC1-SPaQY2Gin5Tr_3QWe9Q2", "1TwgtzOiQvicbz6Nlkp_CFImnmxRaA7Wp"]   # SA-readable copies of SC SEP 04# / SC SEP 03#
+FILES = ["1TwgtzOiQvicbz6Nlkp_CFImnmxRaA7Wp"]  # 2nd pass: Video 3 (SC SEP 03#) Scene 4 IG-result pop-up, 1 fps 33–52 s   # SA-readable copies of SC SEP 04# / SC SEP 03#
 STEP = 3
 if not shutil.which("ffmpeg"):
     subprocess.run(["sudo", "apt-get", "install", "-y", "-qq", "ffmpeg"], check=True)
@@ -29,7 +29,7 @@ for fid in FILES:
     print(f"FILE {fid} · {dur:.1f}s · {v['width']}x{v['height']} · {p.stat().st_size} bytes")
     out = tmp / fid
     out.mkdir(exist_ok=True)
-    subprocess.run(["ffmpeg", "-v", "error", "-i", str(p), "-vf", f"fps=1/{STEP},scale=270:-2", "-q:v", "7", str(out / "f%03d.jpg")], check=True)
+    subprocess.run(["ffmpeg", "-v", "error", "-ss", "33", "-t", "19", "-i", str(p), "-vf", "fps=1,scale=405:-2", "-q:v", "7", str(out / "f%03d.jpg")], check=True)
     for f in sorted(out.glob("f*.jpg")):
         print(f"FRAME {fid} {f.stem} {base64.b64encode(f.read_bytes()).decode()}")
 print("FRAMES DONE (read-only)")
