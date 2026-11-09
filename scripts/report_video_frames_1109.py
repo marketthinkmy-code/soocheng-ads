@@ -13,7 +13,7 @@ from pathlib import Path
 from adbot.clients.drive import DriveClient
 from adbot.settings import REPO_ROOT, load_settings
 
-FILES = ["1vlQJLo9FZBKT1OolFKtCxPw6b_ZDS1zg", "1piToqD0gYvQnHWogzT7CqMhqfAI9_5HZ"]
+FILES = ["1kJGdGtqgOC1-SPaQY2Gin5Tr_3QWe9Q2", "1TwgtzOiQvicbz6Nlkp_CFImnmxRaA7Wp"]   # SA-readable copies of SC SEP 04# / SC SEP 03#
 STEP = 3
 if not shutil.which("ffmpeg"):
     subprocess.run(["sudo", "apt-get", "install", "-y", "-qq", "ffmpeg"], check=True)
