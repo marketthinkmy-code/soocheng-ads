@@ -18,6 +18,8 @@ VIDS = {"MY": {"V1": {"2900671390333546", "1838780207383506"}, "V2": {"372316740
         "SG": {"V1": {"1488486326476294"}, "V2": {"2201912637410682"}, "V3": {"4219294225027138"},
                "V4": {"1453281277009637"}, "V5": {"2192956807955105"}}}
 bad = 0
+# 2nd pass (11/10): MY ×3 and SG Broad were read back ✅ in run 1; only re-check what the SG throttle cut off.
+DONE = ("STOCKBLOOM | NEW VIDEO · News", "STOCKBLOOM | NEW VIDEO · Luxury Goods", "STOCKBLOOM | NEW VIDEO · Broad")
 
 
 def T(fn, *a, **k):
@@ -30,12 +32,12 @@ def T(fn, *a, **k):
                 raise
             print(f"      … 限流，等 90s（{i + 1}/10）"); time.sleep(90)
     raise RuntimeError("throttled")
-for key, cfg in (("MY", "config.my5.yaml"), ("SG", "config.sg.yaml")):
+for key, cfg in (("SG", "config.sg.yaml"),):
     s = load_settings(REPO_ROOT / "config" / cfg)
     g = graph_client(s)
     acct = s.meta.account_path
     camps = [c for c in T(g._get_all, acct + "/campaigns", {"fields": "name,status,effective_status,objective,daily_budget", "limit": "500"})
-             if "NEW VIDEO" in c["name"]]
+             if "NEW VIDEO" in c["name"] and not any(x in c["name"] for x in DONE)]
     print(f"\n################ {key} · NEW VIDEO campaigns {len(camps)}")
     for c in sorted(camps, key=lambda x: x["name"]):
         print(f"  «{c['name']}» · {c['id']} · {c['status']}/{c['effective_status']} · {c['objective']} · campaign budget {c.get('daily_budget') or '无 (ABO)'}")
