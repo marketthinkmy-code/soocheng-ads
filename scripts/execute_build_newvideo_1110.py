@@ -39,6 +39,18 @@ ACCTS = {
 BUDGET = 5000          # RM50 / ad set / day (ABO)
 
 
+def T(fn, *a, **k):
+    """Retry a Graph call through Meta's per-account throttle (run 42795285614 hit «too many calls» mid-build)."""
+    for i in range(10):
+        try:
+            return fn(*a, **k)
+        except Exception as e:                                           # noqa: BLE001
+            if "throttled" not in str(e) and "too many calls" not in str(e).lower() and "request limit" not in str(e).lower():
+                raise
+            print(f"      … Meta 限流，等 120s 再试（{i + 1}/10）"); time.sleep(120)
+    raise RuntimeError("still throttled after 10 tries")
+
+
 def link_of(cr: dict) -> str:
     vd = (cr.get("object_story_spec") or {}).get("video_data") or {}
     return ((vd.get("call_to_action") or {}).get("value") or {}).get("link") or ""
@@ -115,7 +127,7 @@ def main() -> None:
                 print(f"  受众 {aud}: 复制自 {sacct} «{src['campaign']['name']}» › «{src['name']}» ({src['id']}, {src['created_time'][:10]}) · "
                       f"硬锁 28–65 · Advantage+ 关 · geo {base['geo_locations'].get('countries')}\n      兴趣 {ints}" + (f" · 行为 {beh}" if beh else ""))
             targets[aud] = t
-        camps = {c["name"]: c for c in g._get_all(acct + "/campaigns", {"fields": "name,effective_status", "limit": "500"})}
+        camps = {c["name"]: c for c in T(g._get_all, acct + "/campaigns", {"fields": "name,effective_status", "limit": "500"})}
         for aud, sname, *_ in A["auds"]:
             cname = A["prefix"].format(aud=aud)
             print(f"  ▶ «{cname}» ABO · PAUSED · 已存在 {cname in camps}")
@@ -125,14 +137,14 @@ def main() -> None:
             continue
 
         # ── videos + creatives (one per video per account; reused across the 3 audiences) ──
-        all_cr = {c.get("name"): c for c in g._get_all(acct + "/adcreatives", {"fields": "id,name,object_story_spec", "limit": "3000"})}
+        all_cr = {c.get("name"): c for c in T(g._get_all, acct + "/adcreatives", {"fields": "id,name,object_story_spec", "limit": "3000"})}
         cr = {}
         for sp in SPECS:
             ex = all_cr.get(sp["ad_name"])
             vd0 = ((ex or {}).get("object_story_spec") or {}).get("video_data") or {}
             if ex and link_of(ex) == LINK and vd0.get("message") == sp["caption"] and vd0.get("title") == sp["headline"]:
                 cr[sp["n"]] = ex["id"]; print(f"  = V{sp['video']} 已有素材 {ex['id']}"); continue
-            vid = g.upload_video(acct, local[sp["n"]], sp["ad_name"])
+            vid = T(g.upload_video, acct, local[sp["n"]], sp["ad_name"])
             thumb = g.get_video_thumbnail(vid)
             vd = {"video_id": vid, "message": sp["caption"], "title": sp["headline"],
                   "call_to_action": {"type": "LEARN_MORE", "value": {"link": LINK}}}
@@ -141,8 +153,8 @@ def main() -> None:
             oss = {"page_id": page, "video_data": vd}
             if ig:
                 oss["instagram_user_id"] = ig
-            cr[sp["n"]] = g.create_adcreative(acct, name=sp["ad_name"], url_tags=url_tags, object_story_spec=oss)["id"]
-            print(f"  ✅ V{sp['video']} video {vid} · creative {cr[sp['n']]}"); time.sleep(2)
+            cr[sp["n"]] = T(g.create_adcreative, acct, name=sp["ad_name"], url_tags=url_tags, object_story_spec=oss)["id"]
+            print(f"  ✅ V{sp['video']} video {vid} · creative {cr[sp['n']]}"); time.sleep(5)
 
         # ── campaigns / ad sets / ads ──
         for aud, sname, *_ in A["auds"]:
@@ -150,24 +162,24 @@ def main() -> None:
             if cname in camps:
                 cid = camps[cname]["id"]; print(f"  = «{cname}» 已存在 {cid}")
             else:
-                cid = g.create_campaign(acct, name=cname, objective="OUTCOME_SALES", status="PAUSED", special_ad_categories=[],
+                cid = T(g.create_campaign, acct, name=cname, objective="OUTCOME_SALES", status="PAUSED", special_ad_categories=[],
                                         buying_type="AUCTION", is_adset_budget_sharing_enabled=False)["id"]
-                time.sleep(2)
-            have = {x["name"]: x["id"] for x in g._get_all(cid + "/adsets", {"fields": "name", "limit": "50"})}
+                time.sleep(5)
+            have = {x["name"]: x["id"] for x in T(g._get_all, cid + "/adsets", {"fields": "name", "limit": "50"})}
             out = []
             for sp in SPECS:
                 an = f"{sname} · V{sp['video']}"
                 if an in have:
                     out.append(f"V{sp['video']}=adset {have[an]} (已存在)"); continue
-                a = g.create_adset(acct, name=an, campaign_id=cid, status="ACTIVE", daily_budget=BUDGET,
+                a = T(g.create_adset, acct, name=an, campaign_id=cid, status="ACTIVE", daily_budget=BUDGET,
                                    bid_strategy="LOWEST_COST_WITHOUT_CAP", optimization_goal=bs["optimization_goal"],
                                    billing_event=bs["billing_event"], targeting=targets[aud], promoted_object=po,
                                    attribution_spec=bs.get("attribution_spec"),
                                    regional_regulated_categories=bs.get("regional_regulated_categories") or [],
                                    regional_regulation_identities=bs.get("regional_regulation_identities") or {})["id"]
-                time.sleep(2)
-                ad = g.create_ad(acct, name=sp["ad_name"], adset_id=a, creative={"creative_id": cr[sp["n"]]}, status="ACTIVE")["id"]
-                time.sleep(2)
+                time.sleep(5)
+                ad = T(g.create_ad, acct, name=sp["ad_name"], adset_id=a, creative={"creative_id": cr[sp["n"]]}, status="ACTIVE")["id"]
+                time.sleep(5)
                 out.append(f"V{sp['video']}=adset {a}/ad {ad}")
             print(f"  ✅ «{cname}» campaign {cid} (PAUSED) · " + " · ".join(out))
     print("\nBUILD DONE" + ("" if CONFIRM else " (dry-run)"))
