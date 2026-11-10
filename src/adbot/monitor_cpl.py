@@ -305,6 +305,13 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                     kpi_ad = kpi.model_copy(update={"cpl_min_spend_myr": max(kpi.cpl_min_spend_myr, floor),
                                                     "zero_lead_spend_myr": max(zero, floor)})
 
+            cname = campaign.get("name", "")
+            ov = next((o for o in kpi.campaign_overrides if o.match and o.match in cname), None)
+            if ov is not None:                      # per-campaign rules (e.g. NEW VIDEO tests at RM50)
+                upd = {k: getattr(ov, k) for k in ("cpl_threshold_myr", "cpl_min_spend_myr", "zero_lead_spend_myr")
+                       if getattr(ov, k) is not None}
+                kpi_ad, veteran = kpi.model_copy(update=upd), False
+
             held = any(h and h in name for h in settings.kpi.cpl_hold)
             hold_to = (settings.kpi.hold_ad_until or {}).get(str(ad["id"]))
             if hold_to and today.isoformat() <= str(hold_to):
