@@ -602,3 +602,26 @@ def test_veteran_gets_higher_spend_floor_others_unchanged():
     assert not by["vet_cpl"].should_pause and by["vet_cpl"].reason == "veteran_wait"
     assert by["vet_over_floor"].should_pause                       # past RM150 with 0 regs: judged as usual
     assert by["rookie_zero"].should_pause and by["weak_history"].should_pause
+
+
+def test_campaign_override_new_video_rm50_rules():
+    # owner 2026-11-10 approve: NEW VIDEO campaigns — 0 reg at RM50 → pause; CPL > RM50 after RM50 → pause.
+    from adbot.settings import CampaignKpiOverride
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=95, cpl_min_spend_myr=80, zero_lead_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True,
+                                   campaign_overrides=[CampaignKpiOverride(match="NEW VIDEO", cpl_threshold_myr=50,
+                                                                           cpl_min_spend_myr=50, zero_lead_spend_myr=50)]))
+    campaigns = [{"id": "N", "name": "(Webinarkit) STOCKBLOOM | NEW VIDEO · News | 1-5-1 | 1110", "effective_status": "ACTIVE"},
+                 {"id": "O", "name": "(Webinarkit) [SG] STOCKBLOOM | BROAD SG | 1-1-5 | 1030", "effective_status": "ACTIVE"}]
+    ads = {"N": [_ad("nv_zero"), _ad("nv_cpl"), _ad("nv_ok"), _ad("nv_young")], "O": [_ad("old_zero"), _ad("old_cpl")]}
+    ins = {"nv_zero": _reg_insight(51, 0), "nv_cpl": _reg_insight(102, 2), "nv_ok": _reg_insight(100, 2),
+           "nv_young": _reg_insight(49, 0), "old_zero": _reg_insight(51, 0), "old_cpl": _reg_insight(102, 2)}
+
+    by = {d.ad_id: d for d in evaluate_account(_FakeGraph(campaigns, ads, ins), settings)}
+
+    assert by["nv_zero"].should_pause                       # RM51 / 0 in a NEW VIDEO campaign
+    assert by["nv_cpl"].should_pause                        # CPL 51 > 50
+    assert not by["nv_ok"].should_pause                     # CPL 50 = line
+    assert not by["nv_young"].should_pause                  # RM49 / 0: below the RM50 floor
+    assert not by["old_zero"].should_pause and not by["old_cpl"].should_pause   # other campaigns: account rules

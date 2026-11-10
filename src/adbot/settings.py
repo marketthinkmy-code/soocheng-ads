@@ -138,6 +138,15 @@ class NotionCfg(BaseModel):
     database_id: str = ""  # Content Pipeline database id (share it with the integration)
 
 
+class CampaignKpiOverride(BaseModel):
+    """Per-campaign CPL rules (owner 2026-11-10 approve): ads in a campaign whose name contains `match`
+    are judged with these values instead of the account kpi (None = keep the account value)."""
+    match: str
+    cpl_threshold_myr: Optional[float] = None
+    cpl_min_spend_myr: Optional[float] = None
+    zero_lead_spend_myr: Optional[float] = None
+
+
 class KpiCfg(BaseModel):
     cpl_threshold_myr: float = 40.0
     cpl_min_spend_myr: float = 80.0
@@ -172,6 +181,9 @@ class KpiCfg(BaseModel):
     veteran_max_cpl_myr: float = 40.0
     veteran_min_spend_myr: float = 150.0
     veteran_since: str = "2026-10-16"
+    # owner 2026-11-10 approve (NEW VIDEO test campaigns): 0 报名花满 RM50 就关；花满 RM50 后 CPL > RM50 就关.
+    # First match wins and replaces the veteran floor for that ad. Banned-creative / CPA rules unchanged.
+    campaign_overrides: List[CampaignKpiOverride] = Field(default_factory=list)
 
 
 class CpaCfg(BaseModel):
