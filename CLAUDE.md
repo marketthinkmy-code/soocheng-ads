@@ -354,6 +354,20 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
 周三下午看到 MY 广告/ad set 被关是这个周期的正常现象——不要去「修」，也不要在周三下午
 判读 MY 当日数据；scheduled 未来开跑的新建 campaign 若跨周三也会被扫、周四自动弹回。
 
+## 新视频上线规则（owner 2026-11-10，取代上面「Copy style」里的固定下半段）
+
+- **先 propose，owner approve 才建**：文案 + 建置 plan 一起给他看；他回「approve」才动手。
+- **文案**：每支只给**一个**标题、一个 hook 的最佳版本，不给备选。开头两句写成完整句子（不要一行几个字地断开），
+  第一、二句就要点出精准受众（有一笔钱 / 交易几年不稳 / 盯盘的上班族…）、试过什么、卡在哪里，然后痛点 → 解法 → 📍 课程 → ⏰ → 👇。
+  参考马丁项目（martin-ads-MY / SG / CALIFORNIA）的写法：emoji 带节奏（✅ 列点、📍 课程、⏰ 名额、👇 报名），标题 🔴 开头。
+  写完先自查敏感字眼（个人财务/年龄的断定、和 FD 利息比较的回报暗示、收益字眼）。
+- **结构**：新视频测试用 **ABO**（CBO 只给要 scale 的赢家）。每个受众一个 campaign，里面每支视频一个 ad set，各 RM50/天。
+  受众按 **Paid Student List 按国家的成交排名**选，不凭空建议 Broad。
+- **Monitor**：名字含 `NEW VIDEO` 的 campaign 用 `kpi.campaign_overrides`（PR #88）——0 报名花满 RM50 就关；花满 RM50 后 CPL > RM50 就关。
+- 2026-11-10 建了 MY（News / Luxury Goods / Broad）+ SG（Broad / Travel / Golf Pickleball）各 3 个 `NEW VIDEO … | 1-5-1 | 1110`，
+  Video 57–61（`scripts/specs_newvideo_1110.json`、`execute_build_newvideo_1110.py`）。News 的原始来源（旧账户 MTC - News）已无读取权限，
+  兴趣改用 MY 3.0「AdSet (News MY 25+)」。
+
 ## Monitor 触发（2026-11-03 起）
 
 GitHub 自带的 `schedule` 实测只有 3–10 小时跑一次（cron 写 20 分钟，被 GitHub 节流），所以 owner 11/3 选方案 A：
