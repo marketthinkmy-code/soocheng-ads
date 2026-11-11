@@ -99,7 +99,7 @@ for label, cfg, cc in (("MY 5.0", "config.my5.yaml", "1048291251556714"), ("SG",
         ls, lr = lt.get(aid, (0.0, 0.0))
         ov = next((o for o in getattr(k, "campaign_overrides", []) if o.match and o.match in cname), None)
         line = k.cpl_threshold_myr
-        if ov is not None:            # PR #88: NEW VIDEO campaigns judged at RM50 (0-reg floor / CPL floor / CPL line)
+        if ov is not None:            # PR #88/#89: NEW VIDEO campaigns judged by kpi.campaign_overrides (RM80 since 11/11)
             vet = False
             fc = ov.cpl_min_spend_myr if ov.cpl_min_spend_myr is not None else k.cpl_min_spend_myr
             fz = ov.zero_lead_spend_myr if ov.zero_lead_spend_myr is not None else zero

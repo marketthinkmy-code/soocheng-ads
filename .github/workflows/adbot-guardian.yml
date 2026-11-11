@@ -1,0 +1,41 @@
+name: adbot · guardian (manual only — auto-revive retired 2026-09-14)
+
+# Owner 2026-09-14 «我手动关了的广告不要再开回了» — the hourly auto-revive is
+# RETIRED: owner hand-pauses are final and nothing may reopen them
+# automatically. This supersedes 2026-08-24 «上保险» (protected-campaign
+# revive) and 2026-09-01 «保护成交链» (14d sold-chain revive), both of which
+# existed to undo accidental hand-pauses back when that was the directive.
+# The workflow stays dispatchable for a ONE-OFF manual revive, to be run only
+# when the owner explicitly asks for specific chains to come back.
+
+on:
+  workflow_dispatch: {}          # manual run only — the hourly schedule is retired
+
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install .
+      - name: Revive protected campaigns if paused
+        env:
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          CONFIRM: "true"
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+        run: python scripts/guardian.py
+      - name: Revive 14d sold chains if closed
+        if: always()
+        env:
+          ADBOT_ROOT: ${{ github.workspace }}
+          ADBOT_CONFIG: ${{ github.workspace }}/config/config.yaml
+          CONFIRM: "true"
+          META_SYSTEM_USER_TOKEN: ${{ secrets.META_SYSTEM_USER_TOKEN }}
+          META_APP_SECRET: ${{ secrets.META_APP_SECRET }}
+          GOOGLE_SERVICE_ACCOUNT_JSON_B64: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON_B64 }}
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+        run: python scripts/guardian_sold_chains.py
