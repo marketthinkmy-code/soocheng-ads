@@ -94,18 +94,26 @@ for label, cfg, cc in (("MY 5.0", "config.my5.yaml", "1048291251556714"), ("SG",
     print(f"  ▶ {label} 在跑日预算合计 RM{budget} · 今天已花(全部 ad) RM{sum(v[0] for v in td.values()):,.0f}")
 
     # ---- live ads, re-judged
-    def judge(aid):
+    def judge(aid, cname=""):
         ws, wr = wk.get(aid, (0.0, 0.0))
         ls, lr = lt.get(aid, (0.0, 0.0))
-        vet = bool(k.veteran_min_regs and lr >= k.veteran_min_regs and ls / lr <= k.veteran_max_cpl_myr)
-        fc = max(k.cpl_min_spend_myr, k.veteran_min_spend_myr) if vet else k.cpl_min_spend_myr
-        fz = max(zero, k.veteran_min_spend_myr) if vet else zero
+        ov = next((o for o in getattr(k, "campaign_overrides", []) if o.match and o.match in cname), None)
+        line = k.cpl_threshold_myr
+        if ov is not None:            # PR #88: NEW VIDEO campaigns judged at RM50 (0-reg floor / CPL floor / CPL line)
+            vet = False
+            fc = ov.cpl_min_spend_myr if ov.cpl_min_spend_myr is not None else k.cpl_min_spend_myr
+            fz = ov.zero_lead_spend_myr if ov.zero_lead_spend_myr is not None else zero
+            line = ov.cpl_threshold_myr if ov.cpl_threshold_myr is not None else line
+        else:
+            vet = bool(k.veteran_min_regs and lr >= k.veteran_min_regs and ls / lr <= k.veteran_max_cpl_myr)
+            fc = max(k.cpl_min_spend_myr, k.veteran_min_spend_myr) if vet else k.cpl_min_spend_myr
+            fz = max(zero, k.veteran_min_spend_myr) if vet else zero
         if wr == 0:
             v = "0报名·花满门槛→该关" if ws >= fz else f"0报名·未到门槛 RM{fz:.0f}"
         elif ws < fc:
             v = f"CPL {ws / wr:.0f}·未到门槛 RM{fc:.0f}"
         else:
-            v = f"CPL {ws / wr:.0f} " + ("超线→该关" if ws / wr > k.cpl_threshold_myr else "线内")
+            v = f"CPL {ws / wr:.0f} " + (f"超线(>{line:.0f})→该关" if ws / wr > line else f"线内(≤{line:.0f})")
         return ws, wr, ls, lr, vet, v
 
     def pos(a):
@@ -121,7 +129,7 @@ for label, cfg, cc in (("MY 5.0", "config.my5.yaml", "1048291251556714"), ("SG",
     print(f"  -- 在跑 ad（{len(live)}）:")
     for a in sorted(live, key=pos):
         cn, sn = pos(a)
-        ws, wr, ls, lr, vet, v = judge(a["id"])
+        ws, wr, ls, lr, vet, v = judge(a["id"], cn)
         print(f"   🟢 {cn} › {sn} · {a['name']} · ad {a['id']}{' · 老将' if vet else ''}\n"
               f"        周四起 RM{ws:.2f}/{wr:.0f} → {v} · 10/16起 RM{ls:,.0f}/{lr:.0f} · {cpa_line(a)}")
 
@@ -149,7 +157,7 @@ for label, cfg, cc in (("MY 5.0", "config.my5.yaml", "1048291251556714"), ("SG",
         if "ad_run_status" in et and oid in byid:
             a = byid[oid]
             cn, sn = pos(a)
-            ws, wr, ls, lr, vet, v = judge(oid)
+            ws, wr, ls, lr, vet, v = judge(oid, cn)
             print(f"   🔴 {t} [{last[1]}] {cn} › {sn} · {a['name']} · ad {oid} · 现状 {a['effective_status']}{' · 老将' if vet else ''}\n"
                   f"        周四起 RM{ws:.2f}/{wr:.0f} → {v} · 10/16起 RM{ls:,.0f}/{lr:.0f} · {cpa_line(a)}")
         elif "ad_run_status" not in et:
