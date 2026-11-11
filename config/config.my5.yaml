@@ -81,11 +81,11 @@ kpi:
   veteran_max_cpl_myr: 40.0                      #   are judged only after RM150 Thu-week spend (0-reg and CPL alike)
   veteran_min_spend_myr: 150.0
   veteran_since: "2026-10-16"
-  campaign_overrides:                            # owner 2026-11-10 approve — NEW VIDEO test campaigns (ABO, RM50/ad set):
-    - match: "NEW VIDEO"                         #   0 报名花满 RM50 就关；花满 RM50 后 CPL 超过 RM50 就关（只管名字含 NEW VIDEO 的 campaign）
-      cpl_threshold_myr: 50.0
-      cpl_min_spend_myr: 50.0
-      zero_lead_spend_myr: 50.0
+  campaign_overrides:                            # NEW VIDEO test campaigns (ABO, RM50/ad set) — owner 2026-11-11「rm80 cpl for 新视频的标准会比较好，不想那么快判死刑」
+    - match: "NEW VIDEO"                         #   (was RM50 on 11/10, PR #88): 花满 RM80 才判；0 报名花满 RM80 就关；花满 RM80 后 CPL 超过 RM80 就关
+      cpl_threshold_myr: 80.0
+      cpl_min_spend_myr: 80.0
+      zero_lead_spend_myr: 80.0
   zero_lead_during_pause: true                    #   …and that 0-reg rule runs even while the rest of CPL judgment waits for 10/21
                                          #   周五 10/10 自动恢复。禁跑名单 + CPA 硬线照常。
   cpl_hold: []                          # 2026-11-02: 赚美金 test exception ended (review rejected again) — back on banned_creatives
