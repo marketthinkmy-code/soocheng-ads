@@ -35,6 +35,14 @@ EXTRA_ADS = {   # monitor-paused old ads worth reopening (robust-UTM original-po
     "config.sg.yaml": {"120250144813920521": "BROAD SG › 用我的方法 · 10/16起 RM594/12 · 原位成交 1 · CPA RM594"},
 }
 BAD = ("DISAPPROVED", "WITH_ISSUES")
+# Option B (owner 23:3x「确保有值得开的原因 比如 cpl cpa」): hold every ad with 0 报名 so far (report_reopen_justify_1112,
+# 23:37 MYT run) — PAUSED ones stay PAUSED, ad-level ACTIVE ones are set PAUSED. Default = ALL (owner's earlier「YES」).
+MODE = os.environ.get("REOPEN_MODE", "ALL").upper()
+HOLD = {   # NEW VIDEO 0 报名 at ~RM47–57 on 11/11 + BROAD MY 盖电脑 (10/16起 RM104 / 0 报名)
+    "120251840049580329", "120251840053010329", "120251840056430329", "120251840366750329", "120251840423900329",
+    "120251840436530329", "120251840442380329", "120251840445280329", "120251454707880329",
+    "120250544549430521", "120250544640060521", "120250544641410521", "120250544643790521", "120250544648780521",
+    "120250544692340521", "120250544696280521"} if MODE == "B" else set()
 
 
 def T(fn, *a, **k):
@@ -53,7 +61,7 @@ def W(g, oid, status):
         T(g.update_status, oid, status); time.sleep(2)
 
 
-print(f"现在 {NOW:%m-%d %H:%M} MYT · {'APPLY' if CONFIRM else 'DRY-RUN'}")
+print(f"现在 {NOW:%m-%d %H:%M} MYT · {'APPLY' if CONFIRM else 'DRY-RUN'} · MODE {MODE}（B 暂停 {len(HOLD)} 支 0 报名）")
 if CONFIRM:
     assert NOW >= dt.datetime(2026, 11, 12, 0, 0), "owner said 00:00 — refusing before 2026-11-12 00:00 MYT"
 tot = {"ad": 0, "adset": 0, "camp": 0, "ban": 0}
@@ -80,6 +88,10 @@ for cfg, camps in CAMPS.items():
                     tag = " ⛔ 禁跑，保持关"
             elif a["effective_status"] in BAD:
                 tag = f" ⚠️ {a['effective_status']}，不开"
+            elif a["id"] in HOLD:
+                if st == "ACTIVE":
+                    W(g, a["id"], "PAUSED"); tot["hold"] = tot.get("hold", 0) + 1
+                tag = " ⏸ B：0 报名，不开" + (" → ad 层关" if st == "ACTIVE" else "")
             elif st == "PAUSED" and (nv or a["id"] in extra):
                 if ast != "ACTIVE" and not nv:
                     tag = " ⚠️ ad set 被关（人手？）→ 不开，交 WK"
@@ -112,5 +124,5 @@ for cfg, camps in CAMPS.items():
             day += bud
             print(f"    ✅ «{b['name']}» {cid} · {b['status']}/{b['effective_status']} · 广告 {cnt} · 会投放的日预算 RM{bud}")
         print(f"  ▶ {cfg} 开回后日预算合计 RM{day}")
-print(f"\n开回 ad {tot['ad']} · ad set {tot['adset']} · campaign {tot['camp']} · 禁跑上膛拆掉 {tot['ban']}"
+print(f"\n开回 ad {tot['ad']} · ad set {tot['adset']} · campaign {tot['camp']} · 禁跑上膛拆掉 {tot['ban']} · B 暂停 {tot.get('hold', 0)}"
       + ("\nREOPEN ALL DONE" if CONFIRM else "\nREOPEN ALL DONE (dry-run)"))
