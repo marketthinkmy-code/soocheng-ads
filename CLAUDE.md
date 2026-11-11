@@ -347,12 +347,15 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
 
 ---
 
-## 每周排程（owner 2026-08-19 确认「留着」）
+## 每周排程（2026-11-11 起：owner 手动，「我自己手动」）
 
-**MY 账户每周三 15:00 MYT 全停（adbot-weekly-off）→ 周四 00:00 MYT 自动恢复（adbot-weekly-on，
-按 ADBOT_WEEKLY_OFF 标签精确复原，含 ad set / campaign 层）。SG 不在此周期内。**
-周三下午看到 MY 广告/ad set 被关是这个周期的正常现象——不要去「修」，也不要在周三下午
-判读 MY 当日数据；scheduled 未来开跑的新建 campaign 若跨周三也会被扫、周四自动弹回。
+**直播日（周三）关广告 / 周四开回 = owner 本人在 Ads Manager 手动做。不要假设有自动关开。**
+- 实测（11/11）：adbot-weekly-off / weekly-on 两条 workflow 读的是 `config/config.yaml` = **已封的 MY 3.0**——
+  11/4 weekly-off 报错「Ad account status is ineligible to manage ads」，weekly-on「no tagged ads to resume」。
+  **MY 5.0 和 SG 都不在这个周期里**，周四 00:00 不会有任何东西自动开回。owner 11/11 选择不接到 MY 5.0，自己手动。
+- 11/11 例子：owner 15:15（MY 5 个 campaign）/ 15:18（SG 4 个）在 campaign 层手动全关 = 定案；只有他本人开回。
+- 周三下午看到被关的 campaign 是 owner 手动关的，不要去「修」；周三下午不判读当日数据。
+- owner 若说「开回时顺便把 X 的 ad 层一起开」，只动 ad / ad set 层做准备，campaign 层留给他开。
 
 ## 新视频上线规则（owner 2026-11-10，取代上面「Copy style」里的固定下半段）
 
