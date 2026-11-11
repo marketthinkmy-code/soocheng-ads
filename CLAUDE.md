@@ -363,7 +363,8 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   写完先自查敏感字眼（个人财务/年龄的断定、和 FD 利息比较的回报暗示、收益字眼）。
 - **结构**：新视频测试用 **ABO**（CBO 只给要 scale 的赢家）。每个受众一个 campaign，里面每支视频一个 ad set，各 RM50/天。
   受众按 **Paid Student List 按国家的成交排名**选，不凭空建议 Broad。
-- **Monitor**：名字含 `NEW VIDEO` 的 campaign 用 `kpi.campaign_overrides`（PR #88）——0 报名花满 RM50 就关；花满 RM50 后 CPL > RM50 就关。
+- **Monitor**：名字含 `NEW VIDEO` 的 campaign 用 `kpi.campaign_overrides`——**RM80**（owner 11/11「不想那么快判死刑」，PR #89，原 RM50 / PR #88）：
+  花满 RM80 才判；0 报名花满 RM80 就关；花满 RM80 后 CPL > RM80 就关。11/11 RM50 线一天关掉 30 支里的 22 支，其中 8 支有 1 个报名（部分是关后才回传）。
 - 2026-11-10 建了 MY（News / Luxury Goods / Broad）+ SG（Broad / Travel / Golf Pickleball）各 3 个 `NEW VIDEO … | 1-5-1 | 1110`，
   Video 57–61（`scripts/specs_newvideo_1110.json`、`execute_build_newvideo_1110.py`）。News 的原始来源（旧账户 MTC - News）已无读取权限，
   兴趣改用 MY 3.0「AdSet (News MY 25+)」。
