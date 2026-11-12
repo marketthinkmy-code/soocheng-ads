@@ -3,7 +3,7 @@ import math
 import datetime as dt
 
 from adbot import cpa
-from adbot.monitor_cpl import (BANNED_CREATIVE, CPA_MANUAL_HOLD, INSUFFICIENT_SPEND, MANUAL_HOLD, NAME_RESCUED,
+from adbot.monitor_cpl import (_mkey, BANNED_CREATIVE, CPA_MANUAL_HOLD, INSUFFICIENT_SPEND, MANUAL_HOLD, NAME_RESCUED,
                                NO_RESULTS_YET, OVER_THRESHOLD, SOFT_REDUCE_PREFIX,
                                WITHIN_THRESHOLD, ZERO_RESULTS,
                                _label_dates, cpl_window, decide, evaluate_account, extract_results,
@@ -625,3 +625,29 @@ def test_campaign_override_new_video_rm50_rules():
     assert not by["nv_ok"].should_pause                     # CPL 50 = line
     assert not by["nv_young"].should_pause                  # RM49 / 0: below the RM50 floor
     assert not by["old_zero"].should_pause and not by["old_cpl"].should_pause   # other campaigns: account rules
+
+
+def test_cpa_join_ignores_campaign_structure_segment():
+    # owner 2026-11-12「改吧」: BUSINESS OWNER was renamed «| 1-1-4 |» → «| 1-1-5 |»; its sale is stamped with the old
+    # UTM. The same position (campaign · ad set · ad) must still be rescued; another campaign must not be.
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=60, cpl_min_spend_myr=60, zero_lead_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True),
+                        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14, min_spend_myr=1000))
+    ad = lambda aid, name, aset: {"id": aid, "name": name, "effective_status": "ACTIVE", "created_time": "2026-10-17",
+                                  "adset": {"name": aset, "promoted_object": {"custom_event_type": "COMPLETE_REGISTRATION"}}}
+    campaigns = [{"id": "BO", "name": "(Webinarkit) STOCKBLOOM | BUSINESS OWNER | 1-1-5 | 1017", "effective_status": "ACTIVE"},
+                 {"id": "BR", "name": "(Webinarkit) STOCKBLOOM | BROAD MY | 1-1-5 | 1017", "effective_status": "ACTIVE"}]
+    ads = {"BO": [ad("bo_old", "Video：年纪大的人做不了交易？", "Business Owner | MY 28+")],
+           "BR": [ad("br_old", "Video：年纪大的人做不了交易？", "Broad | MY 28+")]}
+    insights = {"bo_old": _reg_insight(150, 2), "br_old": _reg_insight(150, 2)}      # CPL 75 > 60 → CPL says pause
+    sale_key = (_mkey("(Webinarkit) STOCKBLOOM | BUSINESS OWNER | 1-1-4 | 1017"), _mkey("Business Owner | MY 28+"),
+                cpa.norm("Video：年纪大的人做不了交易？"))
+    sold = {sale_key: 1}
+    spend60 = {"bo_old": 1135.0, "br_old": 1135.0}
+
+    by = {d.ad_id: d for d in evaluate_account(_FakeGraph(campaigns, ads, insights), settings, cpa_ctx=(sold, {}, spend60))}
+
+    assert not by["bo_old"].should_pause and by["bo_old"].cpa_sales == 1          # 1-1-4 sale protects the 1-1-5 position
+    assert by["br_old"].should_pause and by["br_old"].cpa_sales == 0               # other campaign: no protection
+    assert _mkey("(Webinarkit) [SG] STOCKBLOOM | BROAD SG | 1-1-5 | 1030") != _mkey("(Webinarkit) STOCKBLOOM | BROAD MY | 1-1-5 | 1017")
