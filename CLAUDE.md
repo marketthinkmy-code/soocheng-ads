@@ -382,6 +382,12 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   ① 成交比对忽略 campaign 名中间的「| 1-1-4 |」结构段（BUSINESS OWNER / BROAD MY 由 1-1-4 改名 1-1-5，ad 的 UTM 仍是旧名），
   其余照旧（同 campaign · 同 ad set · 同 ad）；上线前查过 MY 15 / SG 60 个 campaign 0 撞名，受影响只有 BUSINESS OWNER 年纪大、盖电脑 各认回 1 单。
   ② **SG 关停线 95 → 80**（`config.sg.yaml` kpi.cpl_threshold_myr）。老将 RM150 宽限照旧（owner 未批取消）。owner 方针：「把 CPL 降下来…贵、浪费钱的广告就关掉」。
+- **11/12 21:30 owner 本人在 Ads Manager 手动调整（activity log 取证）**：
+  - MY **DAY TRADING | 1-1-5 | 1017 开回**（campaign 120251454713670329，CBO RM165）+ 两支 ad 开回：
+    Day Trading | MY 28+ · 年纪大 · ad 120251454717600329、korea · ad 120251455974450329（owner 11/9 手动关的，这次他本人开回 = 有效）。
+  - SG：关掉 NEW VIDEO · Broad › V2 · ad 120250544539830521、Golf Pickleball › V1 · ad 120250544690430521；
+    NEW VIDEO · Travel / Golf Pickleball 两个 campaign 层关掉。SG 新视频只剩 Broad › V4 · ad 120250544546540521。
+  - MY 新视频他点了几下开关，最终状态不变（7 支照跑）。日预算 → 约 RM965（MY 785 / SG 180）。
 - **出席数据（11/11 场，报名表 × Webinarkit 出席名单）**：广告带来的 101 个报名只来 18 人（18%）；周四–周日报名 2/48（4%）、
   周一–周三 16/53（30%）；65 人在 Webinarkit 完全没有记录（从没点进场链接）→ 怀疑报名后的提醒 / Zoom link 流程有漏，已请 owner 查。
 - 2026-11-10 建了 MY（News / Luxury Goods / Broad）+ SG（Broad / Travel / Golf Pickleball）各 3 个 `NEW VIDEO … | 1-5-1 | 1110`，
