@@ -378,6 +378,10 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
 - **11/12 复盘其它定案**：周期（11/12–11/18）总预算上限 **RM6,250**（owner）；BROAD MY campaign RM275 → RM150（korea 10/29 起 43 报名只 1 单）；
   BUSINESS OWNER 年纪大、BROAD SG 照跑（11/11 场 2 单都来自这两个）。预算方案 owner 选「沒事繼續跑…monitor 會關掉一些廣告」：
   不暂停、不降预算（约 RM900/天），靠 monitor CPL 规则砍；周期累计过 RM5,500 时再报给 owner 问要不要收。
+- **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
+  ① 成交比对忽略 campaign 名中间的「| 1-1-4 |」结构段（BUSINESS OWNER / BROAD MY 由 1-1-4 改名 1-1-5，ad 的 UTM 仍是旧名），
+  其余照旧（同 campaign · 同 ad set · 同 ad）；上线前查过 MY 15 / SG 60 个 campaign 0 撞名，受影响只有 BUSINESS OWNER 年纪大、盖电脑 各认回 1 单。
+  ② **SG 关停线 95 → 80**（`config.sg.yaml` kpi.cpl_threshold_myr）。老将 RM150 宽限照旧（owner 未批取消）。owner 方针：「把 CPL 降下来…贵、浪费钱的广告就关掉」。
 - **出席数据（11/11 场，报名表 × Webinarkit 出席名单）**：广告带来的 101 个报名只来 18 人（18%）；周四–周日报名 2/48（4%）、
   周一–周三 16/53（30%）；65 人在 Webinarkit 完全没有记录（从没点进场链接）→ 怀疑报名后的提醒 / Zoom link 流程有漏，已请 owner 查。
 - 2026-11-10 建了 MY（News / Luxury Goods / Broad）+ SG（Broad / Travel / Golf Pickleball）各 3 个 `NEW VIDEO … | 1-5-1 | 1110`，
