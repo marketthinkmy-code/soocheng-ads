@@ -376,7 +376,8 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   累计结论：受众 MY News CPL 41 / MY Luxury 45 / SG Broad 66 好，MY Broad 117 / SG Golf 128 / SG Travel 268 差（落地页→报名仅 6–11%）；
   视频 V4 决定变少 CPL 43 最好，V3 越认真盯盘 150 / V5 不适合你 119 最差。
 - **11/12 复盘其它定案**：周期（11/12–11/18）总预算上限 **RM6,250**（owner）；BROAD MY campaign RM275 → RM150（korea 10/29 起 43 报名只 1 单）；
-  BUSINESS OWNER 年纪大、BROAD SG 照跑（11/11 场 2 单都来自这两个）。
+  BUSINESS OWNER 年纪大、BROAD SG 照跑（11/11 场 2 单都来自这两个）。预算方案 owner 选「沒事繼續跑…monitor 會關掉一些廣告」：
+  不暂停、不降预算（约 RM900/天），靠 monitor CPL 规则砍；周期累计过 RM5,500 时再报给 owner 问要不要收。
 - **出席数据（11/11 场，报名表 × Webinarkit 出席名单）**：广告带来的 101 个报名只来 18 人（18%）；周四–周日报名 2/48（4%）、
   周一–周三 16/53（30%）；65 人在 Webinarkit 完全没有记录（从没点进场链接）→ 怀疑报名后的提醒 / Zoom link 流程有漏，已请 owner 查。
 - 2026-11-10 建了 MY（News / Luxury Goods / Broad）+ SG（Broad / Travel / Golf Pickleball）各 3 个 `NEW VIDEO … | 1-5-1 | 1110`，
