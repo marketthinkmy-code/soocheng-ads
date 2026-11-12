@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import datetime as dt
 import math
+import re
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -174,12 +175,21 @@ class AdDecision:
     where: str = ""                      # «campaign › ad set» — every log line names the exact position
 
 
+_SHAPE_SEG = re.compile(r"\|\s*\d+-\d+-\d+\s*\|")   # the «| 1-1-4 |» campaign-structure segment
+
+
 def _mkey(name: str) -> str:
-    """Campaign match key: drop a leading '(Image)' tag Meta adds, then normalise."""
+    """Campaign match key: drop a leading '(Image)' tag Meta adds, drop the «| 1-1-4 |» structure
+    segment, then normalise.
+
+    Owner 2026-11-12「改吧」: campaigns renamed 1-1-4 → 1-1-5 (e.g. BUSINESS OWNER / BROAD MY 1017) keep the
+    ads' old UTM, so a sale stamped «| 1-1-4 |» must still protect the same ad in the «| 1-1-5 |» campaign.
+    Everything else is unchanged — the join stays (campaign, ad set, ad): same position only.
+    """
     s = (name or "").strip()
     if s.lower().startswith("(image)"):
         s = s[len("(image)"):]
-    return cpa.norm(s)
+    return cpa.norm(_SHAPE_SEG.sub("|", s))
 
 
 def build_cpa_context(graph, settings: Settings, today: dt.date):
