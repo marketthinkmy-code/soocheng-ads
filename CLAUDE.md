@@ -370,6 +370,15 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   花满 RM80 才判；0 报名花满 RM80 就关；花满 RM80 后 CPL > RM80 就关。11/11 RM50 线一天关掉 30 支里的 22 支，其中 8 支有 1 个报名（部分是关后才回传）。
 - **新广告不急着关（owner 11/11「新广告还没有跑出 learning phase，不急着关」）**：报告 / 建议里不要因为新广告前几天 0 报名或 CPL 偏高
   就提议关掉或排除——交给 monitor 的 RM80 规则判。11/12 00:00 owner 选 A：0 报名的新视频也全部开回（周四窗口归零后各自重新花满 RM80 才判）。
+- **11/12 周四复盘（owner 本人破例「不要看周四窗口归零，看新视频从开始跑到现在」）**：按上线以来累计花费套 RM80 规则，
+  owner「关 20 支」→ 留 10 支（MY News V2/V4/V5、MY Luxury V1/V2/V4、MY Broad V2、SG Broad V2/V4、SG Golf V1），
+  SG Travel 新视频 5 支全关（`execute_nv_cut20_1112.py`）。这 20 支 = owner 决定关的，不得自动开回。
+  累计结论：受众 MY News CPL 41 / MY Luxury 45 / SG Broad 66 好，MY Broad 117 / SG Golf 128 / SG Travel 268 差（落地页→报名仅 6–11%）；
+  视频 V4 决定变少 CPL 43 最好，V3 越认真盯盘 150 / V5 不适合你 119 最差。
+- **11/12 复盘其它定案**：周期（11/12–11/18）总预算上限 **RM6,250**（owner）；BROAD MY campaign RM275 → RM150（korea 10/29 起 43 报名只 1 单）；
+  BUSINESS OWNER 年纪大、BROAD SG 照跑（11/11 场 2 单都来自这两个）。
+- **出席数据（11/11 场，报名表 × Webinarkit 出席名单）**：广告带来的 101 个报名只来 18 人（18%）；周四–周日报名 2/48（4%）、
+  周一–周三 16/53（30%）；65 人在 Webinarkit 完全没有记录（从没点进场链接）→ 怀疑报名后的提醒 / Zoom link 流程有漏，已请 owner 查。
 - 2026-11-10 建了 MY（News / Luxury Goods / Broad）+ SG（Broad / Travel / Golf Pickleball）各 3 个 `NEW VIDEO … | 1-5-1 | 1110`，
   Video 57–61（`scripts/specs_newvideo_1110.json`、`execute_build_newvideo_1110.py`）。News 的原始来源（旧账户 MTC - News）已无读取权限，
   兴趣改用 MY 3.0「AdSet (News MY 25+)」。
