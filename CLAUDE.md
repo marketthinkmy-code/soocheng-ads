@@ -394,6 +394,11 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
 - **11/12 22:xx owner 定案**：「关」→ BROAD MY 两支关掉（korea · ad 120251456191090329：10/29 起 CPA RM1,662；盖电脑 · ad 120251454707880329：
   10/16 起 RM106 / 0 报名；`execute_broadmy_close_1112.py`），BROAD MY campaign 已无在跑 ad；BUSINESS OWNER 年纪大「照关」；
   **老将 RM150 宽限保持**；**MY 0 报名门槛 RM80 → RM60**（PR #91，新视频仍 RM80）。日预算 → 约 RM815（MY 635 / SG 180）。
+- **11/12 22:09 新视频「留子弹」（owner「做」：「先暂时关掉没有出成绩的广告…等 2 天后…才开…平摊广告留子弹给 2 天后」）**：
+  当天 0–1 报名的 4 支先停（Luxury V1 · ad 120251840350550329、V2 · ad 120251840352430329、V4 · ad 120251840364150329、
+  News V5 · ad 120251840063080329；`execute_nv_hold4_pause_1112.py`），**周六 11/14 00:00 自动开回**（`execute_nv_hold4_reopen_1114.py`，
+  排程 trig_015BgBKsgnmWwNtWPG3zJmZx）。这 4 支是「暂停待开」，不是 owner 定案关。继续跑：MY Broad V2、News V2、News V4、SG Broad V4。
+  日预算 → 约 RM615（周六开回后回到约 RM815）。注意：开回后它们本周已花 RM64–69，monitor 很快在 RM80 判。
 - **出席数据（11/11 场，报名表 × Webinarkit 出席名单）**：广告带来的 101 个报名只来 18 人（18%）；周四–周日报名 2/48（4%）、
   周一–周三 16/53（30%）；65 人在 Webinarkit 完全没有记录（从没点进场链接）→ 怀疑报名后的提醒 / Zoom link 流程有漏，已请 owner 查。
 - 2026-11-10 建了 MY（News / Luxury Goods / Broad）+ SG（Broad / Travel / Golf Pickleball）各 3 个 `NEW VIDEO … | 1-5-1 | 1110`，
