@@ -381,6 +381,9 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **11/13 owner「我只看成绩」**（回应「改周一开回可省约 RM400」的建议）：只按成绩（报名 / CPL / 成交 · CPA）判断，
   不因预算提议改动作、到 RM5,500 也不问要不要收；周六 00:00 开回照原定。汇报成绩优先，花费 / 预计到周三只留最后一行。
   （11/12 22:15 说的「预计约 RM6,400」算少了——停 4 支实际只省周五一天约 RM200，不是 RM400；11/13 09:49 重算约 RM6,800。）
+  **11/13 owner「OK」**：MY NEW VIDEO · Broad › Broad | MY 28+ · V2 · ad 120251840432100329（周四起 7 报名 CPL 14）
+  「明天还稳」就把 ad set 120251840426800329 RM50 → RM60（+20%）。稳 = 11/13 全天 ≥1 报名且 CPL ≤30、周四起 CPL ≤30、三层 ACTIVE、预算仍 RM50；
+  11/14 00:10 自动判（`execute_nv_broadv2_60_1114.py`，send_later trig_01W7kvNPoCMreWhxBJSmBnvE），不稳就不加。SG 11/13 判断：在跑 4 支都在线内，不调。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
   ① 成交比对忽略 campaign 名中间的「| 1-1-4 |」结构段（BUSINESS OWNER / BROAD MY 由 1-1-4 改名 1-1-5，ad 的 UTM 仍是旧名），
   其余照旧（同 campaign · 同 ad set · 同 ad）；上线前查过 MY 15 / SG 60 个 campaign 0 撞名，受影响只有 BUSINESS OWNER 年纪大、盖电脑 各认回 1 单。
