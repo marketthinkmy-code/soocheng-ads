@@ -391,6 +391,9 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   ad 120251456191090329（11/12 他「关」的，这次他本人开回 = 有效，在跑）；关掉 NEW VIDEO · Luxury Goods | 1-5-1 | 1110 campaign（120251840064210329）
   = 定案。→ 周六 00:00 开回脚本遇到 campaign 关着会跳过 Luxury V1/V2/V4，只开 News V5（不替他开 campaign）。MY 日预算 → RM585。
   monitor 对 BROAD MY korea 看到 0 原位成交（UTM 对不上；robust-UTM 是 10/29 起 1 单 / CPA RM1,747），所以不会触发 CPA 硬线，只按 CPL 判。
+  **11/14 00:15 周六两件已执行**（排程迟到，我手动照 owner 已批的内容跑，排程随后停用）：News V5 · ad 120251840063080329 开回（回读 ACTIVE）；
+  Luxury V1/V2/V4 因 campaign 被 owner 关着 → 跳过；Broad V2 ad set 120251840426800329 RM50 → RM60（11/13 全天 RM65 / 6 报名 CPL 11，周四起 CPL 12）。
+  另：owner 11/13 22:06 本人把 SG NEW VIDEO · Broad › Broad | SG 28+ · V4 的 ad set 120250544545020521 RM50 → RM60。日预算 → 约 RM835（MY 645 / SG 190）。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
   ① 成交比对忽略 campaign 名中间的「| 1-1-4 |」结构段（BUSINESS OWNER / BROAD MY 由 1-1-4 改名 1-1-5，ad 的 UTM 仍是旧名），
   其余照旧（同 campaign · 同 ad set · 同 ad）；上线前查过 MY 15 / SG 60 个 campaign 0 撞名，受影响只有 BUSINESS OWNER 年纪大、盖电脑 各认回 1 单。
