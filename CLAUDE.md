@@ -387,6 +387,10 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **11/13 10:2x owner「👌🏼 广告先不动」**（回应「问题在出席不在 CPL」的建议：4 场 CPL 都 43–48，每学员成本 RM470–2,195）：
   这期除了周六两件已排程的事（00:00 开回 4 支、00:10 Broad V2 稳就 +20%，owner 再确认「照原定做」）之外不再改广告、不提加减建议；
   monitor 照常自动判。重点转到报名后的提醒 / Zoom link 流程（等 owner 给设定截图）。
+  **11/13 10:14 owner 本人在 Ads Manager（activity log：Thelyin Siew）**：开回 BROAD MY | 1-1-5 | 1017 campaign + Broad | MY 28+ · freestyle: korea ·
+  ad 120251456191090329（11/12 他「关」的，这次他本人开回 = 有效，在跑）；关掉 NEW VIDEO · Luxury Goods | 1-5-1 | 1110 campaign（120251840064210329）
+  = 定案。→ 周六 00:00 开回脚本遇到 campaign 关着会跳过 Luxury V1/V2/V4，只开 News V5（不替他开 campaign）。MY 日预算 → RM585。
+  monitor 对 BROAD MY korea 看到 0 原位成交（UTM 对不上；robust-UTM 是 10/29 起 1 单 / CPA RM1,747），所以不会触发 CPA 硬线，只按 CPL 判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
   ① 成交比对忽略 campaign 名中间的「| 1-1-4 |」结构段（BUSINESS OWNER / BROAD MY 由 1-1-4 改名 1-1-5，ad 的 UTM 仍是旧名），
   其余照旧（同 campaign · 同 ad set · 同 ad）；上线前查过 MY 15 / SG 60 个 campaign 0 撞名，受影响只有 BUSINESS OWNER 年纪大、盖电脑 各认回 1 单。
