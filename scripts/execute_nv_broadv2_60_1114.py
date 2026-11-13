@@ -32,7 +32,7 @@ g = graph_client(s)
 print(f"现在 {NOW:%m-%d %H:%M} MYT · {'APPLY' if CONFIRM else 'DRY-RUN'}")
 a = g.get_object(AD, "name,status,effective_status,adset{id,name,status,daily_budget},campaign{id,name,status}")
 aset, camp = a["adset"], a["campaign"]
-assert "NEW VIDEO · Broad" in camp["name"] and "V2" in a["name"], (camp["name"], a["name"])
+assert "NEW VIDEO · Broad" in camp["name"] and "V2" in aset["name"] and "炒了五年" in a["name"], (camp["name"], aset["name"], a["name"])
 print(f"  {camp['name']} › {aset['name']} · {a['name']} · ad {AD}")
 print(f"  ad {a['status']}/{a['effective_status']} · ad set {aset['id']} {aset['status']} RM{int(aset.get('daily_budget') or 0) // 100}"
       f" · campaign {camp['status']}")
