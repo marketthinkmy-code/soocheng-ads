@@ -394,6 +394,10 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **11/14 00:15 周六两件已执行**（排程迟到，我手动照 owner 已批的内容跑，排程随后停用）：News V5 · ad 120251840063080329 开回（回读 ACTIVE）；
   Luxury V1/V2/V4 因 campaign 被 owner 关着 → 跳过；Broad V2 ad set 120251840426800329 RM50 → RM60（11/13 全天 RM65 / 6 报名 CPL 11，周四起 CPL 12）。
   另：owner 11/13 22:06 本人把 SG NEW VIDEO · Broad › Broad | SG 28+ · V4 的 ad set 120250544545020521 RM50 → RM60。日预算 → 约 RM835（MY 645 / SG 190）。
+  **11/14 owner「周一加」**（问「有没有需要加预算的？」后选我的方案）：**周一 11/16 00:05** 两支 MY 新视频各 +20%，各自周六+周日 CPL ≤30（≥1 报名）才加：
+  News V4 · ad 120251840059300329 → ad set 120251840057130329 RM50 → RM60；Broad V2 · ad 120251840432100329 → ad set 120251840426800329 RM60 → RM72
+  （`execute_nv_raise_1116.py`，send_later trig_012FRNoWMohGVbyStMNDifCY）。选周一的理由：上一场周一–周三报名出席 30%、周四–周日 4%。
+  SG 不加（现有预算都花不完）；无成交或 CPA 太贵的（DAY TRADING korea、BROAD MY korea、News V5）不加。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
   ① 成交比对忽略 campaign 名中间的「| 1-1-4 |」结构段（BUSINESS OWNER / BROAD MY 由 1-1-4 改名 1-1-5，ad 的 UTM 仍是旧名），
   其余照旧（同 campaign · 同 ad set · 同 ad）；上线前查过 MY 15 / SG 60 个 campaign 0 撞名，受影响只有 BUSINESS OWNER 年纪大、盖电脑 各认回 1 单。
