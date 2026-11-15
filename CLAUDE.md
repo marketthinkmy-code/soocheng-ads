@@ -398,6 +398,8 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   News V4 · ad 120251840059300329 → ad set 120251840057130329 RM50 → RM60；Broad V2 · ad 120251840432100329 → ad set 120251840426800329 RM60 → RM72
   （`execute_nv_raise_1116.py`，send_later trig_012FRNoWMohGVbyStMNDifCY）。选周一的理由：上一场周一–周三报名出席 30%、周四–周日 4%。
   SG 不加（现有预算都花不完）；无成交或 CPA 太贵的（DAY TRADING korea、BROAD MY korea、News V5）不加。
+  **11/16 00:06 已执行**：Broad V2 周六+周日 RM141 / 5 报名 CPL 28 → ad set 120251840426800329 RM60 → RM72（回读 RM72）；
+  News V4 周六+周日 RM91 / 2 CPL 46 → 不加（仍 RM50）。日预算 → 约 RM847（MY 657 / SG 190）。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
   ① 成交比对忽略 campaign 名中间的「| 1-1-4 |」结构段（BUSINESS OWNER / BROAD MY 由 1-1-4 改名 1-1-5，ad 的 UTM 仍是旧名），
   其余照旧（同 campaign · 同 ad set · 同 ad）；上线前查过 MY 15 / SG 60 个 campaign 0 撞名，受影响只有 BUSINESS OWNER 年纪大、盖电脑 各认回 1 单。
