@@ -400,6 +400,9 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   SG 不加（现有预算都花不完）；无成交或 CPA 太贵的（DAY TRADING korea、BROAD MY korea、News V5）不加。
   **11/16 00:06 已执行**：Broad V2 周六+周日 RM141 / 5 报名 CPL 28 → ad set 120251840426800329 RM60 → RM72（回读 RM72）；
   News V4 周六+周日 RM91 / 2 CPL 46 → 不加（仍 RM50）。日预算 → 约 RM847（MY 657 / SG 190）。
+  **11/16 10:14 owner「关盖电脑和 BROAD MY korea」= 定案**（晨报：周日 BUSINESS OWNER RM148 / 0 报名、BROAD MY RM161 / 1；korea 10/29 起 CPA RM2,201）：
+  BUSINESS OWNER › Business Owner | MY 28+ · 盖电脑 · ad 120251454701640329、BROAD MY › Broad | MY 28+ · korea · ad 120251456191090329 ad 层 PAUSED
+  （`execute_close_bo_broadmy_1116.py`，回读 PAUSED）。两个 CBO（RM120 / RM150）已无在跑 ad。日预算 → 约 RM577（MY 387 / SG 190）。不得自动开回。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
   ① 成交比对忽略 campaign 名中间的「| 1-1-4 |」结构段（BUSINESS OWNER / BROAD MY 由 1-1-4 改名 1-1-5，ad 的 UTM 仍是旧名），
   其余照旧（同 campaign · 同 ad set · 同 ad）；上线前查过 MY 15 / SG 60 个 campaign 0 撞名，受影响只有 BUSINESS OWNER 年纪大、盖电脑 各认回 1 单。
