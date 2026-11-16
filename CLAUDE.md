@@ -403,6 +403,8 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **11/16 10:14 owner「关盖电脑和 BROAD MY korea」= 定案**（晨报：周日 BUSINESS OWNER RM148 / 0 报名、BROAD MY RM161 / 1；korea 10/29 起 CPA RM2,201）：
   BUSINESS OWNER › Business Owner | MY 28+ · 盖电脑 · ad 120251454701640329、BROAD MY › Broad | MY 28+ · korea · ad 120251456191090329 ad 层 PAUSED
   （`execute_close_bo_broadmy_1116.py`，回读 PAUSED）。两个 CBO（RM120 / RM150）已无在跑 ad。日预算 → 约 RM577（MY 387 / SG 190）。不得自动开回。
+  **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
+  离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
   ① 成交比对忽略 campaign 名中间的「| 1-1-4 |」结构段（BUSINESS OWNER / BROAD MY 由 1-1-4 改名 1-1-5，ad 的 UTM 仍是旧名），
   其余照旧（同 campaign · 同 ad set · 同 ad）；上线前查过 MY 15 / SG 60 个 campaign 0 撞名，受影响只有 BUSINESS OWNER 年纪大、盖电脑 各认回 1 单。
