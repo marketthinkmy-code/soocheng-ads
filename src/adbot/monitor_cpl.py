@@ -34,6 +34,10 @@ BANNED_CREATIVE = "banned_creative"  # permanently banned master (owner 2026-09-
 CPA_MANUAL_HOLD = "cpa_manual_hold"  # owner-named exemption from the CPA hard-stop (cpa.hold)
 NAME_RESCUED = "cpl_high_but_creative_sells"  # sales matched by ad name only (renamed campaign)
 SOFT_REDUCED = "cpl_over_soft_reduced"  # budget carrier cut instead of pausing (kpi.cpl_soft_reduce)
+CPA_UNAVAILABLE_HOLD = "cpa_unavailable_hold"  # CPA data failed to load this run -> no CPL pause (owner 2026-11-17「修」)
+# Returned by build_cpa_context when the sales sheet / 60-day spend could not be read. A real "no sales"
+# result is ({}, {}, {}); this sentinel lets evaluate_account tell the two apart.
+CPA_UNAVAILABLE = object()
 
 # TEMPORARY soft-landing (owner 2026-09-10「先降 30%，再犯才关」). The "already cut" state must
 # survive across stateless monitor runs, so it lives on Meta itself: a date-stamped adlabel on
@@ -225,8 +229,12 @@ def build_cpa_context(graph, settings: Settings, today: dt.date):
                 continue
         return sold, sold_by_ad, spend
     except Exception as exc:  # noqa: BLE001
-        get_logger().warning("CPA context unavailable (%s) — CPL-only this run", exc)
-        return {}, {}, {}
+        # owner 2026-11-17「修」: 11/16 23:01 a Meta 400 here dropped the CPA rescue and the
+        # CPL rule paused SG 用我的方法 (an ad with a sale, 60d CPA ~1,191 ≤ 1,200). Without
+        # sales data this run cannot tell protected ads from unprotected ones, so it makes
+        # no CPL / 0-reg pauses at all; the next run (20 min) judges with full data.
+        get_logger().warning("CPA context unavailable (%s) — no CPL pauses this run; next run decides", exc)
+        return CPA_UNAVAILABLE
 
 
 def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecision]:
@@ -244,6 +252,9 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
     today = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()  # MYT
     cpl_preset, cpl_range = cpl_window(settings, today)
     ctx = cpa_ctx if cpa_ctx is not None else build_cpa_context(graph, settings, today)
+    cpa_down = ctx is CPA_UNAVAILABLE
+    if cpa_down:
+        ctx = ({}, {}, {})
     if len(ctx) == 3:
         sold60, sold60_by_ad, spend60 = ctx
     else:                       # legacy (sold, spend) shape — no name-fallback index
@@ -355,6 +366,11 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                     # week): keeps the reopened ad alive although its 60d CPA sits over
                     # the hard stop. CPL rules still apply unless it's also in cpl_hold.
                     should_pause, reason = False, CPA_MANUAL_HOLD
+
+            if cpa_down and should_pause:
+                # owner 2026-11-17「修」: sales data unavailable this run — hold every CPL /
+                # 0-reg pause until a run that can see the CPA rescue. (Bans still apply below.)
+                should_pause, reason = False, CPA_UNAVAILABLE_HOLD
 
             if compliance.is_banned(name, settings.compliance.banned_creatives):
                 # ⛔ owner 2026-09-23, after the SECOND account ban: a creative Meta has
