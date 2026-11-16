@@ -3,7 +3,7 @@ import math
 import datetime as dt
 
 from adbot import cpa
-from adbot.monitor_cpl import (_mkey, BANNED_CREATIVE, CPA_MANUAL_HOLD, INSUFFICIENT_SPEND, MANUAL_HOLD, NAME_RESCUED,
+from adbot.monitor_cpl import (_mkey, BANNED_CREATIVE, CPA_MANUAL_HOLD, CPA_UNAVAILABLE, CPA_UNAVAILABLE_HOLD, INSUFFICIENT_SPEND, MANUAL_HOLD, NAME_RESCUED,
                                NO_RESULTS_YET, OVER_THRESHOLD, SOFT_REDUCE_PREFIX,
                                WITHIN_THRESHOLD, ZERO_RESULTS,
                                _label_dates, cpl_window, decide, evaluate_account, extract_results,
@@ -651,3 +651,40 @@ def test_cpa_join_ignores_campaign_structure_segment():
     assert not by["bo_old"].should_pause and by["bo_old"].cpa_sales == 1          # 1-1-4 sale protects the 1-1-5 position
     assert by["br_old"].should_pause and by["br_old"].cpa_sales == 0               # other campaign: no protection
     assert _mkey("(Webinarkit) [SG] STOCKBLOOM | BROAD SG | 1-1-5 | 1030") != _mkey("(Webinarkit) STOCKBLOOM | BROAD MY | 1-1-5 | 1017")
+
+
+def test_cpa_unavailable_holds_cpl_pauses_but_not_bans():
+    # owner 2026-11-17「修」: when the sales sheet / 60-day spend can't be read (a Meta 400 on
+    # 11/16 paused an ad that had a sale), the run makes no CPL / 0-reg pauses; bans still apply.
+    settings = Settings(
+        meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+        kpi=KpiCfg(cpl_threshold_myr=80, cpl_min_spend_myr=80, cpl_lookback="last_3d",
+                   pause_zero_lead_after_spend=True),
+        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14, min_spend_myr=1000),
+        compliance=ComplianceCfg(banned_creatives=["trading 早就不是这样了"]))
+    campaigns = [{"id": "A", "name": "[SG] STOCKBLOOM | BROAD SG", "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad("Video：用我的方法"),                      # CPL 98 — over the line
+                 _ad("Video：零报名"),                         # RM100 / 0 — zero-reg floor
+                 _ad("拼接：Video 5：Trading 早就不是这样了！"),  # banned
+                 _ad("Video：我跟你讲！")]}                     # within the line
+    insights = {"Video：用我的方法": _reg_insight(591, 6),
+                "Video：零报名": _reg_insight(100, 0),
+                "拼接：Video 5：Trading 早就不是这样了！": _reg_insight(100, 5),
+                "Video：我跟你讲！": _reg_insight(120, 3)}
+
+    by = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=CPA_UNAVAILABLE)}
+
+    assert by["Video：用我的方法"].should_pause is False
+    assert by["Video：用我的方法"].reason == CPA_UNAVAILABLE_HOLD
+    assert by["Video：零报名"].should_pause is False
+    assert by["Video：零报名"].reason == CPA_UNAVAILABLE_HOLD
+    assert by["拼接：Video 5：Trading 早就不是这样了！"].should_pause is True
+    assert by["拼接：Video 5：Trading 早就不是这样了！"].reason == BANNED_CREATIVE
+    assert by["Video：我跟你讲！"].should_pause is False
+
+    # A genuine "no sales" context (empty dicts) still pauses on CPL as before.
+    by2 = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=({}, {}, {}))}
+    assert by2["Video：用我的方法"].should_pause is True
+    assert by2["Video：用我的方法"].reason == OVER_THRESHOLD
