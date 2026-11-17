@@ -405,6 +405,7 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   （`execute_close_bo_broadmy_1116.py`，回读 PAUSED）。两个 CBO（RM120 / RM150）已无在跑 ad。日预算 → 约 RM577（MY 387 / SG 190）。不得自动开回。
   ⛔ **11/17 教训（owner「有些星期四到现在的广告，cpl 便宜的被关了」）**：11/16 晨报我只列**周日单日**数字（BO 盖电脑 RM148/0、BROAD MY korea RM161/1），还写了「想关…跟我说」——但两支**周四起** CPL 33 / 35 都在线内 → 违反死忌 3（看数范围 = 周四到现在）和「广告先不动」。以后：关停 / 开回建议只能用周四起窗口；单日数字只当背景，**绝不配关停邀约**。
   11/16–17 CPL 飙高诊断（`report_cpl_spike_1117.py`）：不是关停造成的（各 campaign 自己的预算，关了不会把钱推给别人），而是整体投放变贵——MY CPM 111→169→203、链接 CTR 3.6%→2.7%、落地页访问成本 RM4→RM9.5、落地页→报名 11.6%→6.5%；SG CPM 253→530。11/17 11:40 monitor 按线关 News V2 · ad 120251840053010329（周四起 CPL 82）。
+  **11/17 owner 三个决定（AskUserQuestion）**：① 照跑到周三 15:00（周三上午历来最便宜：MY 周三 CPL 10–26；周一到周三报名出席 30%）；② 版位这期不改（变贵主因 = Meta 把钱推到 Facebook 动态，MY 占比 15–18% → 42–51%、feed CPM 101–146 → 392–503；SG feed 67% / CPM 1,483；频次 1.1–1.5 不是看腻；多数 ad 质量排名 BELOW_AVERAGE_20/35）；③ 周四一起开：**11/19 00:01** 只开 BUSINESS OWNER › Business Owner | MY 28+ · 盖电脑 · ad 120251454701640329 的 ad 层（`execute_reopen_bo_gaidiannao_1119.py`，send_later trig_014pJDRYCWy8BhqoJDiohJJt），campaign 层留给 owner；BROAD MY korea 不开。owner 偏好：要他决定的事一题一题给、附我的推荐。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
