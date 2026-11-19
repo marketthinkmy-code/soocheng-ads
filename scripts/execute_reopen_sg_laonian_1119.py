@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
-"""owner 2026-11-19 10:1x「开回 + 修 monitor」(AskUserQuestion after the 11/19 morning watch). Reopens exactly one SG ad that the
+"""owner 2026-11-19 10:1x「开回 + 修 monitor」→ 10:5x「SG 先全停」→ 11:5x (after PR #93 merged)「可以开。只是要确保现在的都是带去
+webinarkit 的广告，campaign 前面有带 (webinarkit) 的」. Reopens exactly one SG ad that the
 monitor paused on 11/14 (cpl 80.21 vs line 80) while missing its sale (robust-UTM original position, 10/29起 1 单, CPA ~RM685):
 
   · [SG] STOCKBLOOM | BROAD SG | 1-1-5 | 1030 › Broad | SG 28+ · Video：年纪大的人做不了交易？ · ad 120250144813480521
@@ -25,6 +26,7 @@ print("APPLY" if CONFIRM else "DRY-RUN")
 a = g.get_object(AID, "name,status,effective_status,adset{id,name,status},campaign{id,name,status,daily_budget}")
 aset, camp = a["adset"], a["campaign"]
 assert CAMP in camp["name"] and aset["name"] == ASET and MUST in a["name"], (AID, a)
+assert camp["name"].lower().startswith("(webinarkit)"), ("not a Webinarkit campaign", camp["name"])
 print(f"  {camp['name']} › {aset['name']} · {a['name']} · ad {AID}")
 print(f"     现在 campaign {camp['status']} / ad set {aset['status']} / ad {a['status']} → 实际 {a['effective_status']}"
       f" · CBO RM{int(camp.get('daily_budget') or 0) // 100}")
@@ -36,6 +38,7 @@ for x in armed:
     assert not compliance.is_banned(x["name"], s.compliance.banned_creatives) and "🚫" not in x["name"] \
         and x["effective_status"] not in ("DISAPPROVED", "WITH_ISSUES"), ("armed bad ad in campaign", x)
 print(f"     campaign 里其它 ad 层 ACTIVE 的: {len(armed)} " + "；".join(f"{x['name']} · ad {x['id']} → {x['effective_status']}" for x in armed))
+assert not armed, "other ads are ACTIVE at ad level — opening the campaign would start them too; refusing"
 if CONFIRM:
     for oid, st in ((camp["id"], camp["status"]), (aset["id"], aset["status"]), (AID, a["status"])):
         if st != "ACTIVE":
@@ -48,4 +51,16 @@ if CONFIRM:
     ok = b["effective_status"] == "ACTIVE"
     print(f"     {'✅' if ok else '⚠️ 还没在投放'} 回读 campaign {b['campaign']['status']} / ad set {b['adset']['status']} / ad {b['status']}"
           f" → 实际 {b['effective_status']}")
+print("\n-- 两个账户所有实际在投放的 ad（campaign 前面要有 (Webinarkit)）:")
+for label, cfg in (("MY", "config.my5.yaml"), ("SG", "config.sg.yaml")):
+    s2 = load_settings(REPO_ROOT / "config" / cfg)
+    g2 = graph_client(s2)
+    rows = g2._get_all(s2.meta.account_path + "/ads", {"fields": "name,effective_status,adset{name,daily_budget},campaign{name,daily_budget}",
+                                                      "limit": "500", "effective_status": '["ACTIVE","IN_PROCESS","PENDING_REVIEW"]'})
+    for r in rows:
+        ok = r["campaign"]["name"].lower().startswith("(webinarkit)")
+        b = int(r["campaign"].get("daily_budget") or r["adset"].get("daily_budget") or 0) // 100
+        print(f"   {'✅' if ok else '❌ 不是 Webinarkit'} {label} {r['campaign']['name']} › {r['adset']['name']} · {r['name']} · ad {r['id']} → {r['effective_status']} · RM{b}")
+    if not rows:
+        print(f"   {label}: 0 支")
 print("REOPEN SG 年纪大 DONE" + ("" if CONFIRM else " (dry-run)"))
