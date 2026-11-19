@@ -420,6 +420,13 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   ③ monitor 成交比对照修 → **PR #93**（报名表 UTM 原位成交 ∪ Paid 行自带 UTM，按 Paid 行去重；待 owner 看过再合并）：实测 News V4 0→1 单（CPA 458）、
   SG 年纪大 0→1（685）、BROAD MY korea 0→1（2,582）。在跑：MY 4 支（BO 盖电脑 CBO RM120、NV Broad V2 RM72、News V4 / V5 各 RM50）≈ RM292/天。
   11/18 场成交 11/19 早上还没入 Paid 表（webinar_nov18 只有 11/12 一笔 bank transfer）。11/18 Register 40 笔，0 机器人（多为周三回头报名）。
+  **11/19 11:4x owner「先修好 PR #93，一定要看完 campaign、ad set、ad」→ 收紧后「合并」**：报名表比对与 Paid 比对用同一把严格的 key
+  （campaign 只忽略「| 1-x-y |」 › ad set › ad 名字一字不差，只忽略 🌟/🚫/大小写/空格），每笔成交只认买前**最后一次**报名的位置，按 Paid 行去重。
+  逐笔核对（`report_pr93_audit_1119.py`）60 天 60 笔：认到的全部三层 ✅，没有一个 key 落在两支 ad。PR #93 已 squash 合并（52a0ee4），
+  合并后 main 上 dry-run：News V4 CPA=459(1 sale)、BO 盖电脑 740(1 sale)，无报错。
+  **11/19 11:50 owner「可以开。只是要确保现在的都是带去 webinarkit 的广告」**：SG BROAD SG › Broad | SG 28+ · 年纪大 · ad 120250144813480521
+  三层开回（BROAD SG campaign 只有它一支，CBO RM130；`execute_reopen_sg_laonian_1119.py`，回读 ACTIVE）。两账户在投放 5 支，campaign 全部带 (Webinarkit)。
+  日预算 ≈ RM422（MY 292 / SG 130）。SG NEW VIDEO · Broad 仍是 owner 关的，不开。**以后开任何广告都要确认 campaign 名前面有 (Webinarkit)。**
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
