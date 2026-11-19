@@ -464,7 +464,7 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   16:00 建好（`execute_build_cbo_1120.py`）：(Webinarkit) STOCKBLOOM | CBO · LUX BEER OMAKASE | 1-3-3 | 1120 · campaign 120251995650640329 · CBO RM150 · PAUSED，
   3 个 ad set（Luxury Goods / Beer / Omakase | MY 28+，兴趣硬锁 28–65）× 3 支 BEST CPA ad（V4 · 年纪大 · 盖电脑，复用原 creative）。
   ⚠️ 11/10 的「Luxury Goods」兴趣里已混了酒类 + 日料（41 个兴趣）→ 改用 MY 3.0 纯 luxury 的「LUXURY GOODS 30-55 | 0910 › Luxury Goods 30-55」(120248787849960575)，三组不重叠。
-  monitor 对这个 CBO 目前照 MY 一般规则 RM60（名字不含 1-1-3 | 1120 / NEW VIDEO）。
+  owner「跟 1-1-3 一样 RM80」→ PR #96（d53b917）`match: "1-3-3 | 1120"`（RM80/80/80）。
   **SG 1-1-3**：owner 先选 Purchase LAL 5% SG，随即改「我觉得还是 broad 吧！让 meta 自己挑对的人报名」（LAL 版没写也没建）。16:06 建好（`execute_build_sg113_1120.py`）：
   (Webinarkit) [SG] STOCKBLOOM | BEST · Broad | 1-1-3 | 1120 · campaign 120250705800700521 · CBO RM80 · PAUSED › Broad | SG 28+（Advantage+，建议 28–65，模板 SG BROAD SG 1030）·
   决定变少 ad 120250705802880521（MY News 有成交的 post，新建 SG creative 2674375702989899）· 年纪大 ad 120250705803610521（SG post）· 用我的方法 ad 120250705804890521。
