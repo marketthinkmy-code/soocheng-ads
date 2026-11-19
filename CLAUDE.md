@@ -480,6 +480,11 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   owner：「有些我可以安排在周六 / 周日开。你等下，再建议我吧」→ 全部建完后给开启时间建议。
   **owner「先不要建，等周日，你再问我」**：第 3 个建法起暂停；周日 11/22 10:30 MYT send_later（trig_01KnxH1LeruihEZeTRJz4TC6）先给 6 个测试 campaign 的周四起成绩再问。
   owner 打算自己检查并开 4 个 PAUSED（MY CBO、SG 1-1-3 ×2、SG CBO）：全开后日预算 ≈ RM1,022（MY 592 / SG 430）。
+  **owner「方案 B，我排程自动开」**（倒推：在跑 RM622/天到周三 15:00 ≈ RM4,180，离 RM5,950 剩 ≈ RM1,770）：
+  **周六 11/21 00:00** 开 SG 1-1-3 BEST · campaign 120250705800700521 + MY CBO · campaign 120251995650640329（`execute_open_tests_1121.py`，send_later trig_019cqRMcadABqjQeZY3nstxd）；
+  **周日 11/22 00:00** 开 SG CBO · campaign 120250705919180521（`execute_open_tests_1122.py`，trig_01GxoTopR2zdfKZzaevXdKeZ）；各 01:00 只读检查（`report_open_tests_check_1121.py`，trig_01BoUfpy4So2YBPYm9ix95MV / trig_01AWbAXrecd2BMzLFVtrRHAt）。
+  只开 campaign 层；ad set / ad 若被人关了不替他开；有被拒 / 禁跑 ad、周期花费已到 RM5,950 就拒绝。到周三 15:00 预计 ≈ RM5,470。
+  **SG 1-1-3 LOW CPL · campaign 120250706566080521 先不开**——周一看 monitor 有没有关掉差的、空出预算，再问 owner。dry-run（11/19 17:03）三个 campaign 全部过闸。
   ⚠️ MY CBO + SG 1-1-3 + SG CBO 全开 ≈ RM950/天 → 约周三早上碰 RM5,950 上限被 monitor 全关（已告知 owner）。⚠️ 用我的方法、盖电脑、korea 11/05 有旧副本被拒（owner 例外 C）——这次若被拒，立刻报告、建议 DELETE、不申诉。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
