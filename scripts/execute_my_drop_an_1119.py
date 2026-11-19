@@ -19,7 +19,8 @@ CONFIRM = os.environ.get("CONFIRM", "").lower() in ("1", "true", "yes")
 MY_CBO = "120251995650640329"
 # WK removed Instagram Explore himself on 11/19 (activity log 15:53 MY 1-1-3, 17:00/17:06 MY CBO) — keep it removed there.
 NO_EXPLORE = {"120251993979530329", "120251993987750329", "120251995652710329", "120251995661220329", "120251995666640329"}
-IG_NO_EXPLORE = ["stream", "story", "explore_home", "reels", "profile_feed", "ig_search"]
+# Meta API: Explore home needs Explore → with Explore out, Explore home goes too (11/19 23:4x 400 error).
+IG_NO_EXPLORE = ["stream", "story", "reels", "profile_feed", "ig_search"]
 PL_KEYS = ("publisher_platforms", "facebook_positions", "instagram_positions", "messenger_positions",
            "audience_network_positions", "threads_positions", "whatsapp_positions")
 
@@ -65,18 +66,26 @@ for a in pick:
 
 print(f"\n要改 {len(todo)} 个 ad set")
 if CONFIRM:
+    done, failed = [], []
     for a, nt in todo:
         try:
-            g.update_targeting(a["id"], nt)
+            g.update_targeting(a["id"], nt); done.append(a)
         except Exception as exc:  # noqa: BLE001
-            if "threads" in nt.get("publisher_platforms", []):
-                print(f"   ⚠️ {a['name']} · adset {a['id']} 带 threads 被拒（{str(exc)[:160]}）→ 不带 threads 再试")
+            msg = str(exc)
+            if "threads" in msg.lower() and "threads" in nt.get("publisher_platforms", []):
                 nt = dict(nt); nt["publisher_platforms"] = [p for p in nt["publisher_platforms"] if p != "threads"]
                 nt.pop("threads_positions", None)
-                g.update_targeting(a["id"], nt)
+                try:
+                    g.update_targeting(a["id"], nt); done.append(a)
+                    print(f"   ⚠️ {a['name']} · adset {a['id']}: threads 不能放 → 已改成不带 threads")
+                except Exception as exc2:  # noqa: BLE001
+                    failed.append((a, str(exc2)[:200]))
             else:
-                raise
+                failed.append((a, msg[:200]))
         time.sleep(2)
+    for a, m in failed:
+        print(f"   ❌ 没改到 {a['name']} · adset {a['id']}: {m}")
+    todo = [(a, None) for a in done]
     time.sleep(30)
     print("\n-- 读回")
     for a, _ in todo:
