@@ -458,7 +458,13 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
      korea ad 120251993988780329 · V2 炒了五年 ad 120251993989200329 · 用我的方法 ad 120251993990070329。
   ad set / ad 已 ACTIVE（审核中），只等 owner 开 campaign。owner「跟新视频一样 RM80」→ PR #95（aa37b2c）`kpi.campaign_overrides` 加 `match: "1-1-3 | 1120"`（RM80/80/80）。
   **15:53 owner 本人（Power Editor）开了这两个 campaign**，同时两个 ad set 版位去掉 Instagram Explore（受众仍 Broad MY 28+）。6 支 ad Meta 15:41–15:45 已过审。
-  → 在跑 MY 4 + 6 + SG 1 = 11 支，日预算 ≈ RM622（MY 492 / SG 130）。⚠️ 用我的方法、盖电脑、korea 11/05 有旧副本被拒（owner 例外 C）——这次若被拒，立刻报告、建议 DELETE、不申诉。
+  → 在跑 MY 4 + 6 + SG 1 = 11 支，日预算 ≈ RM622（MY 492 / SG 130）。
+  **第 2 个建法 CBO**：owner 先要「怎么判断好的受众」（`report_audiences_1119.py`：标准 = ①成交/CPA ≤1,200 ②报名→成交率 ③花够 ~RM1,200 才判 0 单 ④4 月起 Paid 历史 ⑤CPL 只看量；
+  10/29 起 MY Luxury CPA 1,010 / 7.7%、BO 1,258 / 5.6%、News 1,513；MY Broad CPL 55 但 1.4%、CPA 4,050 = 陷阱）→ owner 选「Luxury + Beer + Omakase」。
+  16:00 建好（`execute_build_cbo_1120.py`）：(Webinarkit) STOCKBLOOM | CBO · LUX BEER OMAKASE | 1-3-3 | 1120 · campaign 120251995650640329 · CBO RM150 · PAUSED，
+  3 个 ad set（Luxury Goods / Beer / Omakase | MY 28+，兴趣硬锁 28–65）× 3 支 BEST CPA ad（V4 · 年纪大 · 盖电脑，复用原 creative）。
+  ⚠️ 11/10 的「Luxury Goods」兴趣里已混了酒类 + 日料（41 个兴趣）→ 改用 MY 3.0 纯 luxury 的「LUXURY GOODS 30-55 | 0910 › Luxury Goods 30-55」(120248787849960575)，三组不重叠。
+  monitor 对这个 CBO 目前照 MY 一般规则 RM60（名字不含 1-1-3 | 1120 / NEW VIDEO）。⚠️ 用我的方法、盖电脑、korea 11/05 有旧副本被拒（owner 例外 C）——这次若被拒，立刻报告、建议 DELETE、不申诉。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
