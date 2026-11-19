@@ -63,12 +63,14 @@ for label, cfg, code in (("MY", "config.my5.yaml", "1048291251556714"), ("SG", "
                                                               "campaign{id,name,status,effective_status,daily_budget}", "limit": "500"})
     if label == "MY":
         print("\n== A) DAY TRADING campaign")
-        dt_ads = [a for a in ads if "DAY TRADING" in a["campaign"]["name"]]
-        if dt_ads:
-            c = dt_ads[0]["campaign"]
-            print(f"   «{c['name']}» · campaign {c['id']} · 开关 {c['status']} / 实际 {c['effective_status']} · CBO RM{int(c.get('daily_budget') or 0) // 100}")
-        for a in dt_ads:
-            print(f"   - {a['adset']['name']} · {a['name']} · ad {a['id']} · ad 开关 {a['status']} / 实际 {a['effective_status']} · ad set {a['adset']['status']}")
+        camps = {}
+        for a in ads:
+            if "DAY TRADING" in a["campaign"]["name"]:
+                camps.setdefault(a["campaign"]["id"], (a["campaign"], []))[1].append(a)
+        for cid, (c, lst) in camps.items():
+            print(f"   «{c['name']}» · campaign {cid} · 开关 {c['status']} / 实际 {c['effective_status']} · CBO RM{int(c.get('daily_budget') or 0) // 100}")
+            for a in lst:
+                print(f"     - {a['adset']['name']} · {a['name']} · ad {a['id']} · ad 开关 {a['status']} / 实际 {a['effective_status']} · ad set {a['adset']['status']}")
     for a in ads:
         if "决定变少" in a["name"] or "年纪大" in a["name"]:
             i = ins.get(a["id"], {})
