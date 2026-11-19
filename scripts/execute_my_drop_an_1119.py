@@ -79,9 +79,8 @@ if CONFIRM:
         time.sleep(2)
     time.sleep(30)
     print("\n-- 读回")
-    sub = "publisher_platforms,instagram_positions,audience_network_positions"
     for a, _ in todo:
-        b = g._request("GET", a["id"], params={"fields": "name,status,effective_status,targeting{" + sub + "}"})
+        b = g._request("GET", a["id"], params={"fields": "name,status,effective_status,targeting"})
         tt = b.get("targeting") or {}
         pp = tt.get("publisher_platforms")
         ok = bool(pp) and "audience_network" not in pp and not tt.get("audience_network_positions")
