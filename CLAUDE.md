@@ -456,7 +456,9 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
      V4 决定变少 ad 120251993980970329 · 年纪大 ad 120251993983160329 · 盖电脑 ad 120251993984490329；
   ② (Webinarkit) STOCKBLOOM | LOW CPL · Broad | 1-1-3 | 1120 · campaign 120251993985380329 · CBO RM100 · PAUSED › Broad | MY 28+ ·
      korea ad 120251993988780329 · V2 炒了五年 ad 120251993989200329 · 用我的方法 ad 120251993990070329。
-  ad set / ad 已 ACTIVE（审核中），只等 owner 开 campaign。owner「跟新视频一样 RM80」→ PR #95（aa37b2c）`kpi.campaign_overrides` 加 `match: "1-1-3 | 1120"`（RM80/80/80）。⚠️ 用我的方法、盖电脑、korea 11/05 有旧副本被拒（owner 例外 C）——这次若被拒，立刻报告、建议 DELETE、不申诉。
+  ad set / ad 已 ACTIVE（审核中），只等 owner 开 campaign。owner「跟新视频一样 RM80」→ PR #95（aa37b2c）`kpi.campaign_overrides` 加 `match: "1-1-3 | 1120"`（RM80/80/80）。
+  **15:53 owner 本人（Power Editor）开了这两个 campaign**，同时两个 ad set 版位去掉 Instagram Explore（受众仍 Broad MY 28+）。6 支 ad Meta 15:41–15:45 已过审。
+  → 在跑 MY 4 + 6 + SG 1 = 11 支，日预算 ≈ RM622（MY 492 / SG 130）。⚠️ 用我的方法、盖电脑、korea 11/05 有旧副本被拒（owner 例外 C）——这次若被拒，立刻报告、建议 DELETE、不申诉。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
