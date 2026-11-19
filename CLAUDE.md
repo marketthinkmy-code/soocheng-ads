@@ -449,6 +449,14 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   ad 层 PAUSED（`execute_close_dt1008_ads_1119.py`，回读 PAUSED，1008 里 ad 层开着的 = 0）。都不得自动开回。
   同一轮 owner 质疑「为什么要加 News V4？」：News V4 唯一一单 = Paid 第 834 行 11/12 银行转账（11/11 经 News V4 报名 11/11 场、11/12 再无 UTM 报名 nov18）；
   这周它 RM37/0 报名 → 加预算建议**收回**；「V4→Business Owner、年纪大→News」新组合建议也收回（两支在 MY 的成交成本 RM1,500–2,100）。预算不变、无新建。
+  **11/19 owner 新建法测试（「一个一个来」）· 第 1 个 = 两个 1-1-3（owner「两个 1-1-3…Broad MY 28+，预算 RM100/天，建好后是 PAUSED」+ 分组「按成绩分」）**：
+  6 支素材（10/29 起有单 / 低 CPL，`report_top_creatives_1119.py`；post 链接全核对 = webinarkit-register-wed，`report_post_links_1119.py`）。
+  15:39 建好（`execute_build_113_1120.py`，复用原 ad 的 creative = 同一个 Webinarkit post + 同 url_tags；SG 的用我的方法 post 在 MY 新建 creative 1506221654740169）：
+  ① (Webinarkit) STOCKBLOOM | BEST CPA · Broad | 1-1-3 | 1120 · campaign 120251993979260329 · CBO RM100 · PAUSED › Broad | MY 28+ ·
+     V4 决定变少 ad 120251993980970329 · 年纪大 ad 120251993983160329 · 盖电脑 ad 120251993984490329；
+  ② (Webinarkit) STOCKBLOOM | LOW CPL · Broad | 1-1-3 | 1120 · campaign 120251993985380329 · CBO RM100 · PAUSED › Broad | MY 28+ ·
+     korea ad 120251993988780329 · V2 炒了五年 ad 120251993989200329 · 用我的方法 ad 120251993990070329。
+  ad set / ad 已 ACTIVE（审核中），只等 owner 开 campaign。⚠️ 用我的方法、盖电脑、korea 11/05 有旧副本被拒（owner 例外 C）——这次若被拒，立刻报告、建议 DELETE、不申诉。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
