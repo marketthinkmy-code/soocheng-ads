@@ -487,6 +487,16 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   SG CBO · campaign 120250705919180521 开不开；WK 说开才跑 `execute_open_tests_1121.py`（MY CBO）/ `execute_open_tests_1122.py`（SG CBO）——只开 campaign 层、读回每支 ad、
   有被拒 / 禁跑 ad 或周期花费已到 RM5,950 就拒绝。在投放日预算 → 约 RM822（MY 492 / SG 330）；照这样到周三 15:00 约 RM5,350。
   ⚠️ MY CBO + SG 1-1-3 + SG CBO 全开 ≈ RM950/天 → 约周三早上碰 RM5,950 上限被 monitor 全关（已告知 owner）。⚠️ 用我的方法、盖电脑、korea 11/05 有旧副本被拒（owner 例外 C）——这次若被拒，立刻报告、建议 DELETE、不申诉。
+  **11/19 ~21:00 owner「CPL 都太高了，要做点什么」→ 选「MY 拿掉 AN」**（`report_cpl_now_1119.py`：MY 当天 AN RM135 = 26% / 0 报名；10/29 起 AN 28 报名 0 买家）。
+  ⛔ **教训（我搞砸）**：`execute_my_drop_an_1119.py` 用 API 改版位——v21 API 读不到 owner 在 Ads Manager 设的版位排除（显示成自动版位），我写成明确版位后：
+  23:38 实际写进 9 组（owner 叫停时已执行），顺带拿掉 WhatsApp Status / IG Explore home、还把 4 组原本没有的 IG Explore 打开，并让 9 组所有 ad（含 BO 里关着的 🚫 赚美金）重新送审。
+  owner「你刚改的都复原」→ 23:44 `execute_my_restore_placements_1119.py` 写回不指定版位，但 IG Explore 变成全开（API 表达不了「关 Explore 留 Explore home」）→
+  **owner 00:05–00:11 本人在 Ads Manager 手改**：9 组（BO、NV Broad V2、News V4/V5、MY 1-1-3 BEST/LOW CPL、MY CBO 3 组）= facebook + instagram + whatsapp + threads，
+  无 Audience Network、无 IG Explore（留 Explore home），并取消「Allow limited spending to excluded placements」（勾着时被排除的版位仍会花约 5%/个）。
+  核对用 META MCP 读 adset targeting（新版 API 看得到 publisher_platforms）。审核：全部重新过审，无被拒（🚫 赚美金 审完 Inactive）。SG 没改（SG 11/19 唯一报名来自 AN）。
+  **以后版位一律 owner 在 Ads Manager 改；我不用 API 写版位**（只读核对）。
+  **11/20 00:1x owner「不关」**：SG BROAD SG › Broad | SG 28+ · 年纪大 · ad 120250144813480521 周四起 RM122 / 1（CPL 122 > 80）但 1 单 CPA ~RM780 = SG 唯一有单 → 照跑；
+  monitor RM1,200 CPA 硬线约再花 RM420 无第 2 单会自动关。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
