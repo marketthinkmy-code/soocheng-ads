@@ -272,21 +272,8 @@ def combined_decision(*, cpl_pause: bool, cpl_reason: str, cpa_value, cpa_sales:
 
 
 # ---------------------------------------------------------------------------------------------
-# Register-UTM ("robust UTM") sales join — owner 2026-11-19「开回 + 修 monitor」
+# Register-UTM sales join — owner 2026-11-19「开回 + 修 monitor」+「一定要看完 campaign、ad set、ad」
 # ---------------------------------------------------------------------------------------------
-_AD_FORMAT_TAG = re.compile(r"^(?:single\s*image|image|video)\s*\d*\s*[：:]\s*")
-
-
-def ad_key(name: str) -> str:
-    """Loose ad-name key for the Register-UTM join: creative_key() (norm + HOOK：/重拍： editions),
-    minus a leading «Video：» / «Image 3：» format tag, minus spaces and punctuation (CJK kept).
-
-    The Register UTM carries the ad name as it was when the person clicked, which is not always
-    today's Meta name (e.g. UTM «Video：freestyle korea» vs Meta «freestyle: korea»).
-    """
-    return re.sub(r"[\W_]+", "", _AD_FORMAT_TAG.sub("", creative_key(name)))
-
-
 def contact_keys(email: str, phone: str) -> Tuple[str, ...]:
     """Identity keys of a person: lower-cased email, last 8 digits of the phone (if ≥8 digits)."""
     e = (email or "").strip().lower()
@@ -317,19 +304,21 @@ def _col(keys: List[str], *needles: str) -> int:
 def position_buyers(paid_values: List[List[str]], register_values: List[List[str]], *,
                     cutoff: dt.date, reg_since: dt.date,
                     camp_key: Callable[[str], str], adset_key: Callable[[str], str]):
-    """Buyers per ad position, as sets of Paid-row ids, from two joins (union them per ad).
+    """Buyers per ad position, as sets of Paid-row ids, from two joins (the caller unions them per ad).
 
-    exact  — the Paid row's own UTM (campaign, ad set, ad), keyed exactly like the monitor always has:
-             (camp_key, adset_key, norm(ad)).
+    Both joins use the SAME strict position key the monitor has always used:
+    (camp_key(campaign), adset_key(ad set), norm(ad)) — campaign AND ad set AND ad must all match
+    (owner 11/19「一定要看完 campaign、ad set、ad」; camp_key only ignores the «| 1-x-y |» segment, PR #90).
+
+    exact  — the Paid row's own UTM (unchanged).
     robust — the Register row of the registration: since 10/29 the Register tab stores the UTM of THAT
              registration, while the Paid row's UTM is often blank or the contact's first-ever source
-             (10/29 diagnosis). A Paid row (dated after `cutoff`) is credited to every position the same
-             person (email, or phone last 8 digits) registered from on/after `reg_since` and on/before
-             the purchase date. Keyed (camp_key, adset_key, ad_key(ad)).
-             Why: SG BROAD SG 年纪大 was paused on CPL 80.21 on 11/14 although it had made a sale.
+             (10/29 diagnosis). For each Paid row (dated after `cutoff`) take the same person's (email, or
+             phone last 8 digits) LAST registration with an ad UTM, on/after `reg_since` and on/before the
+             purchase date — one sale, one registration position.
+             Why: SG BROAD SG 年纪大 was paused on CPL 80.21 on 11/14 although its buyer registered through it.
 
-    Paid-row ids let the caller union both joins per ad without counting one sale twice.
-    Returns (exact, robust) — dicts of key -> set of row ids. No personal data leaves this function.
+    Returns (exact, robust) — dicts of key -> set of Paid-row ids. No personal data leaves this function.
     """
     exact: Dict[Tuple[str, str, str], Set[int]] = {}
     robust: Dict[Tuple[str, str, str], Set[int]] = {}
@@ -339,7 +328,7 @@ def position_buyers(paid_values: List[List[str]], register_values: List[List[str
     pkeys = [_hkey(h) for h in paid_values[hi]]
     pe, pp = _col(pkeys, "email"), _col(pkeys, "phonenumber", "phone")
     cell = lambda row, i: row[i] if 0 <= i < len(row) else ""
-    by_person: Dict[str, List[Tuple[int, dt.date]]] = {}
+    buyers: List[Tuple[int, dt.date, Tuple[str, ...]]] = []
     for rid, row in enumerate(paid_values[hi + 1:]):
         d = parse_date(cell(row, cols.get("date", -1)))
         if not d or d <= cutoff:
@@ -348,25 +337,29 @@ def position_buyers(paid_values: List[List[str]], register_values: List[List[str
         if campaign or ad:
             k = (camp_key(campaign), adset_key(norm(cell(row, cols.get("adset", -1)))), ad)
             exact.setdefault(k, set()).add(rid)
-        for ck in contact_keys(cell(row, pe), cell(row, pp)):
-            by_person.setdefault(ck, []).append((rid, d))
+        who = contact_keys(cell(row, pe), cell(row, pp))
+        if who:
+            buyers.append((rid, d, who))
 
     rkeys, rrows = _named_table(register_values, "utmcampaign")
-    if not rkeys or not by_person:
+    if not rkeys or not buyers:
         return exact, robust
     rd, rc = _col(rkeys, "createddate", "date"), _col(rkeys, "utmcampaign")
     rs, ra = _col(rkeys, "utmadsset", "utmadset"), _col(rkeys, "utmadsname", "utmadname")
     re_, rp = _col(rkeys, "email"), _col(rkeys, "phonenumber", "phone")
-    for row in rrows:
-        campaign = cell(row, rc)
-        if not campaign.strip():
+    regs: Dict[str, List[Tuple[dt.date, int, Tuple[str, str, str]]]] = {}
+    for order, row in enumerate(rrows):
+        campaign = norm(cell(row, rc))
+        if not campaign:
             continue
         d = parse_date(cell(row, rd))
         if not d or d < reg_since:
             continue
-        rids = {rid for ck in contact_keys(cell(row, re_), cell(row, rp))
-                for rid, pd in by_person.get(ck, []) if d <= pd}
-        if rids:
-            k = (camp_key(norm(campaign)), adset_key(norm(cell(row, rs))), ad_key(cell(row, ra)))
-            robust.setdefault(k, set()).update(rids)
+        k = (camp_key(campaign), adset_key(norm(cell(row, rs))), norm(cell(row, ra)))
+        for ck in contact_keys(cell(row, re_), cell(row, rp)):
+            regs.setdefault(ck, []).append((d, order, k))
+    for rid, pd, who in buyers:
+        cands = [x for ck in who for x in regs.get(ck, ()) if x[0] <= pd]
+        if cands:
+            robust.setdefault(max(cands)[2], set()).add(rid)
     return exact, robust

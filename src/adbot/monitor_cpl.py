@@ -204,10 +204,9 @@ def build_cpa_context(graph, settings: Settings, today: dt.date):
     the 你敢吗 case 2026-08) is retired, so its slot is always {}. Raises -> CPA_UNAVAILABLE.
 
     Owner 2026-11-19「开回 + 修 monitor」: the 4th element holds the Paid-row ids per position from two joins —
-    'exact' (the Paid row's own UTM, as before) and 'robust' (the Register row of that buyer's registration,
-    see cpa.position_buyers). evaluate_account unions them per ad, so one sale is never counted twice.
-    Still the same position only (campaign, ad set, ad) — the Register join just reads the UTM that is
-    actually right. SG BROAD SG 年纪大 (paused 11/14 on CPL 80.21 with a sale) is why.
+    'exact' (the Paid row's own UTM, as before) and 'robust' (the buyer's last registration before the
+    purchase, Register tab, see cpa.position_buyers). Both use the same strict key — campaign AND ad set AND
+    ad must match; evaluate_account unions them per ad, so one sale is never counted twice. SG BROAD SG 年纪大 (paused 11/14 on CPL 80.21 with a sale) is why.
     """
     if not settings.cpa.enabled:
         return {}, {}, {}
@@ -249,14 +248,12 @@ def build_cpa_context(graph, settings: Settings, today: dt.date):
 
 
 def position_sales(buyers, sold60, camp_key: str, aset_name: str, ad_name: str) -> int:
-    """Sales of ONE ad position: union of the exact-UTM and Register-UTM Paid-row ids when the
-    context carries them (owner 2026-11-19), else the legacy exact count."""
-    k_exact = (camp_key, _mkey(aset_name), cpa.norm(ad_name))
+    """Sales of ONE ad position (campaign AND ad set AND ad must match): union of the Paid-UTM and
+    Register-UTM Paid-row ids when the context carries them (owner 2026-11-19), else the legacy count."""
+    k = (camp_key, _mkey(aset_name), cpa.norm(ad_name))
     if not buyers:
-        return sold60.get(k_exact, 0)
-    rids = set(buyers["exact"].get(k_exact, ())) | set(
-        buyers["robust"].get((camp_key, _mkey(aset_name), cpa.ad_key(ad_name)), ()))
-    return len(rids)
+        return sold60.get(k, 0)
+    return len(set(buyers["exact"].get(k, ())) | set(buyers["robust"].get(k, ())))
 
 
 def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecision]:

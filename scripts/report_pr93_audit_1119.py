@@ -9,12 +9,15 @@ from __future__ import annotations
 import datetime as dt
 from collections import defaultdict
 
+import re
+
 from adbot import cpa
 from adbot.clients.sheets import SheetsClient
 from adbot.commands import graph_client
 from adbot.monitor_cpl import _mkey
 from adbot.settings import REPO_ROOT, load_settings
 
+loose = lambda a: re.sub(r"[\W_]+", "", re.sub(r"^(?:single\s*image|image|video)\s*\d*\s*[：:]\s*", "", cpa.norm(a)))
 TODAY = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()
 CUT, SINCE = TODAY - dt.timedelta(days=60), dt.date(2026, 10, 29)
 s0 = load_settings(REPO_ROOT / "config" / "config.sg.yaml")
@@ -30,21 +33,23 @@ for label, cfg in (("MY", "config.my5.yaml"), ("SG", "config.sg.yaml")):
     g = graph_client(s)
     for a in g._get_all(s.meta.account_path + "/ads", {"fields": "name,effective_status,adset{name},campaign{name}", "limit": "500"}):
         rec = (label, a["campaign"]["name"], a["adset"]["name"], a["name"], a["id"], a["effective_status"])
-        tree[_mkey(a["campaign"]["name"])][_mkey(a["adset"]["name"])][cpa.ad_key(a["name"])].append(rec)
+        tree[_mkey(a["campaign"]["name"])][_mkey(a["adset"]["name"])][loose(a["name"])].append(rec)
         exact_ix[(_mkey(a["campaign"]["name"]), _mkey(a["adset"]["name"]), cpa.norm(a["name"]))].append(rec)
 
 
-def check(c, s, a, loose=True):
-    ck, sk, ak = _mkey(cpa.norm(c)), _mkey(cpa.norm(s)), (cpa.ad_key(a) if loose else cpa.norm(a))
+def check(c, s, a):
+    """Strict (what the monitor uses): campaign AND ad set AND exact ad name."""
+    ck, sk, ak = _mkey(cpa.norm(c)), _mkey(cpa.norm(s)), cpa.norm(a)
     if not c.strip():
         return "（无 UTM）", []
     if ck not in tree:
         return "campaign ❌", []
     if sk not in tree[ck]:
         return "campaign ✅ · ad set ❌", []
-    hits = tree[ck][sk].get(ak, []) if loose else exact_ix.get((ck, sk, ak), [])
+    hits = exact_ix.get((ck, sk, ak), [])
     if not hits:
-        return "campaign ✅ · ad set ✅ · ad ❌", []
+        near = tree[ck][sk].get(loose(a), [])
+        return "campaign ✅ · ad set ✅ · ad ❌" + (f"（名字只是相近：{near[0][3]} · ad {near[0][4]}，不算）" if near else ""), []
     return "campaign ✅ · ad set ✅ · ad ✅" + (f" ⚠️ 落在 {len(hits)} 支 ad" if len(hits) > 1 else ""), hits
 
 
@@ -72,7 +77,7 @@ for rid, r in enumerate(paid_v[hi + 1:]):
         continue
     n_rows += 1
     pc, ps, pa = (cell(r, cols.get(x, -1)) for x in ("campaign", "adset", "ad"))
-    v, hits = check(pc, ps, pa, loose=False)
+    v, hits = check(pc, ps, pa)
     for h in hits:
         credited[h[4]].add(rid)
     regs = sorted({x for k in cpa.contact_keys(cell(r, pe), cell(r, pp)) for x in regs_by_person.get(k, []) if x[0] <= d})
@@ -82,12 +87,14 @@ for rid, r in enumerate(paid_v[hi + 1:]):
     print(f"   Paid 自带 UTM: {pc or '—'} › {ps or '—'} · {pa or '—'}  →  {v}" + "".join(f"\n        = {h[0]} {h[1]} › {h[2]} · {h[3]} · ad {h[4]} ({h[5]})" for h in hits))
     for i, (rdte, c, s_, a) in enumerate(regs):
         v2, hits2 = check(c, s_, a)
-        last = " ← 最后一次报名" if i == len(regs) - 1 else ""
+        is_last = i == len(regs) - 1
+        last = " ← 最后一次报名（只算这一次）" if is_last else " （之前的报名，不算）"
         print(f"   报名 {rdte}: {c} › {s_ or '—'} · {a or '—'}  →  {v2}{last}"
               + "".join(f"\n        = {h[0]} {h[1]} › {h[2]} · {h[3]} · ad {h[4]} ({h[5]})" for h in hits2))
-        for h in hits2:
-            credited[h[4]].add(rid)
-        n_reg += bool(hits2)
+        if is_last:
+            for h in hits2:
+                credited[h[4]].add(rid)
+            n_reg += bool(hits2)
 print(f"\n60 天 Paid 行 {n_rows}；三层都对上的报名记录 {n_reg}")
 print("\n== PR #93 逻辑下每支 ad 认到的 Paid 行:")
 allads = {h[4]: h for k1 in tree.values() for k2 in k1.values() for hs in k2.values() for h in hs}
