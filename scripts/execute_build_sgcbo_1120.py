@@ -51,10 +51,16 @@ assert "webinarkit" in (ccv.get("name") or "").lower() and not ccv.get("is_archi
 base = {k: bs["targeting"][k] for k in ("geo_locations", "locales") if k in bs["targeting"]}
 print(f"  转化 «{ccv['name']}» {po['custom_conversion_id']} · geo {base['geo_locations'].get('countries')} · locales {base.get('locales')} · regional {bs.get('regional_regulated_categories')}")
 
+PIN = {"Purchase LAL 5% | SG 28+": g.get_object("120249918410030521", "adset{id}")["adset"]["id"]}   # the 1017 LAL set that sold (not the 10/26 ALL LANG test)
 targets = {}
 for sname, keys, accts in AUDS:
-    cands = []
-    for ac in accts:
+    if sname in PIN:
+        x = g.get_object(PIN[sname], "name,created_time,targeting,campaign{name}")
+        x["id"] = PIN[sname]
+        cands = [("act_893025326577600", x)]
+    else:
+        cands = []
+    for ac in (accts if sname not in PIN else ()):
         try:
             for x in g._get_all(ac + "/adsets", {"fields": "name,created_time,targeting,campaign{name}", "limit": "500"}):
                 t = x.get("targeting") or {}
