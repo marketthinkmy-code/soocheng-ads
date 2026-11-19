@@ -413,6 +413,13 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **11/18 ~22:3x owner「等下 00:00 开完我今天 11:20am 左右关的广告」**：11/19 00:00 只在 campaign 层开回他 11/18 关的 7 个 campaign（`execute_reopen_campaigns_1119.py`，send_later trig_01S2kqdVTsnWfSo3Y2SwPTJp；有禁跑/被拒 ad 上膛的 campaign 不开）。ad / ad set 层不动：会跑的只有 DT 年纪大 + korea（CBO RM165）、News V4 / V5（各 RM50）、MY Broad V2（RM72）、SG Broad V4（RM60）≈ RM397；00:01 盖电脑 ad 层开后 + BO CBO RM120 ≈ RM517。BROAD MY / BROAD SG 底下没有开着的 ad，开了不花钱。
   **11/18 ~23:0x owner「你要确保有开到哦！有时候 campaign 开了，ad set/ ad 没有开到」**：00:00 脚本改成对 7 支应跑的 ad（含盖电脑）三层都确保 ACTIVE、读回 effective_status；原 00:01 盖电脑排程停用（并入 00:00）；01:00 再跑一次只读检查（trig_01VrQhJueSUm856uYQD2kRUp）确认 🟢 + 开始花钱。**以后凡是开回，都要读回 ad 的实际投放状态，不能只看 campaign 开关。**
   **11/18 ~22:5x owner 先说「有成交记录的都一起开」，随即撤回「这个成交不是 webinarkit 的，当我没说」**：`execute_reopen_sales_ads_1119.py` 只 dry-run 过、**没有排程、没有写入**。Paid Student List 11/18 新加的 12 行（10 行 Channel/Source/UTM 全空）**不是 Webinarkit 成交**——算每场成交 / 每学员成本时不能计入。00:00 开回 7 个 campaign + 00:01 盖电脑 ad 层照原定。
+  **11/19 新周期（直播后）owner 决定（AskUserQuestion）**：① DAY TRADING 两支「两支都关」——Day Trading | MY 28+ · korea · ad 120251455974450329
+  （10/29 起 RM1,584 / 35 UTM 报名 / 0 单）、年纪大 · ad 120251454717600329（RM850 / 22 / 0 单）10:57 ad 层 PAUSED（`execute_close_dt_1119.py`，回读 PAUSED）=
+  owner 定案，不得自动开回；DAY TRADING campaign 仍 ACTIVE（CBO RM165）但无在跑 ad。② owner 10:55 本人在 campaign 层关掉 SG BROAD SG、SG NEW VIDEO · Broad
+  （含 V4 · ad 120250544546540521）和 MY BROAD MY = 定案；随后选「SG 先全停，年纪大也不开」——SG 0 支在跑，SG 年纪大 · ad 120250144813480521 不开。
+  ③ monitor 成交比对照修 → **PR #93**（报名表 UTM 原位成交 ∪ Paid 行自带 UTM，按 Paid 行去重；待 owner 看过再合并）：实测 News V4 0→1 单（CPA 458）、
+  SG 年纪大 0→1（685）、BROAD MY korea 0→1（2,582）。在跑：MY 4 支（BO 盖电脑 CBO RM120、NV Broad V2 RM72、News V4 / V5 各 RM50）≈ RM292/天。
+  11/18 场成交 11/19 早上还没入 Paid 表（webinar_nov18 只有 11/12 一笔 bank transfer）。11/18 Register 40 笔，0 机器人（多为周三回头报名）。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
