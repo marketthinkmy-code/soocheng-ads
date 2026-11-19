@@ -113,3 +113,30 @@ def test_norm_strips_the_ban_mark_like_the_star():
     from adbot.cpa import norm
     assert norm("🚫 freestyle 1") == norm("freestyle 1") == "freestyle 1"
     assert norm("🌟 🚫 video 2：你敢吗？") == "video 2：你敢吗？"
+
+
+def test_position_buyers_joins_register_utm_by_email_or_phone():
+    # owner 2026-11-19「修 monitor」. Paid row UTM blank; the Register row of the same person carries the ad.
+    import datetime as dt
+    paid = [["No", "Channel", "Date", "Name", "Email", "Phone Number", "Purchase Amount", "UTM Campaign", "UTM Ads Set", "UTM Ads Name"],
+            ["1", "stripe", "2026-11-11", "x", "Buyer@Mail.com", "", "2399", "", "", ""],
+            ["2", "stripe", "2026-11-12", "y", "", "+65 9123 4567", "2399", "CAMP | 1-1-4 | 1", "Set A", "Video：old"],
+            ["3", "stripe", "2026-08-01", "z", "old@mail.com", "", "2399", "", "", ""]]          # outside 60d
+    reg = [["Created date", "Name", "Email", "Phone Number", "UTM Campaign", "UTM Ads Set", "UTM Ads Name"],
+           ["2026-11-05", "x", "buyer@mail.com", "0123", "(Webinarkit) CAMP | 1-1-5 | 1", "Broad | SG 28+", "Video：年纪大的人做不了交易？"],
+           ["2026-11-06", "y", "other@mail.com", "91234567", "(Webinarkit) CAMP | 1-1-5 | 1", "Set A", "freestyle: korea"],
+           ["2026-11-20", "x", "buyer@mail.com", "", "(Webinarkit) LATER", "Set Z", "Video：late"],         # after purchase
+           ["2026-10-20", "z", "old@mail.com", "", "(Webinarkit) CAMP | 1-1-5 | 1", "Set A", "early"]]       # before reg_since
+    key = lambda s: cpa.norm(s).replace("| 1-1-4 |", "|").replace("| 1-1-5 |", "|")
+    exact, robust = cpa.position_buyers(paid, reg, cutoff=dt.date(2026, 9, 20), reg_since=dt.date(2026, 10, 29),
+                                        camp_key=key, adset_key=cpa.norm)
+    assert exact == {(key("CAMP | 1-1-4 | 1"), "set a", cpa.norm("Video：old")): {1}}
+    assert robust == {(key("(Webinarkit) CAMP | 1-1-5 | 1"), "broad | sg 28+", cpa.ad_key("年纪大的人做不了交易")): {0},
+                      (key("(Webinarkit) CAMP | 1-1-5 | 1"), "set a", cpa.ad_key("Video：freestyle korea")): {1}}
+
+
+def test_ad_key_ignores_format_tag_spacing_and_marks():
+    assert cpa.ad_key("Video：freestyle korea") == cpa.ad_key("freestyle: korea") == "freestylekorea"
+    assert cpa.ad_key("🚫 Video：年纪大的人做不了交易？") == cpa.ad_key("年纪大的人做不了交易")
+    assert cpa.contact_keys(" A@B.com ", "+60 12-345 6789") == ("a@b.com", "23456789")
+    assert cpa.contact_keys("not-an-email", "123") == ()

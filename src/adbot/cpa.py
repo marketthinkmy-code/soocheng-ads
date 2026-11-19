@@ -13,7 +13,7 @@ import datetime as dt
 import math
 import re
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Callable, Dict, List, Optional, Set, Tuple
 
 WINDOWS = (14, 30, 60)  # rolling day windows; lifetime is handled separately
 
@@ -150,6 +150,18 @@ class Sale:
     amount: float
 
 
+def _sales_header(values: List[List[str]]) -> Tuple[int, Dict[str, int]]:
+    """(header row index, columns): the first of the top rows that exposes both a UTM campaign
+    and a UTM ad column, else row 0."""
+    header_idx, cols = 0, find_columns(values[0])
+    for i, row in enumerate(values[:8]):
+        candidate = find_columns(row)
+        if candidate.get("campaign", -1) >= 0 and candidate.get("ad", -1) >= 0:
+            header_idx, cols = i, candidate
+            break
+    return header_idx, cols
+
+
 def parse_sales(values: List[List[str]], default_price: float):
     """Find the header row, then parse data rows into Sale records.
 
@@ -158,12 +170,7 @@ def parse_sales(values: List[List[str]], default_price: float):
     """
     if not values:
         return [], {}, []
-    header_idx, cols = 0, find_columns(values[0])
-    for i, row in enumerate(values[:8]):
-        candidate = find_columns(row)
-        if candidate.get("campaign", -1) >= 0 and candidate.get("ad", -1) >= 0:
-            header_idx, cols = i, candidate
-            break
+    header_idx, cols = _sales_header(values)
     header = values[header_idx]
 
     sales: List[Sale] = []
@@ -262,3 +269,104 @@ def combined_decision(*, cpl_pause: bool, cpl_reason: str, cpa_value, cpa_sales:
     if cpl_pause and cpa_sales > 0 and finite_cpa and cpa_value <= tiers.hard_stop:
         return False, CPL_RESCUED                    # real profitable sales protect it
     return cpl_pause, cpl_reason                      # otherwise the CPL decision stands
+
+
+# ---------------------------------------------------------------------------------------------
+# Register-UTM ("robust UTM") sales join — owner 2026-11-19「开回 + 修 monitor」
+# ---------------------------------------------------------------------------------------------
+_AD_FORMAT_TAG = re.compile(r"^(?:single\s*image|image|video)\s*\d*\s*[：:]\s*")
+
+
+def ad_key(name: str) -> str:
+    """Loose ad-name key for the Register-UTM join: creative_key() (norm + HOOK：/重拍： editions),
+    minus a leading «Video：» / «Image 3：» format tag, minus spaces and punctuation (CJK kept).
+
+    The Register UTM carries the ad name as it was when the person clicked, which is not always
+    today's Meta name (e.g. UTM «Video：freestyle korea» vs Meta «freestyle: korea»).
+    """
+    return re.sub(r"[\W_]+", "", _AD_FORMAT_TAG.sub("", creative_key(name)))
+
+
+def contact_keys(email: str, phone: str) -> Tuple[str, ...]:
+    """Identity keys of a person: lower-cased email, last 8 digits of the phone (if ≥8 digits)."""
+    e = (email or "").strip().lower()
+    d = re.sub(r"\D", "", phone or "")
+    return tuple(k for k in (e if "@" in e else "", d[-8:] if len(d) >= 8 else "") if k)
+
+
+def _named_table(values: List[List[str]], must: str) -> Tuple[List[str], List[List[str]]]:
+    """(header hkeys, data rows): header = first of the top 8 rows whose hkeys include `must`."""
+    for i, row in enumerate((values or [])[:8]):
+        keys = [_hkey(h) for h in row]
+        if must in keys:
+            return keys, values[i + 1:]
+    return [], []
+
+
+def _col(keys: List[str], *needles: str) -> int:
+    for n in needles:                       # exact first, then substring
+        if n in keys:
+            return keys.index(n)
+    for n in needles:
+        for i, k in enumerate(keys):
+            if n in k:
+                return i
+    return -1
+
+
+def position_buyers(paid_values: List[List[str]], register_values: List[List[str]], *,
+                    cutoff: dt.date, reg_since: dt.date,
+                    camp_key: Callable[[str], str], adset_key: Callable[[str], str]):
+    """Buyers per ad position, as sets of Paid-row ids, from two joins (union them per ad).
+
+    exact  — the Paid row's own UTM (campaign, ad set, ad), keyed exactly like the monitor always has:
+             (camp_key, adset_key, norm(ad)).
+    robust — the Register row of the registration: since 10/29 the Register tab stores the UTM of THAT
+             registration, while the Paid row's UTM is often blank or the contact's first-ever source
+             (10/29 diagnosis). A Paid row (dated after `cutoff`) is credited to every position the same
+             person (email, or phone last 8 digits) registered from on/after `reg_since` and on/before
+             the purchase date. Keyed (camp_key, adset_key, ad_key(ad)).
+             Why: SG BROAD SG 年纪大 was paused on CPL 80.21 on 11/14 although it had made a sale.
+
+    Paid-row ids let the caller union both joins per ad without counting one sale twice.
+    Returns (exact, robust) — dicts of key -> set of row ids. No personal data leaves this function.
+    """
+    exact: Dict[Tuple[str, str, str], Set[int]] = {}
+    robust: Dict[Tuple[str, str, str], Set[int]] = {}
+    if not paid_values:
+        return exact, robust
+    hi, cols = _sales_header(paid_values)
+    pkeys = [_hkey(h) for h in paid_values[hi]]
+    pe, pp = _col(pkeys, "email"), _col(pkeys, "phonenumber", "phone")
+    cell = lambda row, i: row[i] if 0 <= i < len(row) else ""
+    by_person: Dict[str, List[Tuple[int, dt.date]]] = {}
+    for rid, row in enumerate(paid_values[hi + 1:]):
+        d = parse_date(cell(row, cols.get("date", -1)))
+        if not d or d <= cutoff:
+            continue
+        campaign, ad = norm(cell(row, cols.get("campaign", -1))), norm(cell(row, cols.get("ad", -1)))
+        if campaign or ad:
+            k = (camp_key(campaign), adset_key(norm(cell(row, cols.get("adset", -1)))), ad)
+            exact.setdefault(k, set()).add(rid)
+        for ck in contact_keys(cell(row, pe), cell(row, pp)):
+            by_person.setdefault(ck, []).append((rid, d))
+
+    rkeys, rrows = _named_table(register_values, "utmcampaign")
+    if not rkeys or not by_person:
+        return exact, robust
+    rd, rc = _col(rkeys, "createddate", "date"), _col(rkeys, "utmcampaign")
+    rs, ra = _col(rkeys, "utmadsset", "utmadset"), _col(rkeys, "utmadsname", "utmadname")
+    re_, rp = _col(rkeys, "email"), _col(rkeys, "phonenumber", "phone")
+    for row in rrows:
+        campaign = cell(row, rc)
+        if not campaign.strip():
+            continue
+        d = parse_date(cell(row, rd))
+        if not d or d < reg_since:
+            continue
+        rids = {rid for ck in contact_keys(cell(row, re_), cell(row, rp))
+                for rid, pd in by_person.get(ck, []) if d <= pd}
+        if rids:
+            k = (camp_key(norm(campaign)), adset_key(norm(cell(row, rs))), ad_key(cell(row, ra)))
+            robust.setdefault(k, set()).update(rids)
+    return exact, robust

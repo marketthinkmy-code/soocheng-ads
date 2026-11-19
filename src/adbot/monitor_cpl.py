@@ -197,20 +197,24 @@ def _mkey(name: str) -> str:
 
 
 def build_cpa_context(graph, settings: Settings, today: dt.date):
-    """(60-day sales by (campaign, ad set, ad), {} , 60-day spend by ad_id).
+    """(60-day sales by (campaign, ad set, ad), {}, 60-day spend by ad_id, position buyers).
 
     Owner 2026-10-25: a sale protects ONLY the exact ad that made it — same campaign, same ad
     set, same ad. The old ad-name-only rescue index (every copy of a sold creative protected,
-    the 你敢吗 case 2026-08) is retired, so its slot is always {}. Returns empty dicts when CPA
-    is disabled or any source is unavailable, so a Sheets/Meta hiccup degrades the monitor to
-    CPL-only, not a crash.
+    the 你敢吗 case 2026-08) is retired, so its slot is always {}. Raises -> CPA_UNAVAILABLE.
+
+    Owner 2026-11-19「开回 + 修 monitor」: the 4th element holds the Paid-row ids per position from two joins —
+    'exact' (the Paid row's own UTM, as before) and 'robust' (the Register row of that buyer's registration,
+    see cpa.position_buyers). evaluate_account unions them per ad, so one sale is never counted twice.
+    Still the same position only (campaign, ad set, ad) — the Register join just reads the UTM that is
+    actually right. SG BROAD SG 年纪大 (paused 11/14 on CPL 80.21 with a sale) is why.
     """
     if not settings.cpa.enabled:
         return {}, {}, {}
     try:
         from .clients.sheets import SheetsClient
-        values = SheetsClient(settings.secrets.google_sa_json).read_tab(
-            settings.cpa.spreadsheet_id, settings.cpa.sales_tab)
+        sc = SheetsClient(settings.secrets.google_sa_json)
+        values = sc.read_tab(settings.cpa.spreadsheet_id, settings.cpa.sales_tab)
         sales, _cols, _hdr = cpa.parse_sales(values, settings.cpa.price_myr)
         cutoff = today - dt.timedelta(days=60)
         sold: Dict[Tuple[str, str, str], int] = {}
@@ -219,6 +223,13 @@ def build_cpa_context(graph, settings: Settings, today: dt.date):
             if s.date and s.date > cutoff:
                 key = (_mkey(s.campaign), _mkey(s.adset), s.ad)
                 sold[key] = sold.get(key, 0) + 1
+        buyers = None
+        if settings.cpa.register_tab:
+            reg = sc.read_tab(settings.cpa.spreadsheet_id, settings.cpa.register_tab)
+            since = cpa.parse_date(settings.cpa.register_since) or dt.date(2026, 10, 29)
+            exact, robust = cpa.position_buyers(values, reg, cutoff=cutoff, reg_since=since,
+                                                camp_key=_mkey, adset_key=_mkey)
+            buyers = {"exact": exact, "robust": robust}
         spend: Dict[str, float] = {}
         for row in graph.account_insights(
                 settings.meta.account_path, level="ad", fields="ad_id,spend",
@@ -227,7 +238,7 @@ def build_cpa_context(graph, settings: Settings, today: dt.date):
                 spend[row.get("ad_id")] = float(row.get("spend") or 0)
             except (TypeError, ValueError):
                 continue
-        return sold, sold_by_ad, spend
+        return (sold, sold_by_ad, spend, buyers) if buyers is not None else (sold, sold_by_ad, spend)
     except Exception as exc:  # noqa: BLE001
         # owner 2026-11-17「修」: 11/16 23:01 a Meta 400 here dropped the CPA rescue and the
         # CPL rule paused SG 用我的方法 (an ad with a sale, 60d CPA ~1,191 ≤ 1,200). Without
@@ -235,6 +246,17 @@ def build_cpa_context(graph, settings: Settings, today: dt.date):
         # no CPL / 0-reg pauses at all; the next run (20 min) judges with full data.
         get_logger().warning("CPA context unavailable (%s) — no CPL pauses this run; next run decides", exc)
         return CPA_UNAVAILABLE
+
+
+def position_sales(buyers, sold60, camp_key: str, aset_name: str, ad_name: str) -> int:
+    """Sales of ONE ad position: union of the exact-UTM and Register-UTM Paid-row ids when the
+    context carries them (owner 2026-11-19), else the legacy exact count."""
+    k_exact = (camp_key, _mkey(aset_name), cpa.norm(ad_name))
+    if not buyers:
+        return sold60.get(k_exact, 0)
+    rids = set(buyers["exact"].get(k_exact, ())) | set(
+        buyers["robust"].get((camp_key, _mkey(aset_name), cpa.ad_key(ad_name)), ()))
+    return len(rids)
 
 
 def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecision]:
@@ -255,7 +277,10 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
     cpa_down = ctx is CPA_UNAVAILABLE
     if cpa_down:
         ctx = ({}, {}, {})
-    if len(ctx) == 3:
+    buyers = None
+    if len(ctx) == 4:           # + Register-UTM position buyers (owner 2026-11-19)
+        sold60, sold60_by_ad, spend60, buyers = ctx
+    elif len(ctx) == 3:
         sold60, sold60_by_ad, spend60 = ctx
     else:                       # legacy (sold, spend) shape — no name-fallback index
         (sold60, spend60), sold60_by_ad = ctx, {}
@@ -351,7 +376,7 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
             n_sales, age = 0, None
             should_pause, reason = cpl_pause, cpl_reason
             if use_cpa:
-                n_sales = sold60.get((camp_key, _mkey(aset.get("name", "")), cpa.norm(name)), 0)
+                n_sales = position_sales(buyers, sold60, camp_key, aset.get("name", ""), name)
                 sp60 = spend60.get(ad["id"], 0.0)
                 cpa_val = cpa.cpa(sp60, n_sales)
                 created = cpa.parse_date((ad.get("created_time") or "")[:10])
