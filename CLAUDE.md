@@ -464,7 +464,11 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   16:00 建好（`execute_build_cbo_1120.py`）：(Webinarkit) STOCKBLOOM | CBO · LUX BEER OMAKASE | 1-3-3 | 1120 · campaign 120251995650640329 · CBO RM150 · PAUSED，
   3 个 ad set（Luxury Goods / Beer / Omakase | MY 28+，兴趣硬锁 28–65）× 3 支 BEST CPA ad（V4 · 年纪大 · 盖电脑，复用原 creative）。
   ⚠️ 11/10 的「Luxury Goods」兴趣里已混了酒类 + 日料（41 个兴趣）→ 改用 MY 3.0 纯 luxury 的「LUXURY GOODS 30-55 | 0910 › Luxury Goods 30-55」(120248787849960575)，三组不重叠。
-  monitor 对这个 CBO 目前照 MY 一般规则 RM60（名字不含 1-1-3 | 1120 / NEW VIDEO）。⚠️ 用我的方法、盖电脑、korea 11/05 有旧副本被拒（owner 例外 C）——这次若被拒，立刻报告、建议 DELETE、不申诉。
+  monitor 对这个 CBO 目前照 MY 一般规则 RM60（名字不含 1-1-3 | 1120 / NEW VIDEO）。
+  **SG 1-1-3**：owner 先选 Purchase LAL 5% SG，随即改「我觉得还是 broad 吧！让 meta 自己挑对的人报名」（LAL 版没写也没建）。16:06 建好（`execute_build_sg113_1120.py`）：
+  (Webinarkit) [SG] STOCKBLOOM | BEST · Broad | 1-1-3 | 1120 · campaign 120250705800700521 · CBO RM80 · PAUSED › Broad | SG 28+（Advantage+，建议 28–65，模板 SG BROAD SG 1030）·
+  决定变少 ad 120250705802880521（MY News 有成交的 post，新建 SG creative 2674375702989899）· 年纪大 ad 120250705803610521（SG post）· 用我的方法 ad 120250705804890521。
+  SG 一般规则本来就是 RM80/80/80，不用加 override。跟在跑的 SG BROAD SG 年纪大同受众（owner 知道会互抢）。⚠️ 用我的方法、盖电脑、korea 11/05 有旧副本被拒（owner 例外 C）——这次若被拒，立刻报告、建议 DELETE、不申诉。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
