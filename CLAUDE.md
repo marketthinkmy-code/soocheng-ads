@@ -442,6 +442,13 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   影响：BO 盖电脑 · ad 120251454701640329 去掉 10 个机器人后 10/16 起 12 报名 CPL≈60 → **不再是老将**（RM150 宽限没了），周四起 CPL 85 超线但
   1 单 CPA ~RM764 受成交保护 → 不关。按 RM1,200 硬线，它 60 天花费再加约 RM440 仍只有 1 单就会被 monitor 关（既有规则）。
   **以后每个周期的上限要 owner 重新给数字，并改 spend_cap 的 start / end / cap_myr。**
+  **11/19 14:4x owner「day trading（webinarkit）里有什么需要值得开的吗？没有的话，campaign 就关掉」+「旧 1008 那 3 支开着的 ad 关掉」= 定案**：
+  DT 1017 里 5 支 ad 全关、上线以来约 RM3,900 原位 0 单（年纪大 1,092/41 · korea 1,783/57 · 盖电脑 105/0 · 用我的方法 646/13 · 🚫赚美金 296/9；`report_dt_worth_1119.py`）
+  → campaign 120251454713670329 关掉（`execute_close_dt_campaign_1119.py`，回读 PAUSED）。旧 STOCKBLOOM | DAY TRADING | 1-1-5 | 1008（campaign 120251329144280329，
+  已关、非 Webinarkit）里 ad 层还开着的 3 支——盖电脑 · ad 120251329149060329、年纪大 · ad 120251329157060329、freestyle korea · ad 120251329160210329——
+  ad 层 PAUSED（`execute_close_dt1008_ads_1119.py`，回读 PAUSED，1008 里 ad 层开着的 = 0）。都不得自动开回。
+  同一轮 owner 质疑「为什么要加 News V4？」：News V4 唯一一单 = Paid 第 834 行 11/12 银行转账（11/11 经 News V4 报名 11/11 场、11/12 再无 UTM 报名 nov18）；
+  这周它 RM37/0 报名 → 加预算建议**收回**；「V4→Business Owner、年纪大→News」新组合建议也收回（两支在 MY 的成交成本 RM1,500–2,100）。预算不变、无新建。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
