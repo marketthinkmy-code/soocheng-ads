@@ -177,6 +177,7 @@ class AdDecision:
     carrier_id: Optional[str] = None
     carrier_budget_myr: float = 0.0
     where: str = ""                      # «campaign › ad set» — every log line names the exact position
+    bots: int = 0                        # bot registrations subtracted from `results` (owner 2026-11-19)
 
 
 _SHAPE_SEG = re.compile(r"\|\s*\d+-\d+-\d+\s*\|")   # the «| 1-1-4 |» campaign-structure segment
@@ -229,6 +230,9 @@ def build_cpa_context(graph, settings: Settings, today: dt.date):
             exact, robust = cpa.position_buyers(values, reg, cutoff=cutoff, reg_since=since,
                                                 camp_key=_mkey, adset_key=_mkey)
             buyers = {"exact": exact, "robust": robust}
+            if settings.kpi.exclude_bots:
+                vs = cpa.parse_date(settings.kpi.veteran_since) or cutoff
+                buyers["bots"] = cpa.bot_registrations(reg, since=min(vs, cutoff), camp_key=_mkey, adset_key=_mkey)
         spend: Dict[str, float] = {}
         for row in graph.account_insights(
                 settings.meta.account_path, level="ad", fields="ad_id,spend",
@@ -299,6 +303,11 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
             account, level="ad", fields="ad_id,spend,actions", date_preset=None,
             time_range={"since": kpi.veteran_since, "until": today.isoformat()})}
 
+    # owner 2026-11-19: bot registrations (Register tab, S1) come off each ad's Meta count — CPL window and veteran test.
+    bots = (buyers or {}).get("bots") or {}
+    win_since = cpa.parse_date((cpl_range or {}).get("since", "")) if cpl_range else None
+    vet_since = cpa.parse_date(kpi.veteran_since)
+
     suspended = cpl_suspended(settings.kpi, today)
     decisions: List[AdDecision] = []
     for campaign in graph.list_campaigns(account):
@@ -319,6 +328,9 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
             name = ad.get("name", ad["id"])
             insight = cpl_by_ad.get(ad["id"])   # from the single batched account_insights call
             spend, results = parse_metrics(insight, ad_token)
+            ad_bots = bots.get((camp_key, _mkey((ad.get("adset") or {}).get("name", "")), cpa.norm(name)), [])
+            n_bots = min(int(results), sum(1 for d in ad_bots if win_since and d >= win_since))
+            results -= n_bots
 
             # Where this ad's budget sits, for the soft-reduce: its ad set when ABO, else the
             # CBO campaign. No visible daily budget on either level -> None (falls back to pause).
@@ -341,6 +353,7 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
             kpi_ad, veteran = kpi, False
             if life_by_ad:
                 lsp, lrg = parse_metrics(life_by_ad.get(ad["id"]), ad_token)
+                lrg = max(0.0, lrg - sum(1 for d in ad_bots if vet_since and d >= vet_since))
                 if lrg >= kpi.veteran_min_regs and lsp / lrg <= kpi.veteran_max_cpl_myr:
                     veteran = True
                     floor = kpi.veteran_min_spend_myr
@@ -405,15 +418,72 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                                         cpa=cpa_val, cpa_sales=n_sales, age_days=age,
                                         carrier_kind=carrier_kind, carrier_id=carrier_id,
                                         carrier_budget_myr=carrier_budget,
-                                        where=f"{campaign.get('name', '')} › {aset.get('name', '')}"))
+                                        where=f"{campaign.get('name', '')} › {aset.get('name', '')}",
+                                        bots=n_bots))
     return decisions
+
+
+SPEND_CAP = "spend_cap"   # owner 2026-11-19: cycle spend reached the cap -> campaigns paused
+
+
+def spend_cap_status(graph, settings: Settings, now_myt: dt.datetime):
+    """(cycle spend across settings.spend_cap.accounts, stop line) while the cap window is open, else None."""
+    cap = settings.spend_cap
+    if cap.cap_myr <= 0 or not cap.start or not cap.accounts:
+        return None
+    start = cpa.parse_date(cap.start)
+    if not start or now_myt < dt.datetime.combine(start, dt.time(0)):
+        return None
+    if cap.end:
+        try:
+            if now_myt >= dt.datetime.strptime(cap.end.strip(), "%Y-%m-%d %H:%M"):
+                return None
+        except ValueError:
+            pass
+    total = 0.0
+    for acct in cap.accounts:
+        for row in graph.account_insights(acct, level="account", fields="spend",
+                                          time_range={"since": start.isoformat(), "until": now_myt.date().isoformat()}):
+            try:
+                total += float(row.get("spend") or 0)
+            except (TypeError, ValueError):
+                continue
+    return total, cap.cap_myr - cap.buffer_myr
 
 
 def run(graph, settings: Settings, *, dry_run: bool = False) -> Dict[str, Any]:
     log = get_logger()
     event = settings.meta.conversion_event
     kpi = settings.kpi
-    today = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()  # MYT
+    now_myt = dt.datetime.utcnow() + dt.timedelta(hours=8)
+    today = now_myt.date()  # MYT
+
+    # owner 2026-11-19「RM6000 硬规矩。如果提早花完就关广告」: checked first, before any CPL judgment.
+    try:
+        cap_st = spend_cap_status(graph, settings, now_myt)
+    except Exception as exc:  # noqa: BLE001
+        log.warning("SPEND CAP: can't read spend (%s) — cap not checked this run; next run retries", exc)
+        cap_st = None
+    if cap_st is not None:
+        total, line = cap_st
+        cap = settings.spend_cap
+        log.info("SPEND CAP: spend since %s = RM%.2f of RM%.0f (stops at RM%.0f; window ends %s)",
+                 cap.start, total, cap.cap_myr, line, cap.end or "—")
+        if total >= line:
+            hit = [c for c in graph.list_campaigns(settings.meta.account_path)
+                   if c.get("effective_status") == "ACTIVE"]
+            for c in hit:
+                log.info("  [%s] campaign %s · %s  (cycle spend RM%.2f ≥ RM%.0f)",
+                         "WOULD CAP-PAUSE" if dry_run else "CAP-PAUSE", c.get("name", ""), c["id"], total, line)
+                if not dry_run:
+                    graph.update_status(c["id"], "PAUSED")
+                    state.append_pause_log(c["id"], "campaign", SPEND_CAP,
+                                           {"cycle_spend": round(total, 2), "cap": cap.cap_myr, "since": cap.start})
+            final_summary(log, f"SPEND CAP reached (RM{total:.2f} ≥ RM{line:.0f}): "
+                               f"{'would pause' if dry_run else 'paused'} {len(hit)} campaign(s); CPL judging skipped")
+            return {"evaluated": 0, "paused": 0 if dry_run else len(hit), "reduced": 0, "remaining": 0,
+                    "dry_run": dry_run, "spend_cap": True}
+
     if cpl_suspended(kpi, today):
         log.info("CPL judgment SUSPENDED until %s inclusive (kpi.cpl_paused_until) — "
                  "only banned creatives and CPA hard-stops can pause this run", kpi.cpl_paused_until)
@@ -479,8 +549,9 @@ def run(graph, settings: Settings, *, dry_run: bool = False) -> Dict[str, Any]:
             verb = "PAUSE"
         if dry_run and d.should_pause:
             verb = "WOULD " + verb
-        log.info("  [%s] %s  @ %s · ad %s  spend=%.2f %s=%.0f CPL=%s%s (%s)",
-                 verb, d.name, d.where, d.ad_id, d.spend, event.lower(), d.results, cpl_str, cpa_str, d.reason)
+        bot_str = f" (bots −{d.bots})" if d.bots else ""
+        log.info("  [%s] %s  @ %s · ad %s  spend=%.2f %s=%.0f%s CPL=%s%s (%s)",
+                 verb, d.name, d.where, d.ad_id, d.spend, event.lower(), d.results, bot_str, cpl_str, cpa_str, d.reason)
 
     paused = reduced = 0
     if not dry_run:

@@ -77,6 +77,7 @@ kpi:
   cpl_reduce_floor_myr: 30.00            # never cut a carrier below RM30/day (at the floor -> pause instead)
   cpl_paused_until: "2026-10-20"                   # TEMPORARY owner 2026-10-18「可以」: Webinarkit chains launched 17 Oct on a NEW conversion — learning phase, no over-line CPL cuts through 10/20; resumes Wed 10/21. The RM80 0-reg rule below, ban gate and CPA hard-stop stay live.
   zero_lead_spend_myr: 60.00                       # owner 2026-11-12「MY 0 报名门槛降到 RM60」(was RM80 since 10-18; per ad, Thu-week spend). Veteran RM150 floor kept (owner「老将宽限保持」); NEW VIDEO override stays RM80
+  exclude_bots: true                             # owner 2026-11-19「把 40 个机器人报名的假象数字移除掉」: Register S1 bots off each ad's count
   veteran_min_regs: 10                           # owner 2026-11-06「1」: proven ads (since 10/16 ≥10 报名 at CPL ≤40)
   veteran_max_cpl_myr: 40.0                      #   are judged only after RM150 Thu-week spend (0-reg and CPL alike)
   veteran_min_spend_myr: 150.0
@@ -135,3 +136,10 @@ compliance:                              # ⛔ 永久禁跑名单 — owner 2026
     # ── 2026-10-24：MY 5.0 WINNERS MY «Broad · 赚美金» 被拒（ad 120251533797560329）→ owner「全部照建议」──
     - "赚美金，一定要接美国客户"          # 10/25 MY 5.0 test exception ENDED 2026-11-02: owner's own request-review was rejected
     #                                     #   again → 永久禁跑 restored (rejected ad 120251454699130329 deleted, copies PAUSED + 🚫).
+
+spend_cap:                                         # owner 2026-11-19「这一场广告费控制（花到星期三 3PM）在 RM6000 硬规矩。如果提早花完就关广告。」
+  cap_myr: 6000                                    # MY 5.0 + SG together, this cycle
+  start: "2026-11-19"                              # from 00:00 MYT
+  end: "2026-11-25 15:00"                          # MYT — after this the cap does nothing (owner closes by hand on live day)
+  buffer_myr: 50                                   # stop at RM5,950: Meta reports spend late + runs are 20 min apart
+  accounts: ["act_2285351942292267", "act_893025326577600"]
