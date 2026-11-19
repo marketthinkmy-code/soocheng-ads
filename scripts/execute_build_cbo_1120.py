@@ -22,8 +22,9 @@ BUDGET = 15000
 ADS = {"V4": ("120251840059300329", "1001334883061622_122128786599286543"),
        "年纪大": ("120251454702680329", "1001334883061622_122126499129286543"),
        "盖电脑": ("120251454701640329", "1001334883061622_122126499021286543")}
-AUDS = [("Luxury Goods | MY 28+", ("luxury",)), ("Beer | MY 28+", ("beer", "alcohol")), ("Omakase | MY 28+", ("omakase", "wagyu"))]
-SEARCH = ("act_2285351942292267", "act_759339046918885", "act_2282909119125229")
+# source ad sets pinned by id (report_luxury_sets_1119): the 11/10 «Luxury Goods» set already mixes beer + omakase interests, so the
+# pure-luxury MY 3.0 0910 set is used — the three audiences must not overlap or CBO can't tell which one works.
+AUDS = [("Luxury Goods | MY 28+", "120248787849960575"), ("Beer | MY 28+", "120248878641240575"), ("Omakase | MY 28+", "120248230258280575")]
 
 
 def link_of(cr):
@@ -52,27 +53,21 @@ assert "webinarkit" in (ccv.get("name") or "").lower() and not ccv.get("is_archi
 base = {k: bs["targeting"][k] for k in ("geo_locations", "locales") if k in bs["targeting"]}
 print(f"  转化 «{ccv['name']}» {po['custom_conversion_id']} · geo {base['geo_locations'].get('countries')} · locales {base.get('locales')}")
 
-sets_all = []
-for ac in SEARCH:
-    try:
-        sets_all += [(ac, x) for x in g._get_all(ac + "/adsets", {"fields": "name,created_time,targeting,campaign{name}", "limit": "500"})]
-    except Exception as exc:  # noqa: BLE001
-        print(f"   (读不到 {ac}: {str(exc)[:70]})")
 targets = {}
-for sname, keys in AUDS:
-    cands = [(ac, x) for ac, x in sets_all if any(k in x["name"].lower() or k in x["campaign"]["name"].lower() for k in keys)
-             and (x.get("targeting") or {}).get("flexible_spec")]
-    assert cands, f"⛔ 找不到 {sname} 的来源 ad set"
-    ac, src = max(cands, key=lambda t: t[1]["created_time"])
+for sname, sid0 in AUDS:
+    src = g.get_object(sid0, "name,created_time,targeting,campaign{name},account_id")
     st = src["targeting"]
+    assert st.get("flexible_spec"), (sname, sid0)
     t = dict(base, flexible_spec=st["flexible_spec"], age_min=28, age_max=65, targeting_automation={"advantage_audience": 0})
     if st.get("exclusions"):
         t["exclusions"] = st["exclusions"]
     targets[sname] = t
     ints = [i.get("name") for f in st["flexible_spec"] for i in (f.get("interests") or [])]
     beh = [i.get("name") for f in st["flexible_spec"] for i in (f.get("behaviors") or [])]
-    print(f"  受众 {sname}: 复制自 {ac} «{src['campaign']['name']}» › «{src['name']}» ({src['id']}, {src['created_time'][:10]}) · 硬锁 28–65 · Advantage+ 关\n"
+    print(f"  受众 {sname}: 复制自 act_{src.get('account_id')} «{src['campaign']['name']}» › «{src['name']}» ({sid0}, {src['created_time'][:10]}) · 硬锁 28–65 · Advantage+ 关\n"
           f"      兴趣 {ints}" + (f" · 行为 {beh}" if beh else ""))
+low = {k: " ".join(i.get("name", "").lower() for f in targets[k]["flexible_spec"] for i in (f.get("interests") or [])) for k in targets}
+assert not any(w in low["Luxury Goods | MY 28+"] for w in ("beer", "wine", "sushi", "wagyu", "steak")), "luxury set overlaps beer/omakase"
 
 existing = {c["name"]: c for c in g._get_all(acct + "/campaigns", {"fields": "name", "limit": "500"})}
 print(f"  ▶ «{CNAME}» · CBO RM{BUDGET // 100}/天 · PAUSED · 已存在 {CNAME in existing}")
