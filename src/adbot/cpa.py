@@ -363,3 +363,35 @@ def position_buyers(paid_values: List[List[str]], register_values: List[List[str
         if cands:
             robust.setdefault(max(cands)[2], set()).add(rid)
     return exact, robust
+
+
+def is_bot_registration(name: str, experience: str) -> bool:
+    """S1 bot rule (11/13 wave, owner 11/18): the Experience field is the first word of the Name typed twice."""
+    parts = (name or "").split()
+    return bool(parts) and (experience or "").strip() == parts[0] * 2
+
+
+def bot_registrations(register_values: List[List[str]], *, since: dt.date,
+                      camp_key: Callable[[str], str], adset_key: Callable[[str], str]):
+    """Bot (S1) registrations per ad position since `since`: {(campaign key, ad set key, norm(ad)): [dates]}.
+    Same strict position key as the sales join. No personal data leaves this function."""
+    rkeys, rrows = _named_table(register_values, "utmcampaign")
+    out: Dict[Tuple[str, str, str], List[dt.date]] = {}
+    if not rkeys:
+        return out
+    cell = lambda row, i: row[i] if 0 <= i < len(row) else ""
+    rd, rc = _col(rkeys, "createddate", "date"), _col(rkeys, "utmcampaign")
+    rs, ra = _col(rkeys, "utmadsset", "utmadset"), _col(rkeys, "utmadsname", "utmadname")
+    rn, rx = (rkeys.index("name") if "name" in rkeys else -1), _col(rkeys, "experience")
+    if rn < 0 or rx < 0:
+        return out
+    for row in rrows:
+        campaign = norm(cell(row, rc))
+        if not campaign or not is_bot_registration(cell(row, rn), cell(row, rx)):
+            continue
+        d = parse_date(cell(row, rd))
+        if not d or d < since:
+            continue
+        k = (camp_key(campaign), adset_key(norm(cell(row, rs))), norm(cell(row, ra)))
+        out.setdefault(k, []).append(d)
+    return out

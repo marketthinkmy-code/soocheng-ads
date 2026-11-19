@@ -181,6 +181,9 @@ class KpiCfg(BaseModel):
     veteran_max_cpl_myr: float = 40.0
     veteran_min_spend_myr: float = 150.0
     veteran_since: str = "2026-10-16"
+    # owner 2026-11-19「我们把 40 个机器人报名的假象数字移除掉」: subtract the Register tab's bot registrations (S1: Experience =
+    # first word of Name typed twice) from each ad's Meta registrations — for the CPL window and the veteran test alike.
+    exclude_bots: bool = False
     # owner 2026-11-10 approve (NEW VIDEO test campaigns): 0 报名花满 RM50 就关；花满 RM50 后 CPL > RM50 就关.
     # First match wins and replaces the veteran floor for that ad. Banned-creative / CPA rules unchanged.
     campaign_overrides: List[CampaignKpiOverride] = Field(default_factory=list)
@@ -203,6 +206,19 @@ class CpaCfg(BaseModel):
     # reliable since the 10/29 tracking fix), not only to the Paid row's own UTM. "" turns the Register join off.
     register_tab: str = "Register"
     register_since: str = "2026-10-29"
+
+
+class SpendCapCfg(BaseModel):
+    """owner 2026-11-19「这一场广告费控制（花到星期三 3PM）在 RM6000 硬规矩。如果提早花完就关广告。」
+
+    The spend of every account in `accounts` since `start` (00:00 MYT) is added up each monitor run; once it reaches
+    cap_myr − buffer_myr, every ACTIVE campaign in this run's account is paused at the campaign layer. After `end`
+    (MYT) the cap does nothing (the owner closes the ads by hand on live day and reopens them himself)."""
+    cap_myr: float = 0.0            # 0 = off
+    start: str = ""                 # "YYYY-MM-DD" (from 00:00 MYT)
+    end: str = ""                   # "YYYY-MM-DD HH:MM" MYT
+    buffer_myr: float = 50.0        # stop this far below the cap: Meta reports spend with a lag + 20-min runs
+    accounts: List[str] = Field(default_factory=list)   # act_… paths whose spend counts together
 
 
 class ComplianceCfg(BaseModel):
@@ -234,6 +250,7 @@ class Settings(BaseModel):
     kpi: KpiCfg = Field(default_factory=KpiCfg)
     cpa: CpaCfg = Field(default_factory=CpaCfg)
     compliance: ComplianceCfg = Field(default_factory=ComplianceCfg)
+    spend_cap: SpendCapCfg = Field(default_factory=SpendCapCfg)
     schedule: dict = Field(default_factory=dict)
     secrets: Secrets = Field(default_factory=Secrets)
     config_path: str = str(DEFAULT_CONFIG)
@@ -309,6 +326,7 @@ def load_settings(config_path: Optional[Path] = None) -> Settings:
         kpi=KpiCfg(**(data.get("kpi") or {})),
         cpa=CpaCfg(**(data.get("cpa") or {})),
         compliance=ComplianceCfg(**(data.get("compliance") or {})),
+        spend_cap=SpendCapCfg(**(data.get("spend_cap") or {})),
         schedule=data.get("schedule") or {},
         secrets=_load_secrets(),
         config_path=str(path),

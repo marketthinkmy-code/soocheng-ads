@@ -726,3 +726,90 @@ def test_register_utm_only_sale_counts_strictly_and_legacy_context_unchanged():
     assert position_sales(buyers, {}, ck, "Set B", "freestyle: korea") == 0             # different ad set
     assert position_sales(buyers, {}, _mkey("OTHER | 1-1-5 | 1017"), "Set A", "freestyle: korea") == 0   # other campaign
     assert position_sales(None, {(ck, _mkey("Set A"), cpa.norm("x")): 3}, ck, "Set A", "x") == 3
+
+
+# ── owner 2026-11-19: RM6,000 cycle spend cap + bot registrations removed ──
+class _FakeGraphCap(_FakeGraphSoft):
+    def __init__(self, campaigns, ads_by_campaign, insights, acct_spend):
+        super().__init__(campaigns, ads_by_campaign, insights)
+        self.acct_spend = acct_spend
+
+    def account_insights(self, account_path, *, level, fields, date_preset=None, time_range=None):
+        if level == "account":
+            return [{"spend": str(self.acct_spend[account_path])}]
+        return super().account_insights(account_path, level=level, fields=fields,
+                                        date_preset=date_preset, time_range=time_range)
+
+
+def _cap_settings(cap=6000.0, start=None, end=None):
+    from adbot.settings import SpendCapCfg
+    now = dt.datetime.utcnow() + dt.timedelta(hours=8)
+    return Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION", ad_account_id="act_1"),
+                    kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80, cpl_lookback="last_3d",
+                               pause_zero_lead_after_spend=True),
+                    spend_cap=SpendCapCfg(cap_myr=cap, buffer_myr=50,
+                                          start=start or (now.date() - dt.timedelta(days=1)).isoformat(),
+                                          end=end or (now + dt.timedelta(days=2)).strftime("%Y-%m-%d %H:%M"),
+                                          accounts=["act_1", "act_2"]))
+
+
+def test_spend_cap_pauses_every_active_campaign_once_both_accounts_reach_the_line(monkeypatch):
+    monkeypatch.setattr("adbot.monitor_cpl.state.append_pause_log", lambda *a, **k: None)
+    campaigns = [{"id": "C1", "name": "(Webinarkit) A", "effective_status": "ACTIVE"},
+                 {"id": "C2", "name": "(Webinarkit) B", "effective_status": "PAUSED"},
+                 {"id": "C3", "name": "(Webinarkit) C", "effective_status": "ACTIVE"}]
+    graph = _FakeGraphCap(campaigns, {"C1": [_soft_ad("ok", "AS1", 50)]}, {"ok": _reg_insight(10, 1)},
+                          {"act_1": 4000.0, "act_2": 1960.0})                  # 5,960 ≥ 6,000 − 50
+    out = run(graph, _cap_settings())
+    assert out["spend_cap"] and graph.paused == ["C1", "C3"]                  # campaign layer, active ones only
+
+
+def test_spend_cap_below_line_judges_normally_and_dry_run_writes_nothing(monkeypatch):
+    monkeypatch.setattr("adbot.monitor_cpl.state.append_pause_log", lambda *a, **k: None)
+    campaigns = [{"id": "C1", "name": "(Webinarkit) A", "effective_status": "ACTIVE"}]
+    ads = {"C1": [_soft_ad("ok", "AS1", 50)]}
+    graph = _FakeGraphCap(campaigns, ads, {"ok": _reg_insight(10, 1)}, {"act_1": 4000.0, "act_2": 1900.0})  # 5,900
+    out = run(graph, _cap_settings())
+    assert "spend_cap" not in out and graph.paused == []
+    graph = _FakeGraphCap(campaigns, ads, {"ok": _reg_insight(10, 1)}, {"act_1": 6000.0, "act_2": 0.0})
+    out = run(graph, _cap_settings(), dry_run=True)
+    assert out["spend_cap"] and graph.paused == []
+
+
+def test_spend_cap_does_nothing_after_the_window_ends(monkeypatch):
+    monkeypatch.setattr("adbot.monitor_cpl.state.append_pause_log", lambda *a, **k: None)
+    now = dt.datetime.utcnow() + dt.timedelta(hours=8)
+    campaigns = [{"id": "C1", "name": "(Webinarkit) A", "effective_status": "ACTIVE"}]
+    graph = _FakeGraphCap(campaigns, {"C1": [_soft_ad("ok", "AS1", 50)]}, {"ok": _reg_insight(10, 1)},
+                          {"act_1": 9000.0, "act_2": 0.0})
+    out = run(graph, _cap_settings(end=(now - dt.timedelta(hours=1)).strftime("%Y-%m-%d %H:%M")))
+    assert "spend_cap" not in out and graph.paused == []
+
+
+def test_bot_registrations_come_off_the_ad_count_and_the_veteran_test():
+    today = (dt.datetime.utcnow() + dt.timedelta(hours=8)).date()
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=60, cpl_min_spend_myr=60, cpl_lookback="week_thu",
+                                   pause_zero_lead_after_spend=True, exclude_bots=True,
+                                   veteran_min_regs=10, veteran_max_cpl_myr=40, veteran_min_spend_myr=150,
+                                   veteran_since=(today - dt.timedelta(days=30)).isoformat()))
+    campaigns = [{"id": "A", "name": "CAMP", "effective_status": "ACTIVE"}]
+    ad = _ad("gai"); ad["adset"]["name"] = "Set A"
+    insights = {"gai": _reg_insight(120, 3)}          # window: 3 Meta regs, CPL 40 — inside the line
+    ck = _mkey("CAMP")
+    bots = {(ck, _mkey("Set A"), cpa.norm("gai")): [today, today]}   # 2 of the 3 are bots
+    ds = evaluate_account(_FakeGraph(campaigns, {"A": [ad]}, insights), settings,
+                          cpa_ctx=({}, {}, {"gai": 120.0}, {"exact": {}, "robust": {}, "bots": bots}))
+    d = ds[0]
+    assert d.results == 1 and d.bots == 2 and d.should_pause and d.reason == OVER_THRESHOLD   # CPL 120 > 60
+
+
+def test_bot_rule_and_register_scan():
+    reg = [["Created date", "Name", "Experience", "Email", "Phone Number", "UTM Campaign", "UTM Ads Set", "UTM Ads Name"],
+           ["2026-11-13", "Ahmad Bin X", "AhmadAhmad", "q@x.com", "", "(Webinarkit) CAMP | 1-1-4 | 1", "Set A", "Video：盖电脑，喂！"],
+           ["2026-11-13", "Real Person", "3 years", "r@x.com", "", "(Webinarkit) CAMP | 1-1-4 | 1", "Set A", "Video：盖电脑，喂！"],
+           ["2026-10-01", "Old Bot", "OldOld", "o@x.com", "", "(Webinarkit) CAMP | 1-1-4 | 1", "Set A", "Video：盖电脑，喂！"]]
+    key = lambda s: cpa.norm(s).replace("| 1-1-4 |", "|")
+    out = cpa.bot_registrations(reg, since=dt.date(2026, 10, 16), camp_key=key, adset_key=cpa.norm)
+    assert out == {(key("(Webinarkit) CAMP | 1-1-4 | 1"), "set a", cpa.norm("Video：盖电脑，喂！")): [dt.date(2026, 11, 13)]}
+    assert cpa.is_bot_registration("Ahmad", "AhmadAhmad") and not cpa.is_bot_registration("Ahmad", "Ahmad")
