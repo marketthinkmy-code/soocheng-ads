@@ -483,7 +483,7 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **owner 先选「方案 B，我排程自动开」（周六 MY CBO + SG 1-1-3 BEST、周日 SG CBO），17:1x 改主意「sg 我会先开 2 个 1-1-3，因为 sg 现在没有什么 campaign 在跑」**：
   WK 本人开了 SG 1-1-3 BEST · campaign 120250705800700521 + SG 1-1-3 LOW CPL · campaign 120250706566080521（17:1x 读回 6 支 ad 实际 ACTIVE）。
   接着「周六你看看到时候的成绩和预算，建议和问我要不要开 MY CBO SG CBO」→ **自动开启排程全部取消**（4 个 send_later 已删）。
-  **周六 11/21 10:30** send_later（trig_01JnjKLdEHMsfsDBG1HeVPSS）：看 4 个 1-1-3 的周四起成绩 + 周期花费推到周三 15:00，一个一个问 MY CBO · campaign 120251995650640329、
+  **周六 11/21 10:30** send_later（trig_01JnjKLdEHMsfsDBG1HeVPSS）：看**全部在跑的广告**的周四起成绩（owner「不是只给我 4 个 1-1-3 而是全部在跑的广告」）+ 周期花费推到周三 15:00，一个一个问 MY CBO · campaign 120251995650640329、
   SG CBO · campaign 120250705919180521 开不开；WK 说开才跑 `execute_open_tests_1121.py`（MY CBO）/ `execute_open_tests_1122.py`（SG CBO）——只开 campaign 层、读回每支 ad、
   有被拒 / 禁跑 ad 或周期花费已到 RM5,950 就拒绝。在投放日预算 → 约 RM822（MY 492 / SG 330）；照这样到周三 15:00 约 RM5,350。
   ⚠️ MY CBO + SG 1-1-3 + SG CBO 全开 ≈ RM950/天 → 约周三早上碰 RM5,950 上限被 monitor 全关（已告知 owner）。⚠️ 用我的方法、盖电脑、korea 11/05 有旧副本被拒（owner 例外 C）——这次若被拒，立刻报告、建议 DELETE、不申诉。
