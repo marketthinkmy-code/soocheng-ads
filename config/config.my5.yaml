@@ -91,6 +91,10 @@ kpi:
       cpl_threshold_myr: 80.0
       cpl_min_spend_myr: 80.0
       zero_lead_spend_myr: 80.0
+    - match: "1-3-3 | 1120"                      # owner 2026-11-19「跟 1-1-3 一样 RM80」: CBO · LUX BEER OMAKASE test campaign (built 11/19)
+      cpl_threshold_myr: 80.0
+      cpl_min_spend_myr: 80.0
+      zero_lead_spend_myr: 80.0
   zero_lead_during_pause: true                    #   …and that 0-reg rule runs even while the rest of CPL judgment waits for 10/21
                                          #   周五 10/10 自动恢复。禁跑名单 + CPA 硬线照常。
   cpl_hold: []                          # 2026-11-02: 赚美金 test exception ended (review rejected again) — back on banned_creatives
