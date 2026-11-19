@@ -497,6 +497,10 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **以后版位一律 owner 在 Ads Manager 改；我不用 API 写版位**（只读核对）。
   **11/20 00:1x owner「不关」**：SG BROAD SG › Broad | SG 28+ · 年纪大 · ad 120250144813480521 周四起 RM122 / 1（CPL 122 > 80）但 1 单 CPA ~RM780 = SG 唯一有单 → 照跑；
   monitor RM1,200 CPA 硬线约再花 RM420 无第 2 单会自动关。
+  **11/20 00:2x owner 本人在 SG BROAD SG（campaign 120250144810670521，CBO RM130 不变）开回 4 支「开完试试看」= 有效**：
+  用我的方法 · ad 120250144813920521、我跟你讲 · ad 120250144814180521、不选 forex 不选黄金 · ad 120250144812470521、freestyle: korea · ad 120250144811900521
+  （+ 原本在跑的年纪大 · ad 120250144813480521，5 支都 ACTIVE）。korea / 用我的方法 / 不选 forex 在 SG 有 11/05 被拒的旧副本（例外 C）——被拒立刻报告、建议 DELETE。
+  用我的方法 60 天 RM1,185 / 1 单 → 再花约 RM15 无第 2 单会被 monitor CPA 硬线关；owner「照规则，让 monitor 关」= 不加 cpa.hold，被关后不得自动开回。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
