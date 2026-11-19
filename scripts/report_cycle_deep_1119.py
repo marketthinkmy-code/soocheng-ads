@@ -117,13 +117,22 @@ for label, cfg, code in (("MY", "config.my5.yaml", "1048291251556714"), ("SG", "
         pos[k] = dict(label=label, c=row["campaign_name"], s=row["adset_name"], a=row["ad_name"], id=row["ad_id"],
                       sp=float(row.get("spend") or 0), mr=extract_results(row.get("actions"), tok),
                       real=0, early=0, late=0, bots=0, sales=set())
+loose = lambda a: re.sub(r"[\W_]+", "", re.sub(r"^(?:video|image)\s*\d*\s*[：:]\s*", "", cpa.norm(a)))
+lix = {(k[0], k[1], loose(v["a"])): k for k, v in pos.items()}
+unmatched = Counter()
 for r in reg:
     d = cpa.parse_date(r.get("Created date", ""))
     if not d or not (C0 <= d <= C1) or not wk(r.get("UTM Campaign")):
         continue
     k = (_mkey(cpa.norm(r.get("UTM Campaign"))), _mkey(cpa.norm(r.get("UTM Ads Set"))), cpa.norm(r.get(ad_col)))
     if k not in pos:
-        continue
+        k2 = lix.get((k[0], k[1], loose(r.get(ad_col))))
+        if k2:
+            pos[k2]["name_mismatch"] = r.get(ad_col)
+            k = k2
+        else:
+            unmatched[f"{r.get('UTM Campaign')} › {r.get('UTM Ads Set')} · {r.get(ad_col)}"] += 1
+            continue
     if s1(r):
         pos[k]["bots"] += 1
         continue
@@ -148,9 +157,32 @@ for v in sorted(pos.values(), key=lambda v: -v["sp"]):
     cpl = f"{v['sp'] / v['real']:.0f}" if v["real"] else "—"
     print(f"   {v['label']} {v['c'].replace('(Webinarkit) ', '')} › {v['s']} · {v['a']} · ad {v['id']}\n"
           f"        RM{v['sp']:,.0f} · Meta 报名 {v['mr']:.0f} · 真报名 {v['real']}（周四–日 {v['early']} / 周一–三 {v['late']}）· 机器人 {v['bots']} · 真 CPL {cpl}"
-          f" · 10/29 起成交 {len(v['sales'])}" + (" " + str(sorted(v["sales"])) if v["sales"] else ""))
+          f" · 10/29 起成交 {len(v['sales'])}" + (" " + ", ".join(f"{d:%m/%d} {src}" for d, src in sorted(v["sales"])) if v["sales"] else "")
+          + (f"\n        ⚠️ 报名表 UTM 的 ad 名字是「{v['name_mismatch']}」，跟 Meta 名字不一样（严格比对认不到它的成交）" if v.get("name_mismatch") else ""))
 print("\n   -- 汇总")
 for (label, g), c in sorted(grp.items()):
     print(f"   {label} {g}: RM{c['sp']:,.0f} · Meta 报名 {c['mr']:.0f} · 真报名 {c['real']}（周四–日 {c['early']} / 周一–三 {c['late']}）· 机器人 {c['bots']}"
           f" · 真 CPL {c['sp'] / c['real']:.0f}" + f" · 10/29 起成交 {c['sales']}" if c["real"] else f"   {label} {g}: RM{c['sp']:,.0f}")
+if unmatched:
+    print("   -- 报名表里对不上任何 Webinarkit 位置的 UTM: " + " | ".join(f"{k} ×{n}" for k, n in unmatched.most_common(8)))
+
+# ---------- D
+print("\n== D) 每场成交的买家：第一次报名是什么时候（新名单 / 旧名单）· 该场 Webinarkit 广告报名的周几分布")
+for live in LIVES[2:]:
+    a = live - dt.timedelta(days=6)
+    rr = [r for r in reg if (lambda d: d and a <= d <= live)(cpa.parse_date(r.get("Created date", ""))) and wk(r.get("UTM Campaign")) and not s1(r)]
+    early = sum(cpa.parse_date(r["Created date"]).weekday() in (3, 4, 5, 6) for r in rr)
+    print(f"   {live:%m/%d}: 该周 Webinarkit 广告真报名 {len(rr)} = 周四–日 {early} / 周一–三 {len(rr) - early}")
+    for p in paid:
+        d = cpa.parse_date(p.get("Date", ""))
+        if not d or not (live <= d <= live + dt.timedelta(days=6)) or not who(p):
+            continue
+        h = [(dd, r) for (dd, _), r in hist(who(p)) if dd <= d]
+        if not h:
+            print(f"      成交 {d:%m/%d} · 报名表找不到")
+            continue
+        f0, l0 = h[0], h[-1]
+        age = (live - f0[0]).days
+        print(f"      成交 {d:%m/%d} · 第一次报名 {f0[0]}（{'新名单' if age <= 14 else f'旧名单 {age} 天前'}，{origin(f0[1].get('UTM Campaign'))}：{f0[1].get('UTM Campaign') or '—'}）"
+              f" · 最后一次 {l0[0]}（{origin(l0[1].get('UTM Campaign'))}：{l0[1].get('UTM Campaign') or '—'} › {l0[1].get('UTM Ads Set') or '—'} · {l0[1].get(ad_col) or '—'}）· 共报名 {len(h)} 次")
 print("\nCYCLE DEEP DONE (read-only)")
