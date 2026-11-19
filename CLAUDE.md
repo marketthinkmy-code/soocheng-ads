@@ -473,6 +473,11 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   (Webinarkit) [SG] STOCKBLOOM | CBO · LAL INVEST LUX | 1-3-3 | 1120 · campaign 120250705919180521 · CBO RM100 · PAUSED，3 个 ad set：
   Purchase LAL 5% | SG 28+（来源 = 出过单的 1017 LAL 组 120249918199040521，不是 10/26 ALL LANG）· Investment | SG 28+（WINNERS 1020 交易/投资兴趣）·
   Luxury | SG 28+（SG LUXURY GOODS 1017，纯 luxury）× 决定变少 · 年纪大 · 用我的方法（SG creatives）。SG 规则 RM80，不用 override。
+  **owner「MY CBO 预算 100 · SG 1-1-3 也是 100」**：16:3x 执行（`execute_budget_tests_1119.py`，回读 RM100 / RM100，仍 PAUSED）。
+  **owner「SG 1-1-3 应该还有一个才对呀」→「建」**：16:51 建好（`execute_build_sg113b_1120.py`）(Webinarkit) [SG] STOCKBLOOM | LOW CPL · Broad | 1-1-3 | 1120 ·
+  campaign 120250706566080521 · CBO RM100 · PAUSED › Broad | SG 28+ · korea ad 120250706569340521 · 炒了五年 ad 120250706569810521 · 盖电脑 ad 120250706571120521
+  （MY 那三个 Webinarkit post，SG 新建 creative）。⚠️ korea / 盖电脑 11/05 在 SG 有旧副本被拒——若被拒立刻报告、建议 DELETE、不申诉。
+  owner：「有些我可以安排在周六 / 周日开。你等下，再建议我吧」→ 全部建完后给开启时间建议。
   ⚠️ MY CBO + SG 1-1-3 + SG CBO 全开 ≈ RM950/天 → 约周三早上碰 RM5,950 上限被 monitor 全关（已告知 owner）。⚠️ 用我的方法、盖电脑、korea 11/05 有旧副本被拒（owner 例外 C）——这次若被拒，立刻报告、建议 DELETE、不申诉。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
