@@ -688,3 +688,38 @@ def test_cpa_unavailable_holds_cpl_pauses_but_not_bans():
         _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=({}, {}, {}))}
     assert by2["Video：用我的方法"].should_pause is True
     assert by2["Video：用我的方法"].reason == OVER_THRESHOLD
+
+
+def test_register_utm_sale_rescues_the_position_it_was_registered_from():
+    # owner 2026-11-19「开回 + 修 monitor」: SG BROAD SG 年纪大 was paused on CPL 80.21 although its buyer had
+    # registered through it — the Paid row's own UTM pointed elsewhere. The Register-UTM join credits that
+    # position; the same creative in another ad set stays unprotected; one sale is never counted twice.
+    from adbot.monitor_cpl import position_sales
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True),
+                        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14, min_spend_myr=1000))
+    campaigns = [{"id": "A", "name": "(Webinarkit) [SG] STOCKBLOOM | BROAD SG | 1-1-5 | 1030", "effective_status": "ACTIVE"}]
+    sold_ad = _ad("laonian"); sold_ad["name"] = "Video：年纪大的人做不了交易？"; sold_ad["adset"]["name"] = "Broad | SG 28+"
+    copy_ad = _ad("laonian_copy"); copy_ad["name"] = "Video：年纪大的人做不了交易？"; copy_ad["adset"]["name"] = "Golf | SG 28+"
+    ads = {"A": [sold_ad, copy_ad]}
+    insights = {"laonian": _reg_insight(300, 3), "laonian_copy": _reg_insight(300, 3)}   # both CPL 100 > 40
+    ck = _mkey(campaigns[0]["name"])
+    buyers = {"exact": {(ck, _mkey("Broad | SG 28+"), cpa.norm("Video：年纪大的人做不了交易？")): {7}},
+              "robust": {(ck, _mkey("Broad | SG 28+"), cpa.ad_key("年纪大的人做不了交易")): {7}}}  # same Paid row
+    spend60 = {"laonian": 685.0, "laonian_copy": 685.0}
+
+    assert position_sales(buyers, {}, ck, "Broad | SG 28+", sold_ad["name"]) == 1          # union, not 2
+    ds = evaluate_account(_FakeGraph(campaigns, ads, insights), settings, cpa_ctx=({}, {}, spend60, buyers))
+    by_id = {d.ad_id: d for d in ds}
+    assert by_id["laonian"].should_pause is False and by_id["laonian"].reason == cpa.CPL_RESCUED
+    assert by_id["laonian_copy"].should_pause is True
+
+
+def test_register_utm_only_sale_counts_and_legacy_context_unchanged():
+    from adbot.monitor_cpl import position_sales
+    ck = _mkey("CAMP | 1-1-5 | 1017")
+    buyers = {"exact": {}, "robust": {(ck, _mkey("Set A"), cpa.ad_key("freestyle: korea")): {1, 2}}}
+    assert position_sales(buyers, {}, ck, "Set A", "Video：freestyle korea") == 2
+    assert position_sales(buyers, {}, ck, "Set B", "freestyle: korea") == 0
+    assert position_sales(None, {(ck, _mkey("Set A"), cpa.norm("x")): 3}, ck, "Set A", "x") == 3
