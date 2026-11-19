@@ -706,7 +706,7 @@ def test_register_utm_sale_rescues_the_position_it_was_registered_from():
     insights = {"laonian": _reg_insight(300, 3), "laonian_copy": _reg_insight(300, 3)}   # both CPL 100 > 40
     ck = _mkey(campaigns[0]["name"])
     buyers = {"exact": {(ck, _mkey("Broad | SG 28+"), cpa.norm("Video：年纪大的人做不了交易？")): {7}},
-              "robust": {(ck, _mkey("Broad | SG 28+"), cpa.ad_key("年纪大的人做不了交易")): {7}}}  # same Paid row
+              "robust": {(ck, _mkey("Broad | SG 28+"), cpa.norm("Video：年纪大的人做不了交易？")): {7}}}  # same Paid row
     spend60 = {"laonian": 685.0, "laonian_copy": 685.0}
 
     assert position_sales(buyers, {}, ck, "Broad | SG 28+", sold_ad["name"]) == 1          # union, not 2
@@ -716,10 +716,13 @@ def test_register_utm_sale_rescues_the_position_it_was_registered_from():
     assert by_id["laonian_copy"].should_pause is True
 
 
-def test_register_utm_only_sale_counts_and_legacy_context_unchanged():
+def test_register_utm_only_sale_counts_strictly_and_legacy_context_unchanged():
+    # owner 2026-11-19「一定要看完 campaign、ad set、ad」: all three must match; a merely similar ad name does not count.
     from adbot.monitor_cpl import position_sales
     ck = _mkey("CAMP | 1-1-5 | 1017")
-    buyers = {"exact": {}, "robust": {(ck, _mkey("Set A"), cpa.ad_key("freestyle: korea")): {1, 2}}}
-    assert position_sales(buyers, {}, ck, "Set A", "Video：freestyle korea") == 2
-    assert position_sales(buyers, {}, ck, "Set B", "freestyle: korea") == 0
+    buyers = {"exact": {}, "robust": {(ck, _mkey("Set A"), cpa.norm("freestyle: korea")): {1, 2}}}
+    assert position_sales(buyers, {}, ck, "Set A", "🚫 Freestyle:  korea") == 2          # only marks / case / spacing
+    assert position_sales(buyers, {}, ck, "Set A", "Video：freestyle korea") == 0       # different ad name
+    assert position_sales(buyers, {}, ck, "Set B", "freestyle: korea") == 0             # different ad set
+    assert position_sales(buyers, {}, _mkey("OTHER | 1-1-5 | 1017"), "Set A", "freestyle: korea") == 0   # other campaign
     assert position_sales(None, {(ck, _mkey("Set A"), cpa.norm("x")): 3}, ck, "Set A", "x") == 3
