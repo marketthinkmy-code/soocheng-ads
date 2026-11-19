@@ -434,6 +434,14 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   11/11 出席 周四–日 4% vs 周一–三 30% → 11/18 估计只有约 6 个广告报名进场。最近三场 17 笔可对上成交：旧名单 10、新名单 7（首报名即 Webinarkit 广告 4：
   BO 盖电脑、BO 年纪大、SG BROAD SG、News V4）。⚠️ DT korea 的报名表 UTM ad 名「Video：freestyle korea」≠ Meta「freestyle: korea」，严格比对认不到（已关）。
   owner 对「周五–日降 30%、周一起加」选 **「不变」**：照 RM422/天跑到周三，monitor 照判。待 owner：11/18 Webinarkit 出席名单 CSV、提醒 / Zoom link 设定截图。
+  **11/19 14:1x owner「我们把 40 个机器人报名的假象数字移除掉」+「这一场广告费控制（花到星期三 3PM）在 RM6000 硬规矩。如果提早花完就关广告」→「合并」= PR #94（e257e5d）**：
+  ① `spend_cap`（两个 config）：monitor 每 20 分钟加总 MY 5.0 + SG 自 11/19 00:00 MYT 起的花费，到 **RM5,950**（6,000 − 缓冲 50）就在 **campaign 层**
+  关掉该账户所有 ACTIVE campaign、跳过 CPL 判定（日志 `SPEND CAP` / `CAP-PAUSE`，reason `spend_cap`）；11/25 15:00 后不动作。到线后周三 15:00 前
+  owner 手动开回也会被再关——要例外 = 调高 cap_myr。读不到花费那一次跳过、下一次再查。合并后 main dry-run：周期花费 RM426（两边一致）。
+  ② `kpi.exclude_bots: true`：报名表 S1 机器人从每支 ad 的 Meta 报名数扣掉（周四窗口 + 老将判定，严格 campaign › ad set › ad）。
+  影响：BO 盖电脑 · ad 120251454701640329 去掉 10 个机器人后 10/16 起 12 报名 CPL≈60 → **不再是老将**（RM150 宽限没了），周四起 CPL 85 超线但
+  1 单 CPA ~RM764 受成交保护 → 不关。按 RM1,200 硬线，它 60 天花费再加约 RM440 仍只有 1 单就会被 monitor 关（既有规则）。
+  **以后每个周期的上限要 owner 重新给数字，并改 spend_cap 的 start / end / cap_myr。**
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
