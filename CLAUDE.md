@@ -478,7 +478,7 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   campaign 120250706566080521 · CBO RM100 · PAUSED › Broad | SG 28+ · korea ad 120250706569340521 · 炒了五年 ad 120250706569810521 · 盖电脑 ad 120250706571120521
   （MY 那三个 Webinarkit post，SG 新建 creative）。⚠️ korea / 盖电脑 11/05 在 SG 有旧副本被拒——若被拒立刻报告、建议 DELETE、不申诉。
   owner：「有些我可以安排在周六 / 周日开。你等下，再建议我吧」→ 全部建完后给开启时间建议。
-  **owner「先不要建，等周日，你再问我」**：第 3 个建法起暂停；周日 11/22 10:30 MYT send_later（trig_01KnxH1LeruihEZeTRJz4TC6）先给 6 个测试 campaign 的周四起成绩再问。
+  **owner「先不要建，等周日，你再问我」**：第 3 个建法起暂停；原排周日 11/22 10:30 再问——**owner 11/19 17:3x「取消」**（send_later 已删）：第 3 个建法起不再主动问，等 owner 自己提。
   owner 打算自己检查并开 4 个 PAUSED（MY CBO、SG 1-1-3 ×2、SG CBO）：全开后日预算 ≈ RM1,022（MY 592 / SG 430）。
   **owner 先选「方案 B，我排程自动开」（周六 MY CBO + SG 1-1-3 BEST、周日 SG CBO），17:1x 改主意「sg 我会先开 2 个 1-1-3，因为 sg 现在没有什么 campaign 在跑」**：
   WK 本人开了 SG 1-1-3 BEST · campaign 120250705800700521 + SG 1-1-3 LOW CPL · campaign 120250706566080521（17:1x 读回 6 支 ad 实际 ACTIVE）。
