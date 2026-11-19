@@ -427,6 +427,13 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **11/19 11:50 owner「可以开。只是要确保现在的都是带去 webinarkit 的广告」**：SG BROAD SG › Broad | SG 28+ · 年纪大 · ad 120250144813480521
   三层开回（BROAD SG campaign 只有它一支，CBO RM130；`execute_reopen_sg_laonian_1119.py`，回读 ACTIVE）。两账户在投放 5 支，campaign 全部带 (Webinarkit)。
   日预算 ≈ RM422（MY 292 / SG 130）。SG NEW VIDEO · Broad 仍是 owner 关的，不开。**以后开任何广告都要确认 campaign 名前面有 (Webinarkit)。**
+  **11/19 复盘 11/12–11/18（owner「新广告是不是不给力…才一位，而且还是以前的广告报名的」，`report_cycle_deep_1119.py`）**：
+  11/18 场 Paid 有电邮电话的 2 笔都是**旧名单**（7/19 SG INVESTMENT、9/14 BROAD MY 25+ 旧广告进来，11/18 用不带 UTM 的链接重新报名）→
+  本周 Webinarkit 广告 91 真报名 0 单。新旧素材真 CPL（去机器人）MY 68 vs 59、SG 143 vs 184，这一场都 0 单 → 不是新视频特别差。
+  真正差别 = 报名落在哪天：广告真报名 周四–日 / 周一–三 = 11/04 42/32（9 单）· 11/11 48/52（6 单）· 11/18 **81/10**（广告 0 单）；
+  11/11 出席 周四–日 4% vs 周一–三 30% → 11/18 估计只有约 6 个广告报名进场。最近三场 17 笔可对上成交：旧名单 10、新名单 7（首报名即 Webinarkit 广告 4：
+  BO 盖电脑、BO 年纪大、SG BROAD SG、News V4）。⚠️ DT korea 的报名表 UTM ad 名「Video：freestyle korea」≠ Meta「freestyle: korea」，严格比对认不到（已关）。
+  owner 对「周五–日降 30%、周一起加」选 **「不变」**：照 RM422/天跑到周三，monitor 照判。待 owner：11/18 Webinarkit 出席名单 CSV、提醒 / Zoom link 设定截图。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
