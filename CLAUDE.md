@@ -480,11 +480,12 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   owner：「有些我可以安排在周六 / 周日开。你等下，再建议我吧」→ 全部建完后给开启时间建议。
   **owner「先不要建，等周日，你再问我」**：第 3 个建法起暂停；周日 11/22 10:30 MYT send_later（trig_01KnxH1LeruihEZeTRJz4TC6）先给 6 个测试 campaign 的周四起成绩再问。
   owner 打算自己检查并开 4 个 PAUSED（MY CBO、SG 1-1-3 ×2、SG CBO）：全开后日预算 ≈ RM1,022（MY 592 / SG 430）。
-  **owner「方案 B，我排程自动开」**（倒推：在跑 RM622/天到周三 15:00 ≈ RM4,180，离 RM5,950 剩 ≈ RM1,770）：
-  **周六 11/21 00:00** 开 SG 1-1-3 BEST · campaign 120250705800700521 + MY CBO · campaign 120251995650640329（`execute_open_tests_1121.py`，send_later trig_019cqRMcadABqjQeZY3nstxd）；
-  **周日 11/22 00:00** 开 SG CBO · campaign 120250705919180521（`execute_open_tests_1122.py`，trig_01GxoTopR2zdfKZzaevXdKeZ）；各 01:00 只读检查（`report_open_tests_check_1121.py`，trig_01BoUfpy4So2YBPYm9ix95MV / trig_01AWbAXrecd2BMzLFVtrRHAt）。
-  只开 campaign 层；ad set / ad 若被人关了不替他开；有被拒 / 禁跑 ad、周期花费已到 RM5,950 就拒绝。到周三 15:00 预计 ≈ RM5,470。
-  **SG 1-1-3 LOW CPL · campaign 120250706566080521 先不开**——周一看 monitor 有没有关掉差的、空出预算，再问 owner。dry-run（11/19 17:03）三个 campaign 全部过闸。
+  **owner 先选「方案 B，我排程自动开」（周六 MY CBO + SG 1-1-3 BEST、周日 SG CBO），17:1x 改主意「sg 我会先开 2 个 1-1-3，因为 sg 现在没有什么 campaign 在跑」**：
+  WK 本人开了 SG 1-1-3 BEST · campaign 120250705800700521 + SG 1-1-3 LOW CPL · campaign 120250706566080521（17:1x 读回 6 支 ad 实际 ACTIVE）。
+  接着「周六你看看到时候的成绩和预算，建议和问我要不要开 MY CBO SG CBO」→ **自动开启排程全部取消**（4 个 send_later 已删）。
+  **周六 11/21 10:30** send_later（trig_01JnjKLdEHMsfsDBG1HeVPSS）：看 4 个 1-1-3 的周四起成绩 + 周期花费推到周三 15:00，一个一个问 MY CBO · campaign 120251995650640329、
+  SG CBO · campaign 120250705919180521 开不开；WK 说开才跑 `execute_open_tests_1121.py`（MY CBO）/ `execute_open_tests_1122.py`（SG CBO）——只开 campaign 层、读回每支 ad、
+  有被拒 / 禁跑 ad 或周期花费已到 RM5,950 就拒绝。在投放日预算 → 约 RM822（MY 492 / SG 330）；照这样到周三 15:00 约 RM5,350。
   ⚠️ MY CBO + SG 1-1-3 + SG CBO 全开 ≈ RM950/天 → 约周三早上碰 RM5,950 上限被 monitor 全关（已告知 owner）。⚠️ 用我的方法、盖电脑、korea 11/05 有旧副本被拒（owner 例外 C）——这次若被拒，立刻报告、建议 DELETE、不申诉。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
