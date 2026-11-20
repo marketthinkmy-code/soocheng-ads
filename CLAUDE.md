@@ -541,6 +541,8 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **11/20 12:2x owner「你再帮我盯紧一点」**：盘中检查改成**每小时 10:47–23:47 MYT**（trig_01KLefTqUatTBvX1135EcxPX，原 14/17/20/23 点）+ 09:52 晨报照旧；
   每次跑 `scripts/report_watch_hourly.py`（monitor 自己的判定逐支列、门槛/线、下一轮会关谁、被拒、学习期重置、报名表 vs Meta、机器人、预算 + 上限推算、ALERTS）
   + monitor 日志 + activity log。有事才报（monitor 关了什么 / 被拒 / 人为改动 / 下一轮会关 / 新 ALERTS），没事一行。只读，不替 owner 动广告。
+  **11/20 17:1x owner「频密一点汇报我」**：排程器最短间隔 1 小时（30 分钟被拒，不绕过），改成**每小时 :47、07:47–00:47 MYT 每次都发简短汇报**（不再只有一行）：
+  上次以来新报名、今天花费 / 报名、周四起 CPL、monitor 关了什么、下一轮会关 / 接近门槛、被拒、人为改动、ALERTS、最后一行在跑支数 / 日预算 / 周期花费。
   **11/20 15:01 monitor 按 SG 0 报名门槛 RM80 关**：WINNERS › Investment | SG 28+ · 用我的方法 · ad 120249964899250521（RM81.63 / 0，60 天 0 单）、
   WINNERS › LAL 5% · 盖电脑 | SG 28+ · 盖电脑 · ad 120250008788460521（RM82.79 / 0，60 天 0 单）= 规则正确（owner 早上开回的两支），不得自动开回。SG 在跑 10 支、日预算 → RM1,220（MY 760 / SG 460）。
   **16:13 owner 本人（Power Editor）关掉 SG WINNERS | 1-8-8 | 1020 campaign（120249964890710521）= 定案**（里面两支 15:01 已被 monitor 关）。
