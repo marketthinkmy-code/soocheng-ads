@@ -541,6 +541,8 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **11/20 12:2x owner「你再帮我盯紧一点」**：盘中检查改成**每小时 10:47–23:47 MYT**（trig_01KLefTqUatTBvX1135EcxPX，原 14/17/20/23 点）+ 09:52 晨报照旧；
   每次跑 `scripts/report_watch_hourly.py`（monitor 自己的判定逐支列、门槛/线、下一轮会关谁、被拒、学习期重置、报名表 vs Meta、机器人、预算 + 上限推算、ALERTS）
   + monitor 日志 + activity log。有事才报（monitor 关了什么 / 被拒 / 人为改动 / 下一轮会关 / 新 ALERTS），没事一行。只读，不替 owner 动广告。
+  **11/20 15:01 monitor 按 SG 0 报名门槛 RM80 关**：WINNERS › Investment | SG 28+ · 用我的方法 · ad 120249964899250521（RM81.63 / 0，60 天 0 单）、
+  WINNERS › LAL 5% · 盖电脑 | SG 28+ · 盖电脑 · ad 120250008788460521（RM82.79 / 0，60 天 0 单）= 规则正确（owner 早上开回的两支），不得自动开回。SG 在跑 10 支、日预算 → RM1,220（MY 760 / SG 460）。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
