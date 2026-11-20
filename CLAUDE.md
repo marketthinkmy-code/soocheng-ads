@@ -526,6 +526,7 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   ② owner「照建议」= 成交保护加上限 `cpa.rescue_max_x: 1.5`（CPL > 线×1.5 或 0 报名花到门槛×1.5，有成交也关；reason `cpa_rescue_over_cap`），并进 PR #98。
      分支 dry-run（11:33）：只有 SG BROAD SG › Broad | SG 28+ · 年纪大 · ad 120250144813480521（RM167/1，CPL 167 > 120）会关；BO 盖电脑 CPL 68、News V4 RM81/0 留。
      **owner「合并」→ PR #98 squash 合并（1372028）**；main dry-run 11:47：SG 年纪大 `cpa_rescue_over_cap` 会关，BO 盖电脑 6 报名 CPL 56 在线内，News V4 / 三支 CPA 保护留。
+     **12:00 live monitor（1372028）已关 SG BROAD SG 年纪大 · ad 120250144813480521**（RM176 / 1，CPL 176，`cpa_rescue_over_cap`）= 新规则执行，不得自动开回；MY 0 支关。BROAD SG 里 我跟你讲 · ad 120250144814180521 照跑。
   ③ owner 提议 SG + 全部测试 campaign 改 RM60 门槛 / RM60 线（「没办法接受 CPL 整体超过 RM60」）并请我反驳 → `report_line_backtest_1120.py`（真实每小时数据，三期，扣机器人）：
      RM60 比 RM80 提早关掉的那一段 = RM1,546 / 42 真报名，CPL 37（比这些广告整体 65 便宜）→ 拿掉后 CPL 65 → 77。整体真 CPL：11/05–11/11 MY 41 / SG 60 / 合计 47；
      11/12–11/18 MY 46 / SG 74 / 合计 52（门槛与现在相同）；11/19–11/20 11:31 MY 86 / SG 504 / 合计 121。**owner「门槛维持 RM80」= 定案**
