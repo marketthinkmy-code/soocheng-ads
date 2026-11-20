@@ -538,6 +538,9 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   11/20 才开始投放的 7 支（owner 开回）RM103 / 5 LPV / 0。**owner 12:02 SG 8 组 + 12:04 MY 4 组拿掉 Audience Network、12:05 SG BEST 1-1-3 / LOW CPL 1-1-3 / TRAVEL SG CBO RM100 → RM80**
   （Power Editor，owner 本人 = 有效；这 12 组学习期重置、ad 重新送审，12:11 查 0 被拒 0 审核中）。日预算 → **RM1,365（MY 760 / SG 605）**，仍约周一 17:00 碰 RM5,950。
   ⚠️ ops.sh 不能同时跑两个（会抓错 run 的日志）。
+  **11/20 12:2x owner「你再帮我盯紧一点」**：盘中检查改成**每小时 10:47–23:47 MYT**（trig_01KLefTqUatTBvX1135EcxPX，原 14/17/20/23 点）+ 09:52 晨报照旧；
+  每次跑 `scripts/report_watch_hourly.py`（monitor 自己的判定逐支列、门槛/线、下一轮会关谁、被拒、学习期重置、报名表 vs Meta、机器人、预算 + 上限推算、ALERTS）
+  + monitor 日志 + activity log。有事才报（monitor 关了什么 / 被拒 / 人为改动 / 下一轮会关 / 新 ALERTS），没事一行。只读，不替 owner 动广告。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
