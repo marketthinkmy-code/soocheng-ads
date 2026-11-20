@@ -531,6 +531,13 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
      RM60 比 RM80 提早关掉的那一段 = RM1,546 / 42 真报名，CPL 37（比这些广告整体 65 便宜）→ 拿掉后 CPL 65 → 77。整体真 CPL：11/05–11/11 MY 41 / SG 60 / 合计 47；
      11/12–11/18 MY 46 / SG 74 / 合计 52（门槛与现在相同）；11/19–11/20 11:31 MY 86 / SG 504 / 合计 121。**owner「门槛维持 RM80」= 定案**
      （MY 一般 60/60、SG 80/80、测试 campaign 80/80 不变）。
+  **11/20 12:0x owner「查一下这一期 CPL 为什么到 121」**（`report_cpl_why_1120.py` / `report_cpl_why2_1120.py` / `report_learning_1120.py`，同样经过时间 周四 00:00→周五 12:00）：
+  这一期 RM1,564 / 15 报名 = CPL 104（11:31 的 121 是 Meta 报名还没回传完）vs 10/29 期 56 · 11/05 期 53（11/12 期有机器人不比）。追踪正常（Meta vs 报名表 11/19 MY 10/8、11/20 3/3）、CPM 正常、0 机器人。
+  ① SG 最大：RM588 / 2（CPL 294），无 AN 的落地页→报名 3.3%（30 LPV→1）vs 13.6% / 22.0%；② MY 无 AN = CPL 63（= 11/05 期）、落地页→报名 12.3% 正常，
+  多出来的是 11/19 AN RM153 / 39 LPV / 0 报名；③ 11/20 00–10 时 MY RM297 / 34 LPV / 1 报名——5 组 00:05–00:11 重大修改（我 23:38 API 改版位 + owner 手改）后回学习期；
+  11/20 才开始投放的 7 支（owner 开回）RM103 / 5 LPV / 0。**owner 12:02 SG 8 组 + 12:04 MY 4 组拿掉 Audience Network、12:05 SG BEST 1-1-3 / LOW CPL 1-1-3 / TRAVEL SG CBO RM100 → RM80**
+  （Power Editor，owner 本人 = 有效；这 12 组学习期重置、ad 重新送审，12:11 查 0 被拒 0 审核中）。日预算 → **RM1,365（MY 760 / SG 605）**，仍约周一 17:00 碰 RM5,950。
+  ⚠️ ops.sh 不能同时跑两个（会抓错 run 的日志）。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
