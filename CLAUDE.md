@@ -504,6 +504,8 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **随即 owner「我关掉三个吧」= 定案**：用我的方法 · ad 120250144813920521、不选 forex · ad 120250144812470521、korea · ad 120250144811900521 ad 层 PAUSED（owner 本人，读回 PAUSED）。
   BROAD SG 在跑剩 年纪大 · ad 120250144813480521 + 我跟你讲 · ad 120250144814180521（CBO RM130）。
   **11/20 owner「你要来干嘛呢？你是负责广告而已」**：不再索取 Webinarkit 出席名单 CSV、报名后提醒 / Zoom link 设定截图；晨报 / 盘中检查不再问。只管广告。
+  **11/20 ~10:3x owner「sg 的很贵，都没有什么 leads」→「照跑，交给 monitor RM80」**：SG 周四起 RM432 / 1（CPM 190–320 ≈ MY 2 倍；37 LPV → 1 报名 ≈ 3%，上期 8–28%）。
+  两个 SG 1-1-3 RM187 / 0（korea · ad 120250706569340521 已被 monitor 按 RM80 关），其余照跑到各自 RM80 由 monitor 判；BROAD SG 照跑。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
