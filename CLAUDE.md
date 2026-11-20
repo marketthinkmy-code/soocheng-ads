@@ -18,6 +18,10 @@ lead)** → RM2,399 course. The ad objective is always *registration for the fre
    owner 中途打断，立刻查那个动作有没有已经执行，并第一时间如实告诉他、按他的意思复原。
    （10/25 关闭指令在 owner 说「先不关」时已送出，3 支被误关。）
 3. **owner 说的看数范围就是判断范围**——他看「星期四到现在」，monitor 与报告都用同一个范围，不自行换窗口。
+4. **对 owner 说「会怎样 / 不会怎样」之前，必须先用测试或真实 dry-run 证明——不凭代码注释、记忆或推测。**
+   PR 描述、AskUserQuestion 选项、汇报里的每一句行为承诺，都要有对应的测试用例或当次 dry-run 日志；证明不了就写「未验证」。
+   每个数字写清窗口和来源（哪天到哪天、哪个表 / API）。（2026-11-20：我说三支 CPA 保护「CPL 规则照常判」，实际代码连 CPL 关停也免掉——
+   测试只测了硬线那一半，PR #98 修。owner：「以后不准，不准，不准，再出错。重要的事情我重复了三次！」）
 
 ## "上广告" workflow (when the owner says to put up an ad)
 
