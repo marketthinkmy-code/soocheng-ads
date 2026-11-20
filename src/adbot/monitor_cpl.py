@@ -401,8 +401,10 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                         or (cpa_hold_to and today.isoformat() <= str(cpa_hold_to))):
                     # owner-named CPA exemption (e.g. 2026-09-21「开回 V8」observation
                     # week): keeps the reopened ad alive although its 60d CPA sits over
-                    # the hard stop. CPL rules still apply unless it's also in cpl_hold.
-                    should_pause, reason = False, CPA_MANUAL_HOLD
+                    # the hard stop. CPL rules still apply unless it's also in cpl_hold —
+                    # combined_decision returns HARD_STOP before looking at CPL, so fall back
+                    # to the CPL verdict here (owner 11/20: protected ads「CPL 规则照常判」).
+                    should_pause, reason = (cpl_pause, cpl_reason) if cpl_pause else (False, CPA_MANUAL_HOLD)
 
             if cpa_down and should_pause:
                 # owner 2026-11-17「修」: sales data unavailable this run — hold every CPL /
