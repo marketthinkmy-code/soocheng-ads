@@ -108,6 +108,7 @@ cpa:                                              # ON for SG: the Paid Student 
   hard_stop_myr: 1200.00
   conversion_days: 14
   min_spend_myr: 1000.00
+  rescue_max_x: 1.5                      # owner 2026-11-20「照建议」: 成交保护上限——CPL > 线 ×1.5、或 0 报名花到门槛 ×1.5，有成交也照关
   hold_ad_until:                                    # owner 2026-11-20「三支都保护」: CPA 硬线豁免（只认 ad ID，到期自动失效；CPL 规则照判）
     "120249918410030521": "2026-11-25"             #   PURCHASE LAL 5% › Purchase LAL 5% | SG 28+ · 用我的方法（60 天 CPA 1,206 / 1 单）
   hold: []                                         # owner 2026-10-15「拿掉 cpa.hold」: both temporary 14/10-live holds removed.

@@ -477,6 +477,38 @@ def test_cpa_hold_ad_until_exempts_only_that_ad_id_until_the_date():
     assert by_name["expired"].should_pause is True and by_name["expired"].reason == cpa.HARD_STOP
 
 
+def test_cpa_hold_still_lets_cpl_rules_close_the_ad():
+    # owner 2026-11-20: protected ads are「CPL 规则照常判」. The CPA hold only lifts the hard stop —
+    # a held ad over the CPL line, or at 0 registrations past the spend floor, is still paused.
+    from adbot.monitor_cpl import OVER_THRESHOLD as _OVER, ZERO_RESULTS as _ZERO
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=60, cpl_min_spend_myr=60, zero_lead_spend_myr=60,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True),
+                        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14, min_spend_myr=1000,
+                                   hold_ad_until={"fine": "2099-12-31", "over": "2099-12-31", "zero": "2099-12-31",
+                                                  "young": "2099-12-31"},
+                                   hold=["named over"]))
+    campaigns = [{"id": "A", "name": "STOCKBLOOM | BROAD MY | 1017", "effective_status": "ACTIVE"}]
+    names = ("fine", "over", "zero", "young", "named over")
+    ads = {"A": [_ad(n) for n in names]}
+    insights = {"fine": _reg_insight(100, 4),        # CPL 25 → keep (held)
+                "over": _reg_insight(200, 2),        # CPL 100 > 60 → CPL closes it
+                "zero": _reg_insight(70, 0),         # 0 报名 past RM60 → CPL closes it
+                "young": _reg_insight(30, 0),        # under the RM60 floor → keep
+                "named over": _reg_insight(200, 2)}  # name-based cpa.hold, CPL 100 → CPL closes it
+    ck = cpa.norm("stockbloom | broad my | 1017")
+    sold = {(ck, "", cpa.norm(n)): 1 for n in names}
+    spend60 = {n: 2500.0 for n in names}            # CPA 2500 > 1200 → hard stop without the hold
+    by_name = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=(sold, spend60))}
+
+    assert by_name["fine"].should_pause is False and by_name["fine"].reason == CPA_MANUAL_HOLD
+    assert by_name["young"].should_pause is False and by_name["young"].reason == CPA_MANUAL_HOLD
+    assert by_name["over"].should_pause is True and by_name["over"].reason == _OVER
+    assert by_name["zero"].should_pause is True and by_name["zero"].reason == _ZERO
+    assert by_name["named over"].should_pause is True and by_name["named over"].reason == _OVER
+
+
 def test_banned_creative_overrides_every_rescue_and_hold():
     # ⛔ owner 2026-09-23, after the 2nd account ban: a creative Meta has ever rejected
     # never runs again. The ban must beat the CPL hold, the CPA rescue AND cpa.hold —
@@ -835,3 +867,44 @@ def test_bot_rule_and_register_scan():
     out = cpa.bot_registrations(reg, since=dt.date(2026, 10, 16), camp_key=key, adset_key=cpa.norm)
     assert out == {(key("(Webinarkit) CAMP | 1-1-4 | 1"), "set a", cpa.norm("Video：盖电脑，喂！")): [dt.date(2026, 11, 13)]}
     assert cpa.is_bot_registration("Ahmad", "AhmadAhmad") and not cpa.is_bot_registration("Ahmad", "Ahmad")
+
+
+def test_cpa_rescue_has_a_ceiling_at_rescue_max_x():
+    # owner 2026-11-20「照建议」: an ad with real sales at CPA ≤ the hard stop is kept past the CPL line — but only up to
+    # 1.5× its own line (CPL) and 1.5× its own 0-报名 floor. A NEW VIDEO ad uses its RM80 override, so its ceiling is RM120.
+    from adbot.monitor_cpl import RESCUE_CAPPED as _CAP
+    from adbot.settings import CampaignKpiOverride
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=60, cpl_min_spend_myr=60, zero_lead_spend_myr=60,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True,
+                                   campaign_overrides=[CampaignKpiOverride(match="NEW VIDEO", cpl_threshold_myr=80,
+                                                                           cpl_min_spend_myr=80, zero_lead_spend_myr=80)]),
+                        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14, min_spend_myr=1000, rescue_max_x=1.5))
+    campaigns = [{"id": "A", "name": "STOCKBLOOM | BROAD MY | 1017", "effective_status": "ACTIVE"},
+                 {"id": "B", "name": "STOCKBLOOM | NEW VIDEO · News | 1-5-1 | 1110", "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad("cpl85"), _ad("cpl100"), _ad("zero80"), _ad("zero95")], "B": [_ad("nv110"), _ad("nv130"), _ad("nvzero100")]}
+    insights = {"cpl85": _reg_insight(170, 2),     # CPL 85 > 60 but ≤ 90 → still rescued
+                "cpl100": _reg_insight(200, 2),    # CPL 100 > 90 → closed
+                "zero80": _reg_insight(80, 0),     # 0 报名 at RM80 < 90 → still rescued
+                "zero95": _reg_insight(95, 0),     # 0 报名 at RM95 ≥ 90 → closed
+                "nv110": _reg_insight(220, 2),     # NEW VIDEO CPL 110 > 80 but ≤ 120 → still rescued
+                "nv130": _reg_insight(260, 2),     # NEW VIDEO CPL 130 > 120 → closed
+                "nvzero100": _reg_insight(100, 0)}  # NEW VIDEO 0 报名 at RM100 < 120 → still rescued
+    sold = {}
+    for cname, names in (("stockbloom | broad my | 1017", ("cpl85", "cpl100", "zero80", "zero95")),
+                         ("stockbloom | new video · news | 1-5-1 | 1110", ("nv110", "nv130", "nvzero100"))):
+        for n in names:
+            sold[(_mkey(cname), "", cpa.norm(n))] = 1
+    spend60 = {n: 600.0 for n in insights}        # CPA 600 ≤ 1,200 → rescue applies
+    by_name = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=(sold, spend60))}
+
+    for n in ("cpl85", "zero80", "nv110", "nvzero100"):
+        assert by_name[n].should_pause is False and by_name[n].reason == cpa.CPL_RESCUED, n
+    for n in ("cpl100", "zero95", "nv130"):
+        assert by_name[n].should_pause is True and by_name[n].reason == _CAP, n
+
+    # rescue_max_x = 0 → no ceiling (the old behaviour): CPL 100 stays rescued
+    settings0 = settings.model_copy(update={"cpa": settings.cpa.model_copy(update={"rescue_max_x": 0.0})})
+    by0 = {d.name: d for d in evaluate_account(_FakeGraph(campaigns, ads, insights), settings0, cpa_ctx=(sold, spend60))}
+    assert by0["cpl100"].should_pause is False and by0["cpl100"].reason == cpa.CPL_RESCUED

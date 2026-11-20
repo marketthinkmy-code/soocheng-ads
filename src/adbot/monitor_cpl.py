@@ -33,6 +33,7 @@ CPL_SUSPENDED = "cpl_suspended"  # kpi.cpl_paused_until: no CPL judgment during 
 BANNED_CREATIVE = "banned_creative"  # permanently banned master (owner 2026-09-23)
 CPA_MANUAL_HOLD = "cpa_manual_hold"  # owner-named exemption from the CPA hard-stop (cpa.hold)
 NAME_RESCUED = "cpl_high_but_creative_sells"  # sales matched by ad name only (renamed campaign)
+RESCUE_CAPPED = "cpa_rescue_over_cap"     # has sales, but CPL / 0-reg spend is past the rescue ceiling (owner 2026-11-20)
 SOFT_REDUCED = "cpl_over_soft_reduced"  # budget carrier cut instead of pausing (kpi.cpl_soft_reduce)
 CPA_UNAVAILABLE_HOLD = "cpa_unavailable_hold"  # CPA data failed to load this run -> no CPL pause (owner 2026-11-17「修」)
 # Returned by build_cpa_context when the sales sheet / 60-day spend could not be read. A real "no sales"
@@ -401,8 +402,19 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                         or (cpa_hold_to and today.isoformat() <= str(cpa_hold_to))):
                     # owner-named CPA exemption (e.g. 2026-09-21「开回 V8」observation
                     # week): keeps the reopened ad alive although its 60d CPA sits over
-                    # the hard stop. CPL rules still apply unless it's also in cpl_hold.
-                    should_pause, reason = False, CPA_MANUAL_HOLD
+                    # the hard stop. CPL rules still apply unless it's also in cpl_hold —
+                    # combined_decision returns HARD_STOP before looking at CPL, so fall back
+                    # to the CPL verdict here (owner 11/20: protected ads「CPL 规则照常判」).
+                    should_pause, reason = (cpl_pause, cpl_reason) if cpl_pause else (False, CPA_MANUAL_HOLD)
+                mx = settings.cpa.rescue_max_x or 0.0
+                if reason == cpa.CPL_RESCUED and mx > 0:
+                    # owner 2026-11-20「照建议」: a sale is evidence of the right people, but it can't carry an
+                    # unlimited CPL — past mx × the ad's own line / 0-报名 floor the CPL verdict stands.
+                    zero_floor = (kpi_ad.zero_lead_spend_myr if kpi_ad.zero_lead_spend_myr is not None
+                                  else kpi_ad.cpl_min_spend_myr)
+                    if (cpl_reason == OVER_THRESHOLD and cpl is not None and cpl > mx * kpi_ad.cpl_threshold_myr) or (
+                            cpl_reason == ZERO_RESULTS and spend >= mx * zero_floor):
+                        should_pause, reason = True, RESCUE_CAPPED
 
             if cpa_down and should_pause:
                 # owner 2026-11-17「修」: sales data unavailable this run — hold every CPL /

@@ -110,6 +110,7 @@ cpa:                                     # cost per real PAID acquisition (joins
   hard_stop_myr: 1200.00                 # above here (with real sales) -> auto-pause
   conversion_days: 14                    # registrations take time to convert; don't judge CPA until this old
   min_spend_myr: 1000.00                 # need >= this spend before a CPA verdict is fair
+  rescue_max_x: 1.5                      # owner 2026-11-20「照建议」: 成交保护上限——CPL > 线 ×1.5、或 0 报名花到门槛 ×1.5，有成交也照关
   hold_ad_until:                         # owner 2026-11-20「保护这两支到周三」: CPA 硬线豁免（只认 ad ID，到期自动失效；CPL 规则照判）
     "120251456191090329": "2026-11-25"   #   BROAD MY › Broad | MY 28+ · freestyle: korea（60 天 CPA 2,582 / 1 单）
     "120251454702680329": "2026-11-25"   #   BUSINESS OWNER › Business Owner | MY 28+ · 年纪大（60 天 CPA 1,646 / 1 单）
