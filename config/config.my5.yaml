@@ -40,6 +40,8 @@ meta:
     locales: [1004]                      # ad-set Languages = Chinese (All)
     excluded_custom_audiences: []        # cleared 2026-07-13: the old audience lived on the disabled account;
                                          #   re-add a "30 days complete registration" audience once rebuilt on the new acct
+    publisher_platforms: ["facebook", "instagram"]  # placements: FB + IG only, Audience Network excluded (owner 2026-11-20「1」).
+                                         #   [] = Advantage+ placements. Why: see CLAUDE.md «Placements».
 
 
   build:

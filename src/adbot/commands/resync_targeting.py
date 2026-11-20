@@ -3,8 +3,9 @@
 The 1-1-10 build only sets targeting when it first *creates* the ad set; re-running build
 reuses the existing ad set untouched (so it never disturbs a learning ad set). This command
 is the deliberate exception: it rewrites the live ad set's targeting to exactly what config
-says — Broad MY + Chinese + ``advantage_audience`` + any ``excluded_custom_audiences`` —
-so an exclusion (or Advantage+) added after the build lands without a full rebuild.
+says — Broad MY + Chinese + ``advantage_audience`` + ``publisher_platforms`` (placements) + any
+``excluded_custom_audiences`` — so an exclusion (or Advantage+) added after the build lands
+without a full rebuild.
 
 Safe to run on the current PAUSED, zero-spend ad set: there is no learning phase to reset.
 """
