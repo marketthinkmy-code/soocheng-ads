@@ -205,6 +205,9 @@ class CpaCfg(BaseModel):
     # owner 2026-11-20「保护这两支到周三」: per-ad CPA hard-stop exemption by ad ID, until (and including) a date —
     # exact position only (name substrings in `hold` would also cover every same-name copy). CPL rules still apply.
     hold_ad_until: Dict[str, str] = Field(default_factory=dict)
+    # owner 2026-11-20「照建议」: the CPA rescue (sales at CPA ≤ hard stop keep an over-CPL ad) gets a ceiling —
+    # CPL above rescue_max_x × the ad's CPL line, or 0 报名 at rescue_max_x × its 0-报名 floor, closes it anyway. 0 = no ceiling.
+    rescue_max_x: float = 0.0
     # owner 2026-11-19「修 monitor」: also credit a sale to the position the buyer REGISTERED from (Register tab UTM,
     # reliable since the 10/29 tracking fix), not only to the Paid row's own UTM. "" turns the Register join off.
     register_tab: str = "Register"
