@@ -395,8 +395,10 @@ def evaluate_account(graph, settings: Settings, *, cpa_ctx=None) -> List[AdDecis
                     cpl_pause=cpl_pause, cpl_reason=cpl_reason, cpa_value=cpa_val,
                     cpa_sales=n_sales, cpa_spend=sp60, age_days=age, tiers=tiers,
                     conversion_days=settings.cpa.conversion_days, min_spend=settings.cpa.min_spend_myr)
-                if should_pause and reason == cpa.HARD_STOP and any(
-                        h and h in name for h in settings.cpa.hold):
+                cpa_hold_to = (settings.cpa.hold_ad_until or {}).get(str(ad["id"]))
+                if should_pause and reason == cpa.HARD_STOP and (
+                        any(h and h in name for h in settings.cpa.hold)
+                        or (cpa_hold_to and today.isoformat() <= str(cpa_hold_to))):
                     # owner-named CPA exemption (e.g. 2026-09-21「开回 V8」observation
                     # week): keeps the reopened ad alive although its 60d CPA sits over
                     # the hard stop. CPL rules still apply unless it's also in cpl_hold.
