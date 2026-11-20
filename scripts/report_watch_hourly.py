@@ -74,7 +74,8 @@ for lab, cfg, cc in ACCTS:
         rate[name] = (lpv_x, rg_x)
         print(f"A {name}: RM{sp:,.0f} / {rg:.0f} 报名" + (f" · CPL {sp / rg:.0f}" if rg else "") +
               f" · 无 AN 落地页→报名 {rg_x / lpv_x * 100 if lpv_x else 0:.1f}%（{lpv_x:.0f} LPV）· AN RM{an[0]:.0f}")
-        if name == "今天" and an[0] >= 5:
+        # owner removed AN from every live ad set on 11/20 (00:05–00:11 and 12:02–12:04) — 11/20 itself still holds the morning's AN spend
+        if name == "今天" and an[0] >= 5 and TODAY > dt.date(2026, 11, 20):
             alerts.append(f"{lab} 今天 Audience Network 还在花钱 RM{an[0]:.0f}（你已拿掉 AN 的 ad set 不该再花）")
     (lw, rw), (lt, rt) = rate["周四起"], rate["今天"]
     if lt >= 20 and lw and rw and (rt / lt) < 0.5 * (rw / lw):
@@ -116,7 +117,7 @@ for lab, cfg, cc in ACCTS:
         res = d.results
         cpl = f"CPL {d.spend / res:.0f}" if res else "0 报名"
         near = ""
-        if not d.should_pause and res == 0 and d.spend >= 0.75 * floor:
+        if not d.should_pause and res == 0 and 0.75 * floor <= d.spend < floor:
             near = f" ⚠️ 离 0 报名门槛 RM{floor:.0f} 还差 RM{floor - d.spend:.0f}"
         verdict = "下一轮会关" if d.should_pause else "留"
         print(f"   RM{d.spend:5.0f} / {res:.0f} · {cpl} · 线 {line:.0f} / 门槛 {floor:.0f} · {verdict}（{d.reason}）{near}"
