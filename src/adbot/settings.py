@@ -202,6 +202,9 @@ class CpaCfg(BaseModel):
     conversion_days: int = 14           # don't judge CPA / 'no sales' until this old
     min_spend_myr: float = 1000.0       # need at least this much spend to fairly judge CPA
     hold: List[str] = Field(default_factory=list)  # ad-name substrings exempt from the CPA hard-stop
+    # owner 2026-11-20「保护这两支到周三」: per-ad CPA hard-stop exemption by ad ID, until (and including) a date —
+    # exact position only (name substrings in `hold` would also cover every same-name copy). CPL rules still apply.
+    hold_ad_until: Dict[str, str] = Field(default_factory=dict)
     # owner 2026-11-19「修 monitor」: also credit a sale to the position the buyer REGISTERED from (Register tab UTM,
     # reliable since the 10/29 tracking fix), not only to the Paid row's own UTM. "" turns the Register join off.
     register_tab: str = "Register"

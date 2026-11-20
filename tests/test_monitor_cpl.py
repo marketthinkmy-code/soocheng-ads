@@ -455,6 +455,28 @@ def test_cpa_hold_exempts_named_ad_from_hard_stop_only():
     assert by_name["kill_me"].reason == cpa.HARD_STOP
 
 
+def test_cpa_hold_ad_until_exempts_only_that_ad_id_until_the_date():
+    # owner 2026-11-20「保护这两支到周三」: an ID-based, dated CPA hard-stop exemption. A same-name copy
+    # (different ad id) still hard-stops, and an expired date no longer protects.
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=40, cpl_min_spend_myr=80,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True),
+                        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14, min_spend_myr=1000,
+                                   hold_ad_until={"held": "2099-12-31", "expired": "2000-01-01"}))
+    campaigns = [{"id": "A", "name": "STOCKBLOOM | BROAD MY | 1017", "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad("held"), _ad("copy"), _ad("expired")]}
+    insights = {n: _reg_insight(100, 4) for n in ("held", "copy", "expired")}   # CPL 25 fine
+    ck = cpa.norm("stockbloom | broad my | 1017")
+    sold = {(ck, "", cpa.norm(n)): 1 for n in ("held", "copy", "expired")}
+    spend60 = {n: 2500.0 for n in ("held", "copy", "expired")}                 # CPA 2500 > 1200
+    by_name = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=(sold, spend60))}
+
+    assert by_name["held"].should_pause is False and by_name["held"].reason == CPA_MANUAL_HOLD
+    assert by_name["copy"].should_pause is True and by_name["copy"].reason == cpa.HARD_STOP
+    assert by_name["expired"].should_pause is True and by_name["expired"].reason == cpa.HARD_STOP
+
+
 def test_banned_creative_overrides_every_rescue_and_hold():
     # ⛔ owner 2026-09-23, after the 2nd account ban: a creative Meta has ever rejected
     # never runs again. The ban must beat the CPL hold, the CPA rescue AND cpa.hold —
