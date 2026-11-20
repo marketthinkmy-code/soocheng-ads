@@ -521,6 +521,13 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   MY BROAD MY korea · ad 120251456191090329（60 天 CPA 2,584 / 1 单）、BO 年纪大 · ad 120251454702680329（1,646 / 1）、SG PURCHASE LAL 用我的方法 · ad 120249918410030521（1,206 / 1）都到 11/25；
   10:45 ad 层开回（`execute_reopen_cpa_hold3_1120.py`，回读三层 ACTIVE），main dry-run 三支 = `cpa_manual_hold`。
   在投放日预算 **RM1,425（MY 760 / SG 665）**；周期 11/19 起 RM1,312 → 照这个预算约 **周一 11/23 17:00 碰 RM5,950**，monitor 会在 campaign 层关掉两个账户全部 campaign 到周三 15:00。
+  **11/20 ~11:xx owner「现在广告的规矩是什么？…首要目的：降低 CPL，拿到名单，报名的人都要是对的人」**：
+  ① 我发现 PR #97 的保护**没有**让 CPL 照判（`combined_decision` 先回硬线、保护再改成留）→ 认错，死忌 4；**PR #98** 修（保护只免硬线）。
+  ② owner「照建议」= 成交保护加上限 `cpa.rescue_max_x: 1.5`（CPL > 线×1.5 或 0 报名花到门槛×1.5，有成交也关；reason `cpa_rescue_over_cap`），并进 PR #98。
+     分支 dry-run（11:33）：只有 SG BROAD SG › Broad | SG 28+ · 年纪大 · ad 120250144813480521（RM167/1，CPL 167 > 120）会关；BO 盖电脑 CPL 68、News V4 RM81/0 留。**PR #98 待 owner「合并」。**
+  ③ owner 提议 SG + 全部测试 campaign 改 RM60 门槛 / RM60 线（「没办法接受 CPL 整体超过 RM60」）并请我反驳 → `report_line_backtest_1120.py`（真实每小时数据，三期，扣机器人）：
+     RM60 比 RM80 提早关掉的那一段 = RM1,546 / 42 真报名，CPL 37（比这些广告整体 65 便宜）→ 拿掉后 CPL 65 → 77。整体真 CPL：11/05–11/11 MY 41 / SG 60 / 合计 47；
+     11/12–11/18 MY 46 / SG 74 / 合计 52（门槛与现在相同）；11/19–11/20 11:31 MY 86 / SG 504 / 合计 121。我建议维持 RM80，**待 owner 定**。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
