@@ -55,6 +55,11 @@ class Targeting(BaseModel):
     # Custom-audience NAMES to exclude from delivery (e.g. people who already registered).
     # Names are resolved to ids against the live account at build time (see build_1_1_10).
     excluded_custom_audiences: List[str] = Field(default_factory=list)
+    # Placements = publisher platforms (owner 2026-11-20「1」): Facebook + Instagram only, so Audience
+    # Network is excluded. Its leads cost the same CPL but buy far less (3.5% vs 5.1% registration→paid
+    # over 2026; CPA +34% on SG + MY 5.0). Meta still picks the positions inside each listed platform
+    # (Feed / Reels / Stories / In-stream ...). [] = Advantage+ placements (adds AN / Threads / WhatsApp).
+    publisher_platforms: List[str] = Field(default_factory=lambda: ["facebook", "instagram"])
 
     def to_spec(self, excluded_audience_ids: Optional[List[str]] = None) -> dict:
         spec = {
@@ -63,6 +68,8 @@ class Targeting(BaseModel):
             "age_max": self.age_max,
             "targeting_automation": {"advantage_audience": self.advantage_audience},
         }
+        if self.publisher_platforms:
+            spec["publisher_platforms"] = list(self.publisher_platforms)
         if self.locales:
             spec["locales"] = self.locales
         if excluded_audience_ids:

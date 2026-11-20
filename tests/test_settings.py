@@ -38,6 +38,18 @@ def test_targeting_spec_is_broad_my_25plus(tmp_path):
     assert spec["targeting_automation"]["advantage_audience"] == 1
     # No exclusions configured / passed -> the key is absent (don't send an empty list to Meta).
     assert "excluded_custom_audiences" not in spec
+    # Placements default to FB + IG only — Audience Network excluded (owner 2026-11-20).
+    assert spec["publisher_platforms"] == ["facebook", "instagram"]
+
+
+def test_targeting_spec_empty_platforms_means_advantage_placements(tmp_path):
+    cfg = tmp_path / "config.yaml"
+    cfg.write_text(CONFIG.replace("advantage_audience: 1 }",
+                                  "advantage_audience: 1, publisher_platforms: [] }"),
+                   encoding="utf-8")
+    spec = load_settings(cfg).meta.targeting.to_spec()
+    # [] -> no publisher_platforms key, so Meta uses Advantage+ placements.
+    assert "publisher_platforms" not in spec
 
 
 def test_targeting_spec_injects_excluded_custom_audiences(tmp_path):

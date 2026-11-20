@@ -124,6 +124,7 @@ def test_build_creates_and_activates(tmp_path, monkeypatch):
     assert adset["optimization_goal"] == "OFFSITE_CONVERSIONS"
     assert adset["promoted_object"] == {"pixel_id": "PIX9", "custom_event_type": "LEAD"}
     assert adset["targeting"]["targeting_automation"]["advantage_audience"] == 1
+    assert adset["targeting"]["publisher_platforms"] == ["facebook", "instagram"]  # no Audience Network
 
     ads = [c[1] for c in g.calls if c[0] == "ad"]
     assert len(ads) == 3

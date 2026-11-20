@@ -134,6 +134,14 @@ pool. Feed it well:
 - **Consolidate** ad sets (don't split into many duplicates fighting for budget).
 - **Consistent offer signals** in every creative so the model understands the offer:
   `1 分钟极速交易策略` · `Prop Firm 资金审核` · `红绿灯 SOP` · `免费线上分享会`.
+- **Placements: Facebook + Instagram only (Audience Network excluded)** — owner 2026-11-20「1」.
+  `adbot build` sets this via `meta.targeting.publisher_platforms` (default `["facebook", "instagram"]`;
+  `[]` = Advantage+ placements). Inside each platform Meta still picks the positions, so do NOT
+  hand-pick positions (FB Reels brings ~40% of buyers). Why: Audience Network leads cost the same CPL
+  (RM63 vs RM64) but buy less — 3.5% vs 5.1% registration→paid over 2026, lower in every quarter;
+  CPA RM1,485 vs RM1,110 on SG + MY 5.0 (7/14–11/20). The CPL monitor can't see this, so it's set
+  structurally. Live ad sets were NOT changed by this — that's the owner's call in Ads Manager
+  (an API placement edit pauses the ad set and restarts learning).
 
 ---
 
