@@ -506,6 +506,17 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **11/20 owner「你要来干嘛呢？你是负责广告而已」**：不再索取 Webinarkit 出席名单 CSV、报名后提醒 / Zoom link 设定截图；晨报 / 盘中检查不再问。只管广告。
   **11/20 ~10:3x owner「sg 的很贵，都没有什么 leads」→「照跑，交给 monitor RM80」**：SG 周四起 RM432 / 1（CPM 190–320 ≈ MY 2 倍；37 LPV → 1 报名 ≈ 3%，上期 8–28%）。
   两个 SG 1-1-3 RM187 / 0（korea · ad 120250706569340521 已被 monitor 按 RM80 关），其余照跑到各自 RM80 由 monitor 判；BROAD SG 照跑。
+  **11/20 ~10:2x–10:3x owner「因为 29/10 - 4/11 的成交不错（10人），所以我会开回 MY & SG 那段期间跑到不错的广告」→「我都开好了」**（owner 本人开回 = 有效，
+  这些位置离开「owner 关 = 定案」名单；`report_live_budget_1120.py` 10:38 读回）：
+  MY 开回 BROAD MY / BUSINESS OWNER / DAY TRADING / LUXURY MY / WINNERS MY 1022 的 9 支（BROAD MY korea · ad 120251456191090329、用我的方法 · ad 120251456458520329；
+  BO 用我的方法 · ad 120251456457820329、年纪大 · ad 120251454702680329；DT korea · ad 120251455974450329、年纪大 · ad 120251454717600329；LUXURY 盖电脑 · ad 120251454697280329；
+  WINNERS MY korea · ad 120251533795060329、盖电脑 · ad 120251533792260329），BO / BROAD MY / DT 的 CBO 现在都是 RM100；
+  SG 开回 PURCHASE LAL 5% 1017（CBO RM60：用我的方法 · ad 120249918410030521、我跟你讲 · ad 120249918410840521）、TRAVEL SG 1030（CBO RM100：年纪大 · ad 120250144816380521）、
+  WINNERS 1020（Investment › 用我的方法 · ad 120249964899250521 RM80、LAL 5% › 盖电脑 · ad 120250008788460521 RM65）。🚫 赚美金副本全部仍 ad 层 PAUSED；开着的 campaign 里 0 支禁跑 / 被拒 ad 上膛。
+  **10:40 monitor 按 CPA 硬线关掉 3 支刚开回的** → owner「保护这两支到周三」+「三支都保护，合并后开回」→ **PR #97（dc0b15f）`cpa.hold_ad_until`**（只认 ad ID、到期自动失效、CPL 规则照判）：
+  MY BROAD MY korea · ad 120251456191090329（60 天 CPA 2,584 / 1 单）、BO 年纪大 · ad 120251454702680329（1,646 / 1）、SG PURCHASE LAL 用我的方法 · ad 120249918410030521（1,206 / 1）都到 11/25；
+  10:45 ad 层开回（`execute_reopen_cpa_hold3_1120.py`，回读三层 ACTIVE），main dry-run 三支 = `cpa_manual_hold`。
+  在投放日预算 **RM1,425（MY 760 / SG 665）**；周期 11/19 起 RM1,312 → 照这个预算约 **周一 11/23 17:00 碰 RM5,950**，monitor 会在 campaign 层关掉两个账户全部 campaign 到周三 15:00。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
 - **11/12 晚 monitor 两项改动（PR #90，owner「改吧」+「SG 的关停线从 95 降到 80」）**：
