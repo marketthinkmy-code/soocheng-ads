@@ -477,6 +477,38 @@ def test_cpa_hold_ad_until_exempts_only_that_ad_id_until_the_date():
     assert by_name["expired"].should_pause is True and by_name["expired"].reason == cpa.HARD_STOP
 
 
+def test_cpa_hold_still_lets_cpl_rules_close_the_ad():
+    # owner 2026-11-20: protected ads are「CPL 规则照常判」. The CPA hold only lifts the hard stop —
+    # a held ad over the CPL line, or at 0 registrations past the spend floor, is still paused.
+    from adbot.monitor_cpl import OVER_THRESHOLD as _OVER, ZERO_RESULTS as _ZERO
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=60, cpl_min_spend_myr=60, zero_lead_spend_myr=60,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True),
+                        cpa=CpaCfg(enabled=True, hard_stop_myr=1200, conversion_days=14, min_spend_myr=1000,
+                                   hold_ad_until={"fine": "2099-12-31", "over": "2099-12-31", "zero": "2099-12-31",
+                                                  "young": "2099-12-31"},
+                                   hold=["named over"]))
+    campaigns = [{"id": "A", "name": "STOCKBLOOM | BROAD MY | 1017", "effective_status": "ACTIVE"}]
+    names = ("fine", "over", "zero", "young", "named over")
+    ads = {"A": [_ad(n) for n in names]}
+    insights = {"fine": _reg_insight(100, 4),        # CPL 25 → keep (held)
+                "over": _reg_insight(200, 2),        # CPL 100 > 60 → CPL closes it
+                "zero": _reg_insight(70, 0),         # 0 报名 past RM60 → CPL closes it
+                "young": _reg_insight(30, 0),        # under the RM60 floor → keep
+                "named over": _reg_insight(200, 2)}  # name-based cpa.hold, CPL 100 → CPL closes it
+    ck = cpa.norm("stockbloom | broad my | 1017")
+    sold = {(ck, "", cpa.norm(n)): 1 for n in names}
+    spend60 = {n: 2500.0 for n in names}            # CPA 2500 > 1200 → hard stop without the hold
+    by_name = {d.name: d for d in evaluate_account(
+        _FakeGraph(campaigns, ads, insights), settings, cpa_ctx=(sold, spend60))}
+
+    assert by_name["fine"].should_pause is False and by_name["fine"].reason == CPA_MANUAL_HOLD
+    assert by_name["young"].should_pause is False and by_name["young"].reason == CPA_MANUAL_HOLD
+    assert by_name["over"].should_pause is True and by_name["over"].reason == _OVER
+    assert by_name["zero"].should_pause is True and by_name["zero"].reason == _ZERO
+    assert by_name["named over"].should_pause is True and by_name["named over"].reason == _OVER
+
+
 def test_banned_creative_overrides_every_rescue_and_hold():
     # ⛔ owner 2026-09-23, after the 2nd account ban: a creative Meta has ever rejected
     # never runs again. The ban must beat the CPL hold, the CPA rescue AND cpa.hold —
