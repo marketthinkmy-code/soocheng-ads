@@ -548,6 +548,7 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **16:13 owner 本人（Power Editor）关掉 SG WINNERS | 1-8-8 | 1020 campaign（120249964890710521）= 定案**（里面两支 15:01 已被 monitor 关）。
   **16:40 monitor 按 MY 0 报名门槛 RM60 关 LUXURY MY › Luxury | MY 28+ · 盖电脑 · ad 120251454697280329**（RM60.37 / 0，60 天 0 单）= 规则正确；LUXURY MY campaign（CBO RM60）已无在跑 ad。
   **17:12 owner 本人（Power Editor）关掉 LUXURY MY | 1-1-5 | 1017 campaign（120251454680840329）= 定案**（里面已无在跑 ad，日预算不变）。
+  **18:40 monitor 按 SG 0 报名门槛 RM80 关 [SG] PURCHASE LAL 5% | 1-1-5 | 1017 › Purchase LAL 5% | SG 28+ · 用我的方法 · ad 120249918410030521**（周四起 RM81.96 / 0，`zero_results_over_min_spend`；60 天 CPA 1,288 / 1 单）= 规则正确（hold_ad_until 只免 CPA 硬线，PR #98），不得自动开回。同 campaign 的 我跟你讲 · ad 120249918410840521 照跑，CBO RM60 不变。
   日预算 → RM1,160（MY 700 / SG 460），约周二 11/24 02:00 碰 RM5,950。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
