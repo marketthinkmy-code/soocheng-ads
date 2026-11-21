@@ -8,8 +8,8 @@ from adbot.commands import graph_client
 from adbot.settings import REPO_ROOT, load_settings
 
 NOW = dt.datetime.utcnow() + dt.timedelta(hours=8)
-CAMPS = [("config.sg.yaml", "120250705800700521", "开（owner 11/19 17:1x 自己开）"), ("config.my5.yaml", "120251995650640329", "关（周六问 owner 再定）"),
-         ("config.sg.yaml", "120250705919180521", "关（周六问 owner 再定）"),
+CAMPS = [("config.sg.yaml", "120250705800700521", "开（owner 11/19 17:1x 自己开）"), ("config.my5.yaml", "120251995650640329", "开（owner 11/21 10:4x「现在开」）"),
+         ("config.sg.yaml", "120250705919180521", "开（owner 11/21 10:4x「现在开」）"),
          ("config.sg.yaml", "120250706566080521", "开（owner 11/19 17:1x 自己开）"),
          ("config.my5.yaml", "120251993979260329", "开（owner 11/19 开）"), ("config.my5.yaml", "120251993985380329", "开（owner 11/19 开）")]
 print(f"现在 {NOW:%m-%d %H:%M} MYT · 只读")
