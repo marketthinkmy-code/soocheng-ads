@@ -112,9 +112,11 @@ for lab, cfg, cc in ACCTS:
         ov = next((o for o in kpi.campaign_overrides if o.match and o.match in camp), None)
         line = (ov.cpl_threshold_myr if ov and ov.cpl_threshold_myr else kpi.cpl_threshold_myr)
         floor = (ov.zero_lead_spend_myr if ov and ov.zero_lead_spend_myr else (kpi.zero_lead_spend_myr or kpi.cpl_min_spend_myr))
-        if d.reason == "veteran_wait":
-            floor = max(floor, kpi.veteran_min_spend_myr)
         res = d.results
+        if d.reason == "veteran_wait" or (d.reason == "cpa_manual_hold" and res == 0 and d.spend >= floor):
+            # cpa_manual_hold hides veteran_wait (monitor_cpl: held ad keeps CPL verdict only when it pauses) —
+            # a held ad past the base floor with 0 报名 that is NOT paused can only be a veteran (11/21 BO 年纪大 at RM61).
+            floor = max(floor, kpi.veteran_min_spend_myr)
         cpl = f"CPL {d.spend / res:.0f}" if res else "0 报名"
         near = ""
         if not d.should_pause and res == 0 and 0.75 * floor <= d.spend < floor:
