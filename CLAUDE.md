@@ -508,6 +508,7 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **随即 owner「我关掉三个吧」= 定案**：用我的方法 · ad 120250144813920521、不选 forex · ad 120250144812470521、korea · ad 120250144811900521 ad 层 PAUSED（owner 本人，读回 PAUSED）。
   BROAD SG 在跑剩 年纪大 · ad 120250144813480521 + 我跟你讲 · ad 120250144814180521（CBO RM130）。
   **11/20 owner「你要来干嘛呢？你是负责广告而已」**：不再索取 Webinarkit 出席名单 CSV、报名后提醒 / Zoom link 设定截图；晨报 / 盘中检查不再问。只管广告。
+  **11/21 owner「华语」**（我 11:47 汇报误用英文）：所有汇报 / 回复 / AskUserQuestion 一律用华语（简体中文），不用英文。
   **11/20 ~10:3x owner「sg 的很贵，都没有什么 leads」→「照跑，交给 monitor RM80」**：SG 周四起 RM432 / 1（CPM 190–320 ≈ MY 2 倍；37 LPV → 1 报名 ≈ 3%，上期 8–28%）。
   两个 SG 1-1-3 RM187 / 0（korea · ad 120250706569340521 已被 monitor 按 RM80 关），其余照跑到各自 RM80 由 monitor 判；BROAD SG 照跑。
   **11/20 ~10:2x–10:3x owner「因为 29/10 - 4/11 的成交不错（10人），所以我会开回 MY & SG 那段期间跑到不错的广告」→「我都开好了」**（owner 本人开回 = 有效，
