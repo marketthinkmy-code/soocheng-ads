@@ -559,6 +559,7 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **11/21 夜里 monitor 关了 3 支（都 60 天 0 单，规则正确，不得自动开回）**：01:20 [SG] BEST · Broad | 1-1-3 | 1120 › Broad | SG 28+ · 用我的方法 · ad 120250705804890521（RM82.44 / 1，CPL 82.44 > 80）；
   03:20 BUSINESS OWNER | 1-1-5 | 1017 › Business Owner | MY 28+ · 用我的方法 · ad 120251456457820329（RM60.11 / 1，CPL 60.11 > 60）；07:40 [SG] PURCHASE LAL 5% | 1-1-5 | 1017 › Purchase LAL 5% | SG 28+ · 我跟你讲 · ad 120249918410840521（RM83.32 / 0）。
   **07:5x 常设规则关空 campaign**：[SG] PURCHASE LAL 5% | 1-1-5 | 1017 · campaign 120249918198320521（CBO RM60，dry-run → 执行，回读 PAUSED）。日预算 → RM920（MY 600 / SG 320）。
+  **08:40 monitor 按 SG 0 报名门槛 RM80 关 [SG] NEW VIDEO · Broad | 1-5-1 | 1110 › Broad | SG 28+ · V4 · ad 120250544546540521**（周四起 RM81.06 / 0，60 天 0 单）= 规则正确，不得自动开回；**08:5x 常设规则关空 campaign** [SG] NEW VIDEO · Broad | 1-5-1 | 1110 · campaign 120250544490730521（ABO，回读见当次日志）。日预算 → RM860（MY 600 / SG 260）。
   日预算 → RM1,160（MY 700 / SG 460），约周二 11/24 02:00 碰 RM5,950。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
