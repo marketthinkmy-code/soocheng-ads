@@ -20,6 +20,7 @@ for lab, cfg in (("MY", "config.my5.yaml"), ("SG", "config.sg.yaml")):
     gs[lab] = (graph_client(s), s.meta.account_path)
 
 g_sg = gs["SG"][0]
+gs_banned = load_settings(REPO_ROOT / "config" / "config.sg.yaml").compliance.banned_creatives
 vids = {}
 for aid, kw in REJ.items():
     a = g_sg.get_object(aid, "name,status,effective_status,updated_time,ad_review_feedback,issues_info,"
@@ -34,7 +35,7 @@ for aid, kw in REJ.items():
     if a.get("issues_info"):
         print(f"    issues_info: {json.dumps(a.get('issues_info'), ensure_ascii=False)[:600]}")
     print(f"    creative {cr.get('id')} · video {vid} · post {cr.get('effective_object_story_id')}")
-    print(f"    is_banned(name) now: {compliance.is_banned(a['name'])}")
+    print(f"    is_banned(name) now: {compliance.is_banned(a['name'], gs_banned)}")
 
 for kw, vid in vids.items():
     print(f"\n######## 所有副本：「{kw}」（名字含关键字，或同 video id {vid}）")
