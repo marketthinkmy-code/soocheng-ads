@@ -32,6 +32,9 @@ CNAME = "(Webinarkit) [SG] STOCKBLOOM | BROAD POOL | 1-1-4 | 1123"
 ASET = "Broad | SG 28+"
 BUDGET = 10000
 SRC = {"年纪大": "120250144813480521", "用我的方法": "120250144813920521", "决定变少": "120250544546540521", "盖电脑": "120250706571120521"}
+# Posts whose link can't be read any more (token lacks pages_read_engagement; the MY ad that carried it now has a new post), with the evidence:
+VERIFIED_POSTS = {"1001334883061622_122126499021286543":
+                  "11/19 execute_build_sg113b_1120 已核对 → webinarkit-register-wed；nov25 报名表这期有 6 笔 SG LOW CPL 报名经它进来"}
 
 
 def link_of(cr):
@@ -74,6 +77,9 @@ for k, aid in SRC.items():
                         break
                 if found:
                     break
+        if not found and post in VERIFIED_POSTS:
+            found = LINK
+            print(f"  ({k}: post {post} 现在没有读得到链接的 ad；用既有证据：{VERIFIED_POSTS[post]})")
         assert found == LINK, (k, post, found)
     else:
         assert link_of(cr) == LINK, (k, link_of(cr))
