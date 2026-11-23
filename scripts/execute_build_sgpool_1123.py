@@ -32,7 +32,6 @@ CNAME = "(Webinarkit) [SG] STOCKBLOOM | BROAD POOL | 1-1-4 | 1123"
 ASET = "Broad | SG 28+"
 BUDGET = 10000
 SRC = {"年纪大": "120250144813480521", "用我的方法": "120250144813920521", "决定变少": "120250544546540521", "盖电脑": "120250706571120521"}
-POST_VIA_MY = {"盖电脑": ("120251454701640329", "1001334883061622_122126499021286543")}   # same post as execute_build_sg113b_1120.py
 
 
 def link_of(cr):
@@ -43,7 +42,8 @@ def link_of(cr):
 
 s = load_settings(REPO_ROOT / "config" / "config.sg.yaml")
 g = graph_client(s)
-gmy = graph_client(load_settings(REPO_ROOT / "config" / "config.my5.yaml"))
+s_my = load_settings(REPO_ROOT / "config" / "config.my5.yaml")
+gmy = graph_client(s_my)
 acct = s.meta.account_path
 print("APPLY" if CONFIRM else "DRY-RUN")
 src = {}
@@ -51,12 +51,30 @@ for k, aid in SRC.items():
     a = g.get_object(aid, "name,effective_status,campaign{name},adset{name},"
                           "creative{id,effective_object_story_id,object_story_spec,url_tags}")
     cr = a["creative"]
-    if not link_of(cr) and k in POST_VIA_MY:      # SG creative made from object_story_id → verify the link on the MY ad with the same post
-        my_ad, post = POST_VIA_MY[k]
-        assert cr.get("effective_object_story_id") == post, (k, cr.get("effective_object_story_id"))
-        m = gmy.get_object(my_ad, "creative{effective_object_story_id,object_story_spec}")["creative"]
-        assert m.get("effective_object_story_id") == post and link_of(m) == LINK, (k, m)
-        print(f"  ({k}: 链接经 MY ad {my_ad} 同一个 post 核对)")
+    if not link_of(cr):      # SG creative made from object_story_id → verify the post's own CTA link, else any ad carrying the same post
+        post = cr.get("effective_object_story_id")
+        found = ""
+        for gg in (g, gmy):
+            try:
+                cta = (gg.get_object(post, "call_to_action").get("call_to_action") or {})
+                found = ((cta.get("value") or {}).get("link") or "")
+            except Exception as exc:  # noqa: BLE001
+                print(f"  ({k}: 读 post {post} 的 CTA 失败：{str(exc)[:80]})")
+            if found:
+                print(f"  ({k}: post {post} 自身 CTA 链接 = {found})")
+                break
+        if not found:
+            for lab, gg, ss in (("SG", g, s), ("MY", gmy, s_my)):
+                for x in gg._get_all(ss.meta.account_path + "/ads", {"fields": "id,creative{effective_object_story_id,object_story_spec}",
+                                                                     "limit": "500"}):
+                    xc = x.get("creative") or {}
+                    if xc.get("effective_object_story_id") == post and link_of(xc):
+                        found = link_of(xc)
+                        print(f"  ({k}: 链接经 {lab} ad {x['id']}（同一个 post）核对 = {found})")
+                        break
+                if found:
+                    break
+        assert found == LINK, (k, post, found)
     else:
         assert link_of(cr) == LINK, (k, link_of(cr))
     assert not compliance.is_banned(a["name"], s.compliance.banned_creatives) and "🚫" not in a["name"], (k, a["name"])
