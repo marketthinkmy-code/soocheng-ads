@@ -55,16 +55,17 @@ s = load_settings(REPO_ROOT / "config" / "config.my5.yaml")
 g = graph_client(s)
 toks = ("offsite_conversion.custom.1048291251556714", "offsite_conversion.fb_pixel_complete_registration")
 ins = {r["ad_id"]: r for r in g._get_all(s.meta.account_path + "/insights", {"level": "ad", "time_range": tr(U0, TODAY),
-                                                                             "fields": "ad_id,spend,actions", "limit": "500"})}
+                                                                             "fields": "ad_id,ad_name,adset_name,campaign_name,spend,actions", "limit": "500"})}
 insc = {r["ad_id"]: r for r in g._get_all(s.meta.account_path + "/insights", {"level": "ad", "time_range": tr(C0, TODAY),
                                                                               "fields": "ad_id,spend,actions", "limit": "500"})}
 reg_of = lambda i: next((v for v in (extract_results((i or {}).get("actions"), t) for t in toks) if v), 0.0)
 pos, lix = {}, {}
-for a in g._get_all(s.meta.account_path + "/ads", {"fields": "name,status,effective_status,adset{name,status,daily_budget},"
-                                                              "campaign{name,status,daily_budget},creative{effective_object_story_id}", "limit": "500"}):
-    i, ic = ins.get(a["id"]), insc.get(a["id"])
-    if not i:
-        continue
+live = {a["id"]: a for a in g._get_all(s.meta.account_path + "/ads", {"fields": "name,status,effective_status,adset{name,status,daily_budget},"
+                                                                 "campaign{name,status,daily_budget},creative{effective_object_story_id}", "limit": "500"})}
+for aid, i in ins.items():  # insights include deleted ads (the /ads edge does not) — a sale on a deleted ad must not vanish
+    a = live.get(aid) or dict(id=aid, name=i["ad_name"], status="DELETED", effective_status="DELETED",
+                              adset=dict(name=i["adset_name"], status="—"), campaign=dict(name=i["campaign_name"], status="—"), creative={})
+    ic = insc.get(aid)
     pos[a["id"]] = dict(a=a, aud=aud(a["adset"]["name"]), cre=cre(a["name"]), sp=float(i.get("spend") or 0), mr=reg_of(i),
                         sp_c=float((ic or {}).get("spend") or 0), mr_c=reg_of(ic), real=0, real_c=0, sales=[],
                         banned=compliance.is_banned(a["name"], s.compliance.banned_creatives) or "🚫" in a["name"],
@@ -148,7 +149,7 @@ for aid, p in sorted(pos.items(), key=lambda kv: (-len(kv[1]["sales"]), -kv[1]["
         continue
     a = p["a"]
     on = "在跑" if (a["status"], a["adset"]["status"], a["campaign"]["status"]) == ("ACTIVE",) * 3 else \
-        f"关（campaign {a['campaign']['status']} / ad set {a['adset']['status']} / ad {a['status']}）"
+        ("已删除" if a["status"] == "DELETED" else f"关（campaign {a['campaign']['status']} / ad set {a['adset']['status']} / ad {a['status']}）")
     print(f"  {a['campaign']['name']} › {a['adset']['name']} · {a['name']} · ad {aid} · {on}{' · ⛔禁跑' if p['banned'] else ''}\n"
           f"      {line('', dict(p))}" + (" · 成交日 " + ", ".join(f"{d:%m/%d}" for d in sorted(p["sales"])) if p["sales"] else "")
           + f" · post {p['post']}")
