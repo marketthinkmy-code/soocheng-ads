@@ -576,6 +576,7 @@ historical data only; do NOT rebuild them. Reuse the *angle* with a fresh compli
   **11/23 17:40 monitor 按 CPA 硬线关 BUSINESS OWNER | 1-1-5 | 1017 › Business Owner | MY 28+ · 盖电脑 · ad 120251454701640329**（周四起 RM611.35 / 10，CPL 61；60 天 CPA 1,204 / 1 单 > 1,200，`cpa_hard_stop`）= 规则正确（11/19 已预告「60 天再花约 RM440 仍 1 单就会被关」），不得自动开回。**17:50 常设规则关空 campaign** (Webinarkit) STOCKBLOOM | BUSINESS OWNER | 1-1-5 | 1017 · campaign 120251454700150329（CBO RM100，dry-run → 执行，回读 PAUSED）。日预算 → RM730（MY 450 / SG 280），推算约周二 11/24 17:20 碰 RM5,950。
   ⚠️ **11/23 16:00–17:00 News V5 · ad 120251840063080329 Meta 记 3 个报名，但那一小时只有 1 次点击 / 1 LPV**（ad 每小时数据）；报名表 MY 广告今天 8 vs Meta 13 → 疑似同一人重复报名或像素重复计（推测，未验证）。monitor 用 Meta 数，这 3 个会让 V5 看起来比实际好。
   **11/24 09:40 monitor 按线关 [SG] BROAD POOL | 1-1-4 | 1123 › Broad | SG 28+ · 用我的方法 · ad 120250754566010521**（周四起 RM84.29 / 1，CPL 84.29 > 80，`cpl_over_threshold`，60 天 0 单）= 规则正确，不得自动开回；BROAD POOL 还有 决定变少 / 盖电脑 / 年纪大 在跑（空 campaign 检查 0 个）。
+  **11/24 11:01 monitor 按线关 CBO · LUX BEER OMAKASE | 1-3-3 | 1120 › Luxury Goods | MY 28+ · 决定变少 · ad 120251995655320329**（周四起 RM80.40 / 1，CPL 80.40 > 80，`cpl_over_threshold`，60 天 0 单）= 规则正确，不得自动开回；MY CBO 还有 7 支在跑（空 campaign 检查 0 个）。
   日预算 → RM1,160（MY 700 / SG 460），约周二 11/24 02:00 碰 RM5,950。
   **11/16 23:01 monitor 关 SG BROAD SG 用我的方法 · ad 120250144813920521**（CPL 98.55）——那次 Meta 400 读不到 60 天花费，CPA 保护失效（60 天 CPA 约 1,191 本应受保护）；
   离 RM1,200 硬线只差约 RM9，建议不开回。owner「修」→ **PR #92**：读不到 CPA 数据的那一次不做任何 CPL / 0 报名关停（reason `cpa_unavailable_hold`），禁跑照关，下一次再判。
