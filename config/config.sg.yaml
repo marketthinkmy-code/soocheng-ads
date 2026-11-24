@@ -145,8 +145,8 @@ compliance:                              # ⛔ 永久禁跑名单 — owner 2026
     - "赚美金，一定要接美国客户"          # Video 1 — MY 5.0 第二支被拒（第一支 不选 forex 10/8）；全部副本 🚫 + ad 层 PAUSED
 
 spend_cap:                                         # owner 2026-11-19「这一场广告费控制（花到星期三 3PM）在 RM6000 硬规矩。如果提早花完就关广告。」
-  cap_myr: 6000                                    # MY 5.0 + SG together, this cycle
+  cap_myr: 6250                                    # MY 5.0 + SG together, this cycle — owner 11/24「只开 MY，上限 RM6250」(was 6000; hit 11/24 14:20)
   start: "2026-11-19"                              # from 00:00 MYT
   end: "2026-11-25 15:00"                          # MYT — after this the cap does nothing (owner closes by hand on live day)
-  buffer_myr: 50                                   # stop at RM5,950: Meta reports spend late + runs are 20 min apart
+  buffer_myr: 50                                   # stop at RM6,200: Meta reports spend late + runs are 20 min apart
   accounts: ["act_2285351942292267", "act_893025326577600"]
