@@ -26,6 +26,8 @@ alerts = []
 
 s_my = load_settings(REPO_ROOT / "config" / "config.my5.yaml")
 START = cpa.parse_date(s_my.spend_cap.start) or TODAY
+if START > TODAY:  # next cycle's cap is set but not open yet (e.g. Wed after the live) — read today only, no 400
+    START = TODAY
 END = dt.datetime.strptime(s_my.spend_cap.end, "%Y-%m-%d %H:%M") if s_my.spend_cap.end else None
 print(f"现在 {NOW:%m-%d %H:%M} MYT · 只读 · 周期 {START:%m/%d} 起")
 
