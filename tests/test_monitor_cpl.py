@@ -908,3 +908,29 @@ def test_cpa_rescue_has_a_ceiling_at_rescue_max_x():
     settings0 = settings.model_copy(update={"cpa": settings.cpa.model_copy(update={"rescue_max_x": 0.0})})
     by0 = {d.name: d for d in evaluate_account(_FakeGraph(campaigns, ads, insights), settings0, cpa_ctx=(sold, spend60))}
     assert by0["cpl100"].should_pause is False and by0["cpl100"].reason == cpa.CPL_RESCUED
+
+
+def test_live_configs_cap_window_is_the_dec02_cycle():
+    """owner 2026-11-25「下期上限 RM6250」: both live configs cap MY 5.0 + SG at RM6,250 (stop RM6,200)
+    from Thu 11/26 00:00 MYT to the Wed 12/02 15:00 live — closed before and after, summed over both accounts."""
+    from adbot.monitor_cpl import spend_cap_status
+    from adbot.settings import REPO_ROOT, load_settings
+
+    class _G:
+        def __init__(self):
+            self.calls = []
+
+        def account_insights(self, acct, *, level, fields, time_range=None, date_preset=None):
+            self.calls.append((acct, time_range))
+            return [{"spend": {"act_2285351942292267": "4000", "act_893025326577600": "2210"}[acct]}]
+
+    for cfg in ("config.my5.yaml", "config.sg.yaml"):
+        s = load_settings(REPO_ROOT / "config" / cfg)
+        assert s.spend_cap.cap_myr == 6250 and s.spend_cap.buffer_myr == 50
+        g = _G()
+        assert spend_cap_status(g, s, dt.datetime(2026, 11, 25, 23, 59)) is None and g.calls == []   # before Thu 00:00
+        assert spend_cap_status(g, s, dt.datetime(2026, 11, 26, 0, 0)) == (6210.0, 6200.0)          # open: both accounts summed
+        assert {a for a, _ in g.calls} == {"act_2285351942292267", "act_893025326577600"}
+        assert all(tr["since"] == "2026-11-26" for _, tr in g.calls)
+        assert spend_cap_status(_G(), s, dt.datetime(2026, 12, 2, 14, 59)) is not None              # still open Wed morning
+        assert spend_cap_status(_G(), s, dt.datetime(2026, 12, 2, 15, 0)) is None                    # live day 15:00: off
