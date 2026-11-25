@@ -30,9 +30,9 @@ CRE = [("赚美金", "🚫赚美金"), ("年纪大", "年纪大"), ("盖电脑",
        ("我跟你讲", "我跟你讲"), ("不选", "不选 forex"), ("决定变少", "V4 决定变少"), ("炒了五年", "V2 炒了五年"),
        ("不适合你", "V5 不适合你"), ("一个目的", "V1 一个目的"), ("越认真盯盘", "V3 越认真盯盘")]
 cre = lambda n: next((v for k, v in CRE if k in (n or "").lower()), "其它")
-# rejection history (CLAUDE.md): SG 11/05 batch (owner exception C), SG 11/21 (owner appealing), banned family
+# rejection history (CLAUDE.md): SG 11/05 batch (owner exception C), SG 11/21 (appeal failed 11/25), banned family
 REJ = {"korea": "SG 11/05 旧副本被拒（例外 C）", "盖电脑": "SG 11/05 旧副本被拒（例外 C）", "不选 forex": "SG 11/05 被拒（例外 C）；MY 10/08 被拒",
-       "用我的方法": "SG 11/05 旧副本被拒（例外 C）", "V2 炒了五年": "SG 11/21 被拒 · 申诉中", "我跟你讲": "SG 11/21 被拒 · 申诉中",
+       "用我的方法": "SG 11/05 旧副本被拒（例外 C）", "V2 炒了五年": "SG 11/21 被拒 · 复审仍被拒", "我跟你讲": "SG 11/21 被拒 · 复审仍被拒",
        "🚫赚美金": "永久禁跑"}
 loose = lambda a: re.sub(r"[\W_]+", "", re.sub(r"^(?:video|image)\s*\d*\s*[：:]\s*", "", cpa.norm(a)))
 s0 = load_settings(REPO_ROOT / "config" / "config.sg.yaml")
