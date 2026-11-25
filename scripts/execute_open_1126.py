@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """owner 11/25 23:2x (AskUserQuestion): at 11/26 00:00 I open — MY: BROAD MY 1017 (用我的方法 only; korea ad-level PAUSED 11/25),
 CBO · LUX BEER OMAKASE 1-3-3 1120, BEST CPA · Broad 1-1-3 1120; SG: BROAD SG 1030 (+ ad-level reopen of 年纪大 ad 120250144813480521),
-LOW CPL · Broad 1-1-3 1120. Guards (refuse everything if any fails): every campaign starts with (Webinarkit); the set of ads that would
+LOW CPL · Broad 1-1-3 1120. + owner 23:3x「预算不变，多开几个」: MY LOW CPL · Broad 1-1-3 1120, SG BROAD POOL 1-1-4 1123,
+SG CBO · LAL INVEST LUX 1-3-3 1120 (budgets unchanged). Guards (refuse everything if any fails): every campaign starts with (Webinarkit); the set of ads that would
 deliver after opening == EXPECTED exactly (no extra ad slips in); none banned / 🚫 / rejected; cycle spend (spend_cap window) below the
 stop line. CONFIRM=true writes: ad-level reopen first, then campaign layer; reads back every expected ad's effective_status."""
 from __future__ import annotations
@@ -18,14 +19,14 @@ from adbot.settings import REPO_ROOT, load_settings
 CONFIRM = os.environ.get("CONFIRM", "").lower() in ("1", "true", "yes")
 PLAN = {
     "MY": {"cfg": "config.my5.yaml",
-           "camps": ["120251454704570329", "120251995650640329", "120251993979260329"],
+           "camps": ["120251454704570329", "120251995650640329", "120251993979260329", "120251993985380329"],
            "reopen_ads": [],
            "expected": {"120251456458520329",
                         "120251995670340329", "120251995658960329", "120251995656940329", "120251995665060329",
                         "120251995664050329", "120251995675060329", "120251995663000329", "120251995668060329",
                         "120251993984490329", "120251993983160329"}},
     "SG": {"cfg": "config.sg.yaml",
-           "camps": ["120250144810670521", "120250706566080521"],
+           "camps": ["120250144810670521", "120250706566080521", "120250754563820521", "120250705919180521"],
            "reopen_ads": ["120250144813480521"],
            "expected": {"120250144813480521", "120250706571120521"}},
 }
