@@ -32,7 +32,7 @@ CRE = [("赚美金", "🚫赚美金"), ("年纪大", "年纪大"), ("盖电脑",
 cre = lambda n: next((v for k, v in CRE if k in (n or "").lower()), "其它")
 # rejection history (CLAUDE.md): SG 11/05 batch (owner exception C), SG 11/21 (appeal failed 11/25), banned family
 REJ = {"korea": "SG 11/05 旧副本被拒（例外 C）", "盖电脑": "SG 11/05 旧副本被拒（例外 C）", "不选 forex": "SG 11/05 被拒（例外 C）；MY 10/08 被拒",
-       "用我的方法": "SG 11/05 旧副本被拒（例外 C）", "V2 炒了五年": "SG 11/21 被拒 · 复审仍被拒", "我跟你讲": "SG 11/21 被拒 · 复审仍被拒",
+       "用我的方法": "SG 11/05 旧副本被拒（例外 C）", "V2 炒了五年": "SG 11/21 被拒 · 11/25 已删（例外）", "我跟你讲": "SG 11/21 被拒 · 11/25 已删（例外）",
        "🚫赚美金": "永久禁跑"}
 loose = lambda a: re.sub(r"[\W_]+", "", re.sub(r"^(?:video|image)\s*\d*\s*[：:]\s*", "", cpa.norm(a)))
 s0 = load_settings(REPO_ROOT / "config" / "config.sg.yaml")
