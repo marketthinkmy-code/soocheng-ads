@@ -30,7 +30,7 @@ def table(tab, must):
 rh, reg = table("Register", "Email")
 ph, paid = table(s0.cpa.sales_tab, "UTM Campaign")
 ad_col = next((h for h in rh if cpa._hkey(h) in ("utmadsname", "utmadname")), "UTM Ads Name")
-PII = re.compile(r"name|email|e-mail|phone|电话|姓名|whatsapp|contact|ic|address|地址", re.I)
+PII = re.compile(r"name|名字|姓名|email|e-mail|phone|电话|whatsapp|contact|address|地址|remark|备注|experience", re.I)
 safe_cols = [h for h in ph if h and not PII.search(h)]
 print("Paid 表非个资栏位：", " | ".join(safe_cols))
 who = lambda r: cpa.contact_keys(r.get("Email", ""), r.get("Phone Number", ""))
