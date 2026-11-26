@@ -13,7 +13,7 @@ from adbot.commands import graph_client
 from adbot.monitor_cpl import extract_results
 from adbot.settings import REPO_ROOT, load_settings
 
-SRC = "dec02"                      # current webinar cycle (Source column in Register)
+SRC = "dec2"                       # current webinar cycle (Source column in Register)
 START = (2026, 11, 26)             # cycle start (Thursday after the previous live)
 
 s = load_settings(REPO_ROOT / "config" / "config.sg.yaml")
