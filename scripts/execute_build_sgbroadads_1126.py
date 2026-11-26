@@ -24,6 +24,9 @@ ASET = "Broad | SG 28+"
 BUDGET = 10000
 SRC_ADS = ["120250706569340521", "120250706571120521", "120250544549430521"]   # korea · 盖电脑 · V5
 BAD = ("DISAPPROVED", "WITH_ISSUES")
+# SG creatives made from a post id (11/20 SG LOW CPL build) carry no object_story_spec; their link was proven on the MY ad of the same post
+MY_PROOF = {"1001334883061622_122126499027286543": "120251456191090329",   # korea · MY BROAD MY 1017
+            "1001334883061622_122126499021286543": "120251454701640329"}   # 盖电脑 · MY BUSINESS OWNER 1017
 
 
 def link_of(cr):
@@ -34,6 +37,7 @@ def link_of(cr):
 
 s = load_settings(REPO_ROOT / "config" / "config.sg.yaml")
 g = graph_client(s)
+gmy = graph_client(load_settings(REPO_ROOT / "config" / "config.my5.yaml"))
 acct = s.meta.account_path
 print("APPLY" if CONFIRM else "DRY-RUN")
 ads = []
@@ -43,11 +47,16 @@ for aid in SRC_ADS:
     nm = a["name"]
     assert not compliance.is_banned(nm, s.compliance.banned_creatives) and "🚫" not in nm, nm
     assert a["effective_status"] not in BAD, (nm, a["effective_status"])
-    lk = link_of(cr)
+    lk, how = link_of(cr), "SG creative"
+    post = cr.get("effective_object_story_id")
+    if not lk and post in MY_PROOF:
+        m = gmy.get_object(MY_PROOF[post], "creative{effective_object_story_id,object_story_spec}")["creative"]
+        assert m.get("effective_object_story_id") == post, (nm, m)
+        lk, how = link_of(m), f"同 post 的 MY ad {MY_PROOF[post]}"
     assert lk == LINK, (nm, lk)
     ads.append((nm, a["creative"]["id"]))
     print(f"  ad «{nm}» · 来源 {a['campaign']['name']} › {a['adset']['name']} · ad {aid} ({a['effective_status']}) · SG creative {a['creative']['id']}"
-          f" · post {cr.get('effective_object_story_id')} · → Webinarkit ✅ · url_tags {'有' if cr.get('url_tags') else '无'}")
+          f" · post {cr.get('effective_object_story_id')} · → Webinarkit ✅（{how}）· url_tags {'有' if cr.get('url_tags') else '无'}")
 bs = g.get_object(TEMPLATE_SET, "name,campaign{name},targeting,promoted_object,optimization_goal,billing_event,attribution_spec,"
                                 "regional_regulated_categories,regional_regulation_identities")
 po = bs["promoted_object"]
