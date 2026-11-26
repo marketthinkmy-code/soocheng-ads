@@ -24,9 +24,8 @@ ASET = "Broad | SG 28+"
 BUDGET = 10000
 SRC_ADS = ["120250706569340521", "120250706571120521", "120250544549430521"]   # korea · 盖电脑 · V5
 BAD = ("DISAPPROVED", "WITH_ISSUES")
-# SG creatives made from a post id (11/20 SG LOW CPL build) carry no object_story_spec; their link was proven on the MY ad of the same post
-MY_PROOF = {"1001334883061622_122126499027286543": "120251456191090329",   # korea · MY BROAD MY 1017
-            "1001334883061622_122126499021286543": "120251454701640329"}   # 盖电脑 · MY BUSINESS OWNER 1017
+# SG creatives made from a post id (11/20 SG LOW CPL build) carry no object_story_spec → prove the link on any creative (SG or MY 5.0)
+# whose effective_object_story_id is the same post and whose object_story_spec carries the link.
 
 
 def link_of(cr):
@@ -38,6 +37,15 @@ def link_of(cr):
 s = load_settings(REPO_ROOT / "config" / "config.sg.yaml")
 g = graph_client(s)
 gmy = graph_client(load_settings(REPO_ROOT / "config" / "config.my5.yaml"))
+_pool = {}
+
+
+def pool(cl, ac):
+    if ac not in _pool:
+        _pool[ac] = list(cl._get_all(ac + "/adcreatives", {"fields": "id,effective_object_story_id,object_story_spec", "limit": "500"}))
+    return _pool[ac]
+
+
 acct = s.meta.account_path
 print("APPLY" if CONFIRM else "DRY-RUN")
 ads = []
@@ -49,10 +57,12 @@ for aid in SRC_ADS:
     assert a["effective_status"] not in BAD, (nm, a["effective_status"])
     lk, how = link_of(cr), "SG creative"
     post = cr.get("effective_object_story_id")
-    if not lk and post in MY_PROOF:
-        m = gmy.get_object(MY_PROOF[post], "creative{effective_object_story_id,object_story_spec}")["creative"]
-        assert m.get("effective_object_story_id") == post, (nm, m)
-        lk, how = link_of(m), f"同 post 的 MY ad {MY_PROOF[post]}"
+    if not lk:
+        for cl, ac in ((g, acct), (gmy, "act_2285351942292267")):
+            hit = next((c for c in pool(cl, ac) if c.get("effective_object_story_id") == post and link_of(c)), None)
+            if hit:
+                lk, how = link_of(hit), f"同 post 的 creative {hit['id']}（{ac}）"
+                break
     assert lk == LINK, (nm, lk)
     ads.append((nm, a["creative"]["id"]))
     print(f"  ad «{nm}» · 来源 {a['campaign']['name']} › {a['adset']['name']} · ad {aid} ({a['effective_status']}) · SG creative {a['creative']['id']}"
