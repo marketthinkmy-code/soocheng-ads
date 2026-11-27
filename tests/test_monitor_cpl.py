@@ -934,3 +934,42 @@ def test_live_configs_cap_window_is_the_dec02_cycle():
         assert all(tr["since"] == "2026-11-26" for _, tr in g.calls)
         assert spend_cap_status(_G(), s, dt.datetime(2026, 12, 2, 14, 59)) is not None              # still open Wed morning
         assert spend_cap_status(_G(), s, dt.datetime(2026, 12, 2, 15, 0)) is None                    # live day 15:00: off
+
+
+def test_live_my5_cpa_hold_broad_my_yongwode_through_dec02(monkeypatch):
+    """owner 2026-11-27「保护到周三」: the live MY 5.0 config lifts the CPA hard stop for BROAD MY › Broad | MY 28+ ·
+    用我的方法 (ad 120251456458520329) through Wed 12/02 MYT only — a copy with another ad id still hard-stops,
+    and from 12/03 00:00 MYT the held ad hard-stops again. CPL rules still apply (see test_cpa_hold_still_lets_cpl_rules_close_the_ad)."""
+    from adbot.settings import REPO_ROOT, load_settings
+    live = load_settings(REPO_ROOT / "config" / "config.my5.yaml")
+    aid = "120251456458520329"
+    assert live.cpa.hold_ad_until[aid] == "2026-12-02"
+    settings = Settings(meta=MetaCfg(conversion_event="COMPLETE_REGISTRATION"),
+                        kpi=KpiCfg(cpl_threshold_myr=60, cpl_min_spend_myr=60, zero_lead_spend_myr=60,
+                                   cpl_lookback="last_3d", pause_zero_lead_after_spend=True),
+                        cpa=CpaCfg(enabled=True, hard_stop_myr=live.cpa.hard_stop_myr, conversion_days=14,
+                                   min_spend_myr=1000, hold_ad_until=live.cpa.hold_ad_until))
+    campaigns = [{"id": "A", "name": "STOCKBLOOM | BROAD MY | 1017", "effective_status": "ACTIVE"}]
+    ads = {"A": [_ad(aid), _ad("other")]}
+    insights = {n: _reg_insight(182, 5) for n in (aid, "other")}                  # CPL 36 — inside the RM60 line
+    ck = cpa.norm("stockbloom | broad my | 1017")
+    sold = {(ck, "", cpa.norm(n)): 1 for n in (aid, "other")}
+    spend60 = {n: 1210.0 for n in (aid, "other")}                                 # 60d CPA 1,210 > 1,200
+
+    def at(utc):
+        class _DT(dt.datetime):
+            @classmethod
+            def utcnow(cls):
+                return utc
+        monkeypatch.setattr(dt, "datetime", _DT)
+        try:
+            return {d.name: d for d in evaluate_account(_FakeGraph(campaigns, ads, insights), settings,
+                                                        cpa_ctx=(sold, spend60))}
+        finally:
+            monkeypatch.undo()
+
+    on_wed = at(dt.datetime(2026, 12, 2, 6, 59))                                  # Wed 12/02 14:59 MYT
+    assert on_wed[aid].should_pause is False and on_wed[aid].reason == CPA_MANUAL_HOLD
+    assert on_wed["other"].should_pause is True and on_wed["other"].reason == cpa.HARD_STOP
+    after = at(dt.datetime(2026, 12, 2, 16, 0))                                   # Thu 12/03 00:00 MYT
+    assert after[aid].should_pause is True and after[aid].reason == cpa.HARD_STOP
