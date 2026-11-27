@@ -114,6 +114,7 @@ cpa:                                     # cost per real PAID acquisition (joins
   hold_ad_until:                         # owner 2026-11-20「保护这两支到周三」: CPA 硬线豁免（只认 ad ID，到期自动失效；CPL 规则照判）
     "120251456191090329": "2026-11-25"   #   BROAD MY › Broad | MY 28+ · freestyle: korea（60 天 CPA 2,582 / 1 单）
     "120251454702680329": "2026-11-25"   #   BUSINESS OWNER › Business Owner | MY 28+ · 年纪大（60 天 CPA 1,646 / 1 单）
+    "120251456458520329": "2026-12-02"   # owner 2026-11-27「保护到周三」: BROAD MY › Broad | MY 28+ · 用我的方法（60 天 CPA 1,200 / 1 单；周四起 CPL 36）
   hold: []                               # 2026-09-21 的 V8 观察豁免已作废 — 该素材 2026-09-23 进永久禁跑名单
                                          #   (compliance.banned_creatives)，禁跑优先级高于任何 CPA 豁免。
 
